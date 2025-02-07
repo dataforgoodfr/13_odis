@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
-load_dotenv()
 import os
-from common.utils.object_storage_client import ObjectStorageClient
+from object_storage_client import ObjectStorageClient
+load_dotenv()
 
 def download_s3_folder(bucket_name, s3_folder_path):
     s3_client = ObjectStorageClient(bucket_name)
