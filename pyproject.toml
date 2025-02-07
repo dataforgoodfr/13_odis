@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "odis"
+name = "13_odis"
 version = "0.1.0"
 description = "odis"
 authors = ["DataForGood"]
