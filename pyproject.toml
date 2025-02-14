@@ -42,7 +42,11 @@ geopandas = "^1.0.1"
 matplotlib = "^3.10.0"
 folium = "^0.19.4"
 mapclassify = "^2.8.1"
+<<<<<<< HEAD
 >>>>>>> 54e94b8 (Start work on communes polygons)
+=======
+pyarrow = "^19.0.0"
+>>>>>>> 5afe874 (More work with geopanda)
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.1.0"
