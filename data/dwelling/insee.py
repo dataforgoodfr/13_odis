@@ -10,6 +10,18 @@ def get_vacant_dwelling_by_year(year):
     url = f"{BASE_URL}?TIME_PERIOD={year}&OCS=DW_VAC&maxResult={MAX_RESULT}"
     return get_observations(url)
 
+def get_dwelling_by_year_and_room_count(year, room_count):
+    room_count_labels = ["R1","R2","R3","R4","R_GE5"]
+    if not year:
+        assert False, "year must be select"
+    if not room_count:
+        assert False, "room_count must be select"
+    if room_count not in room_count_labels:
+        assert False, f"room_count must be in {room_count_labels}"
+    
+    url = f"{BASE_URL}?TIME_PERIOD={year}&NOR={room_count}&maxResult={MAX_RESULT}"
+    return get_observations(url)
+
 def get_observations(url):
     observations = []
     isLast = False
@@ -32,5 +44,3 @@ def get_observations(url):
             url = data["paging"]["next"]
 
     return observations
-
-observations = get_vacant_dwelling_by_year(2021)
