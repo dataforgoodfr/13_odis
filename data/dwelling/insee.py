@@ -28,7 +28,7 @@ def get_observations(url):
 
 def get_vacant_dwelling_by_year(year):
     if not year:
-        assert False, "year must be select"
+        raise AssertionError("year must be select")
     
     url = f"{BASE_URL}?TIME_PERIOD={year}&OCS=DW_VAC&maxResult={MAX_RESULT}"
     return get_observations(url)
@@ -36,11 +36,11 @@ def get_vacant_dwelling_by_year(year):
 def get_dwelling_by_year_and_room_count(year, room_count):
     room_count_labels = ["R1","R2","R3","R4","R_GE5"]
     if not year:
-        assert False, "year must be select"
+        raise AssertionError("year must be select")
     if not room_count:
-        assert False, "room_count must be select"
+        raise AssertionError("room_count must be select")
     if room_count not in room_count_labels:
-        assert False, f"room_count must be in {room_count_labels}"
+        raise AssertionError(f"room_count must be in {room_count_labels}")
     
     url = f"{BASE_URL}?TIME_PERIOD={year}&NOR={room_count}&maxResult={MAX_RESULT}"
     return get_observations(url)
@@ -48,11 +48,11 @@ def get_dwelling_by_year_and_room_count(year, room_count):
 def get_dwelling_by_year_and_type(year, type):
     types_labels = ["1","2","3T6"]
     if not year:
-        assert False, "year must be select"
+        raise AssertionError("year must be select")
     if not type:
-        assert False, "type must be select"
+        raise AssertionError("type must be select")
     if type not in types_labels:
-        assert False, f"type must be in {types_labels}"
+        raise AssertionError(f"type must be in {types_labels}")
     
     url = f"{BASE_URL}?TIME_PERIOD={year}&TDW={type}&maxResult={MAX_RESULT}"
     return get_observations(url)
