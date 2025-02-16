@@ -25,7 +25,7 @@ La base de données sera ensuite accessible sur `localhost:5432`
 ## Pour initialiser ou réinitialiser la base de données
 
 ```
-poetry run bin/db.py init
+poetry run python bin/db.py init
 ```
 
 ## Télécharger la méthodologie et les modèles de données cibles
