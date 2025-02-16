@@ -8,7 +8,6 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-bin/
 .Python
 build/
 develop-eggs/
@@ -164,3 +163,4 @@ cython_debug/
 
 data/imports/*
 !data/imports/.gitkeep
+.DS_Store
