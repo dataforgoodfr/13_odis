@@ -11,6 +11,9 @@ license = " MIT"
 readme = "README.md"
 package-mode = false
 
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.9"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 # numpy = "^1.21.1"
@@ -22,7 +25,7 @@ boto3 = "^1.36.6"
 psycopg2-binary = "^2.9.10"
 
 [tool.poetry.group.dev.dependencies]
-pre-commit = "^2.20.0"
+pre-commit = "^4.1.0"
 pytest = "^7.2.0"
 tox = "^4.4.8"
 
