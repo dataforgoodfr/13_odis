@@ -2,7 +2,7 @@
 import os
 import argparse
 import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, connection
+from psycopg2.extensions import connection
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,11 +18,17 @@ DB_BASE_CONFIG = {
 DB_TARGET_NAME = os.environ['PG_DB_NAME']
 SCHEMAS = ['bronze', 'silver', 'gold']
 
-def db_connect() -> connection: 
+def db_connect(DB_NAME='postgres') -> connection: 
     """connect to database"""
     try: 
-        co = psycopg2.connect(**DB_BASE_CONFIG)
-        co.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        co = psycopg2.connect(
+            dbname=DB_NAME,
+            user=os.getenv('PG_DB_USER'),
+            password=os.getenv('PG_DB_PWD'),
+            host='localhost',
+            port=os.getenv('PG_DB_PORT'),
+        )
+        co.autocommit = True
         return co
     except psycopg2.Error as e:
         print(f"Failed to connect to database: {e}")
@@ -41,11 +47,17 @@ def db_init():
             print("Database initialization cancelled.")
             return
     
+    cursor.execute("SELECT pg_terminate_backend(pg_stat_activity.pid) " +
+                   "FROM pg_stat_activity WHERE " + 
+                   f"pg_stat_activity.datname = '{DB_TARGET_NAME}' AND pid <> pg_backend_pid()")
     cursor.execute(f"DROP DATABASE IF EXISTS {DB_TARGET_NAME}")
     print(f"Dropped existing database {DB_TARGET_NAME}")
 
     cursor.execute(f"CREATE DATABASE {DB_TARGET_NAME}")
     print(f"Created database {DB_TARGET_NAME}")
+
+    co = db_connect(DB_TARGET_NAME)
+    cursor = co.cursor()
 
     for schema in SCHEMAS:
         cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
