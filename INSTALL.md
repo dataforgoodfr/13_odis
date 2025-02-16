@@ -1,13 +1,8 @@
 # Guide d'installation
 
-## TL;DR
+## Installer Docker
 
-- copier `.env.dist` to `.env` et remplir les variables nécessaire, à demander à l'équipe.
-- installer les dépendances
-    ```bash
-    poetry install
-    ```
-- ...
+Suivre les instructions sur le [site officiel](https://www.docker.com/get-started/)
 
 ## Installer Poetry
 
