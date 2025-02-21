@@ -1,0 +1,16 @@
+domains:
+  geographical_references:
+    sources: 
+      - name: regions
+        type: metadonnees_api
+        url: https://api.insee.fr/metadonnees/V1/geo/regions
+        format: json
+      - name: departments
+        type: metadonnees_api
+        url: https://api.insee.fr/metadonnees/V1/geo/departements
+        format: json
+      - name: communes
+        type: metadonnees_api
+        url: https://api.insee.fr/metadonnees/V1/geo/communes
+        format: json
+
