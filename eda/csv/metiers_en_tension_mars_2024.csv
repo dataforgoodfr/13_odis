@@ -1,0 +1,400 @@
+Region,Famille Professionnelle,Code FAP
+France Entière,Agriculteurs salariés,A0Z40
+France Entière,Éleveurs salariés,A0Z41
+France Entière,Maraîchers; horticulteurs salariés,A1Z40
+France Entière,Viticulteurs; arboriculteurs salariés,A1Z42
+Auvergne-Rhône-Alpes,Agriculteurs salariés,A0Z40
+Auvergne-Rhône-Alpes,Éleveurs salariés,A0Z41
+Auvergne-Rhône-Alpes,Maraîchers; horticulteurs salariés,A1Z40
+Auvergne-Rhône-Alpes,Viticulteurs; arboriculteurs salariés,A1Z42
+Auvergne-Rhône-Alpes,Agents de maîtrise et assimilés des industries de process,E2Z80
+Auvergne-Rhône-Alpes,Agents d'entretien de locaux,T4Z60
+Auvergne-Rhône-Alpes,Autres professionnels para-médicaux,V3Z80
+Auvergne-Rhône-Alpes,Cadres techniques de la maintenance et de l'environnement,H0Z91
+Auvergne-Rhône-Alpes,Carrossiers automobiles,G0B40
+Auvergne-Rhône-Alpes,Charcutiers; traiteurs,S0Z41
+Auvergne-Rhône-Alpes,Charpentiers (bois),B2Z43
+Auvergne-Rhône-Alpes,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Auvergne-Rhône-Alpes,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Auvergne-Rhône-Alpes,Conducteurs routiers,J3Z43
+Auvergne-Rhône-Alpes,Dessinateurs en électricité et en électronique,C2Z71
+Auvergne-Rhône-Alpes,Dessinateurs en mécanique et travail des métaux,D6Z71
+Auvergne-Rhône-Alpes,Géomètres,B6Z70
+Auvergne-Rhône-Alpes,Ingénieurs et cadres des télécommunications,M2Z92
+Auvergne-Rhône-Alpes,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Auvergne-Rhône-Alpes,Maîtres d'hôtel,S2Z80
+Auvergne-Rhône-Alpes,Monteurs; ajusteurs et autres ouvriers qualifiés de la mécanique,D4Z40
+Auvergne-Rhône-Alpes,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Auvergne-Rhône-Alpes,Ouvriers qualifiés du travail du bois et de l'ameublement,F3Z41
+Auvergne-Rhône-Alpes,Ouvriers qualifiés travaillant par enlèvement de métal,D1Z41
+Auvergne-Rhône-Alpes,Pilotes d'installation lourde des industries de transformation,E1Z40
+Auvergne-Rhône-Alpes,Régleurs,D1Z40
+Auvergne-Rhône-Alpes,Techniciens des services comptables et financiers,L4Z81
+Auvergne-Rhône-Alpes,Techniciens d'étude et de développement en informatique,M1Z80
+Auvergne-Rhône-Alpes,Techniciens en électricité et en électronique,C2Z70
+Auvergne-Rhône-Alpes,Techniciens en mécanique et travail des métaux,D6Z70
+Auvergne-Rhône-Alpes,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Auvergne-Rhône-Alpes,Techniciens et agents de maîtrise des matériaux souples; du bois et des industries graphiques,F5Z70
+Bourgogne-Franche-Comté,Agriculteurs salariés,A0Z40
+Bourgogne-Franche-Comté,Éleveurs salariés,A0Z41
+Bourgogne-Franche-Comté,Maraîchers; horticulteurs salariés,A1Z40
+Bourgogne-Franche-Comté,Viticulteurs; arboriculteurs salariés,A1Z42
+Bourgogne-Franche-Comté,Agents de maîtrise et assimilés des industries de process,E2Z80
+Bourgogne-Franche-Comté,Autres professionnels para-médicaux,V3Z80
+Bourgogne-Franche-Comté,Bouchers,S0Z40
+Bourgogne-Franche-Comté,Charpentiers (bois),B2Z43
+Bourgogne-Franche-Comté,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Bourgogne-Franche-Comté,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Bourgogne-Franche-Comté,Conducteurs routiers,J3Z43
+Bourgogne-Franche-Comté,Couvreurs,B2Z44
+Bourgogne-Franche-Comté,Dessinateurs en mécanique et travail des métaux,D6Z71
+Bourgogne-Franche-Comté,Géomètres,B6Z70
+Bourgogne-Franche-Comté,Infirmiers,V1Z80
+Bourgogne-Franche-Comté,Ingénieurs  du bâtiment  et  des  travaux publics;  chefs  de  chantier  et  conducteurs  de travaux (cadres),B7Z91
+Bourgogne-Franche-Comté,Ingénieurs et cadres d'étude; recherche et développement (industrie),N0Z90
+Bourgogne-Franche-Comté,Ingénieurs et  cadres  d'étude;  recherche et  développement  en informatique;  chefs  de projets informatiques,M2Z90
+Bourgogne-Franche-Comté,Maîtres d'hôtel,S2Z80
+Bourgogne-Franche-Comté,Ouvriers qualifiés de la maintenance en électricité et en électronique,G0A41
+Bourgogne-Franche-Comté,Ouvriers qualifiés de l'électricité et de l'électronique,C1Z40
+Bourgogne-Franche-Comté,Ouvriers qualifiés du travail du bois et de l'ameublement,F3Z41
+Bourgogne-Franche-Comté,Professionnels du travail de la pierre et des matériaux associés,B2Z41
+Bourgogne-Franche-Comté,Régleurs,D1Z40
+Bourgogne-Franche-Comté,Spécialistes de l'appareillage médical,V3Z71
+Bourgogne-Franche-Comté,Techniciens des assurances,Q1Z81
+Bourgogne-Franche-Comté,Techniciens des services comptables et financiers,L4Z81
+Bourgogne-Franche-Comté,Techniciens d'étude et de développement en informatique,M1Z80
+Bourgogne-Franche-Comté,Techniciens en électricité et en électronique,C2Z70
+Bourgogne-Franche-Comté,Techniciens en mécanique et travail des métaux,D6Z70
+Bourgogne-Franche-Comté,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Bourgogne-Franche-Comté,Techniciens et agents d'encadrement d'exploitations agricoles,A2Z70
+Bourgogne-Franche-Comté,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Bourgogne-Franche-Comté,Tuyauteurs,D2Z41
+Bretagne,Agriculteurs salariés,A0Z40
+Bretagne,Éleveurs salariés,A0Z41
+Bretagne,Maraîchers; horticulteurs salariés,A1Z40
+Bretagne,Viticulteurs; arboriculteurs salariés,A1Z42
+Bretagne,Agents de maîtrise et assimilés des industries de process,E2Z80
+Bretagne,Bouchers,S0Z40
+Bretagne,Cadres et maîtres d'équipage de la marine,A3Z90
+Bretagne,Cadres techniques de la maintenance et de l'environnement,H0Z91
+Bretagne,Carrossiers automobiles,G0B40
+Bretagne,Charcutiers; traiteurs,S0Z41
+Bretagne,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Bretagne,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Bretagne,Conducteurs routiers,J3Z43
+Bretagne,Couvreurs,B2Z44
+Bretagne,Dessinateurs en mécanique et travail des métaux,D6Z71
+Bretagne,Ingénieurs du bâtiment et des travaux publics; chefs de chantier et conducteurs de travaux (cadres),B7Z91
+Bretagne,Ingénieurs et cadres de la logistique; du planning et de l'ordonnancement,J6Z92
+Bretagne,Maçons,B2Z40
+Bretagne,Ouvriers non qualifiés des travaux publics; du béton et de l'extraction,B0Z20
+Bretagne,Ouvriers non qualifiés du second œuvre du bâtiment,B3Z20
+Bretagne,Ouvriers qualifiés de la maintenance en électricité et en électronique,G0A41
+Bretagne,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Bretagne,Ouvriers qualifiés travaillant par enlèvement de métal,D1Z41
+Bretagne,Plombiers; chauffagistes,B4Z41
+Bretagne,Professionnels du travail de la pierre et des matériaux associés,B2Z41
+Bretagne,Techniciens des services comptables et financiers,L4Z81
+Bretagne,Techniciens d'étude et de développement en informatique,M1Z80
+Bretagne,Techniciens en électricité et en électronique,C2Z70
+Bretagne,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Bretagne,Techniciens et agents d'encadrement d'exploitations agricoles,A2Z70
+Bretagne,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Bretagne,Techniciens médicaux et préparateurs,V3Z70
+Bretagne,Tuyauteurs,D2Z41
+Centre-Val de Loire,Agriculteurs salariés,A0Z40
+Centre-Val de Loire,Éleveurs salariés,A0Z41
+Centre-Val de Loire,Maraîchers; horticulteurs salariés,A1Z40
+Centre-Val de Loire,Viticulteurs; arboriculteurs salariés,A1Z42
+Centre-Val de Loire,Agents de maîtrise et assimilés des industries de process,E2Z80
+Centre-Val de Loire,Aides à domicile et aides ménagères,T2A60
+Centre-Val de Loire,Autres professionnels para-médicaux,V3Z80
+Centre-Val de Loire,Bouchers,S0Z40
+Centre-Val de Loire,Cadres techniques de la maintenance et de l'environnement,H0Z91
+Centre-Val de Loire,Charpentiers (bois),B2Z43
+Centre-Val de Loire,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Centre-Val de Loire,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Centre-Val de Loire,Chercheurs (sauf industrie et enseignement supérieur),N0Z91
+Centre-Val de Loire,Conducteurs routiers,J3Z43
+Centre-Val de Loire,Couvreurs,B2Z44
+Centre-Val de Loire,Dessinateurs en mécanique et travail des métaux,D6Z71
+Centre-Val de Loire,Ingénieurs du bâtiment et des travaux publics; chefs de chantier et conducteurs de travaux (cadres),B7Z91
+Centre-Val de Loire,Ingénieurs et cadres d'étude; recherche et développement (industrie),N0Z90
+Centre-Val de Loire,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Centre-Val de Loire,Maîtres d'hôtel,S2Z80
+Centre-Val de Loire,Ouvriers qualifiés de la maintenance en électricité et en électronique,G0A41
+Centre-Val de Loire,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Centre-Val de Loire,Ouvriers qualifiés du travail du bois et de l'ameublement,F3Z41
+Centre-Val de Loire,Ouvriers qualifiés travaillant par enlèvement de métal,D1Z41
+Centre-Val de Loire,Psychologues; psychothérapeutes,V3Z90
+Centre-Val de Loire,Régleurs,D1Z40
+Centre-Val de Loire,Spécialistes de l'appareillage médical,V3Z71
+Centre-Val de Loire,Techniciens des services comptables et financiers,L4Z81
+Centre-Val de Loire,Techniciens des transports et du tourisme,J5Z80
+Centre-Val de Loire,Techniciens en électricité et en électronique,C2Z70
+Centre-Val de Loire,Techniciens en mécanique et travail des métaux,D6Z70
+Centre-Val de Loire,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Centre-Val de Loire,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Corse,Agriculteurs salariés,A0Z40
+Corse,Éleveurs salariés,A0Z41
+Corse,Maraîchers; horticulteurs salariés,A1Z40
+Corse,Viticulteurs; arboriculteurs salariés,A1Z42
+Corse,Aides-soignants,V0Z60
+Corse,Autres professionnels para-médicaux,V3Z80
+Corse,Bouchers,S0Z40
+Corse,Carrossiers automobiles,G0B40
+Corse,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Corse,Conducteurs routiers,J3Z43
+Corse,Employés de la banque et des assurances,Q0Z60
+Corse,Maçons,B2Z40
+Corse,Monteurs; ajusteurs et autres ouvriers qualifiés de la mécanique,D4Z40
+Corse,Plombiers; chauffagistes,B4Z41
+Corse,Spécialistes de l'appareillage médical,V3Z71
+Corse,Techniciens des assurances,Q1Z81
+Corse,Techniciens des services comptables et financiers,L4Z81
+Corse,Techniciens médicaux et préparateurs,V3Z70
+Grand Est,Agriculteurs salariés,A0Z40
+Grand Est,Éleveurs salariés,A0Z41
+Grand Est,Maraîchers; horticulteurs salariés,A1Z40
+Grand Est,Viticulteurs; arboriculteurs salariés,A1Z42
+Grand Est,Agents de maîtrise et assimilés des industries de process,E2Z80
+Grand Est,Aides-soignants,V0Z60
+Grand Est,Autres professionnels para-médicaux,V3Z80
+Grand Est,Charpentiers (bois),B2Z43
+Grand Est,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Grand Est,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Grand Est,Conducteurs routiers,J3Z43
+Grand Est,Formateurs,W1Z80
+Grand Est,Géomètres,B6Z70
+Grand Est,Infirmiers,V1Z80
+Grand Est,Ingénieurs du bâtiment et des travaux publics; chefs de chantier et conducteurs de travaux (cadres),B7Z91
+Grand Est,Ingénieurs et cadres des télécommunications,M2Z92
+Grand Est,Ingénieurs et cadres d'étude; recherche et développement (industrie),N0Z90
+Grand Est,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Grand Est,Ingénieurs; cadres techniques de l'agriculture,A2Z90
+Grand Est,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Grand Est,Professionnels du travail de la pierre et des matériaux associés,B2Z41
+Grand Est,Techniciens d'étude et de développement en informatique,M1Z80
+Grand Est,Techniciens en électricité et en électronique,C2Z70
+Grand Est,Techniciens en mécanique et travail des métaux,D6Z70
+Grand Est,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Hauts-de-France,Agriculteurs salariés,A0Z40
+Hauts-de-France,Éleveurs salariés,A0Z41
+Hauts-de-France,Maraîchers; horticulteurs salariés,A1Z40
+Hauts-de-France,Viticulteurs; arboriculteurs salariés,A1Z42
+Hauts-de-France,Agents de maîtrise et assimilés des industries de process,E2Z80
+Hauts-de-France,Aides-soignants,V0Z60
+Hauts-de-France,Autres professionnels para-médicaux,V3Z80
+Hauts-de-France,Bouchers,S0Z40
+Hauts-de-France,Cadres de la banque,Q2Z90
+Hauts-de-France,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Hauts-de-France,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Hauts-de-France,Conducteurs d'engins agricoles ou forestiers,A0Z43
+Hauts-de-France,Conducteurs routiers,J3Z43
+Hauts-de-France,Dessinateurs en mécanique et travail des métaux,D6Z71
+Hauts-de-France,Infirmiers,V1Z80
+Hauts-de-France,Ingénieurs et cadres d'étude; recherche et développement (industrie),N0Z90
+Hauts-de-France,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Hauts-de-France,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Hauts-de-France,Ouvriers qualifiés du travail du bois et de l'ameublement,F3Z41
+Hauts-de-France,Ouvriers qualifiés travaillant par enlèvement de métal,D1Z41
+Hauts-de-France,Pilotes d'installation lourde des industries de transformation,E1Z40
+Hauts-de-France,Professions intermédiaires commerciales,R3Z82
+Hauts-de-France,Spécialistes de l'appareillage médical,V3Z71
+Hauts-de-France,Techniciens des assurances,Q1Z81
+Hauts-de-France,Techniciens des services comptables et financiers,L4Z81
+Hauts-de-France,Techniciens d'étude et de développement en informatique,M1Z80
+Hauts-de-France,Techniciens en électricité et en électronique,C2Z70
+Hauts-de-France,Techniciens en mécanique et travail des métaux,D6Z70
+Hauts-de-France,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Hauts-de-France,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Hauts-de-France,Techniciens experts,G1Z71
+Hauts-de-France,Techniciens médicaux et préparateurs,V3Z70
+Ile-de-France,Agriculteurs salariés,A0Z40
+Ile-de-France,Éleveurs salariés,A0Z41
+Ile-de-France,Maraîchers; horticulteurs salariés,A1Z40
+Ile-de-France,Viticulteurs; arboriculteurs salariés,A1Z42
+Ile-de-France,Agents de maîtrise et assimilés des industries de process,E2Z80
+Ile-de-France,Autres professionnels para-médicaux,V3Z80
+Ile-de-France,Bouchers,S0Z40
+Ile-de-France,Cadres techniques de la maintenance et de l'environnement,H0Z91
+Ile-de-France,Charcutiers; traiteurs,S0Z41
+Ile-de-France,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Ile-de-France,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Ile-de-France,Dessinateurs en électricité et en électronique,C2Z71
+Ile-de-France,Dessinateurs en mécanique et travail des métaux,D6Z71
+Ile-de-France,Géomètres,B6Z70
+Ile-de-France,Infirmiers,V1Z80
+Ile-de-France,Ingénieurs du bâtiment et des travaux publics; chefs de chantier et conducteurs de travaux (cadres),B7Z91
+Ile-de-France,Ingénieurs et cadres d'administration; maintenance en informatique,M2Z91
+Ile-de-France,Ingénieurs et cadres des télécommunications,M2Z92
+Ile-de-France,Ingénieurs et cadres d'étude; recherche et développement (industrie),N0Z90
+Ile-de-France,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Ile-de-France,Monteurs; ajusteurs et autres ouvriers qualifiés de la mécanique,D4Z40
+Ile-de-France,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Ile-de-France,Ouvriers qualifiés de l'électricité et de l'électronique,C1Z40
+Ile-de-France,Ouvriers qualifiés du travail du bois et de l'ameublement,F3Z41
+Ile-de-France,Ouvriers qualifiés travaillant par enlèvement de métal,D1Z41
+Ile-de-France,Pilotes d'installation lourde des industries de transformation,E1Z40
+Ile-de-France,Régleurs,D1Z40
+Ile-de-France,Techniciens des assurances,Q1Z81
+Ile-de-France,Techniciens des services comptables et financiers,L4Z81
+Ile-de-France,Techniciens d'étude et de développement en informatique,M1Z80
+Ile-de-France,Techniciens en électricité et en électronique,C2Z70
+Ile-de-France,Techniciens en mécanique et travail des métaux,D6Z70
+Ile-de-France,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Ile-de-France,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Normandie,Agriculteurs salariés,A0Z40
+Normandie,Éleveurs salariés,A0Z41
+Normandie,Maraîchers; horticulteurs salariés,A1Z40
+Normandie,Viticulteurs; arboriculteurs salariés,A1Z42
+Normandie,Autres professionnels para-médicaux,V3Z80
+Normandie,Bouchers,S0Z40
+Normandie,Cadres techniques de la maintenance et de l'environnement,H0Z91
+Normandie,Charcutiers; traiteurs,S0Z41
+Normandie,Charpentiers (bois),B2Z43
+Normandie,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Normandie,Chefs cuisiniers,S1Z80
+Normandie,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Normandie,Conducteurs routiers,J3Z43
+Normandie,Couvreurs,B2Z44
+Normandie,Dessinateurs en mécanique et travail des métaux,D6Z71
+Normandie,Géomètres,B6Z70
+Normandie,Infirmiers,V1Z80
+Normandie,Ingénieurs du bâtiment et des travaux publics; chefs de chantier et conducteurs de travaux (cadres),B7Z91
+Normandie,Ingénieurs et cadres de la logistique; du planning et de l'ordonnancement,J6Z92
+Normandie,Ingénieurs et cadres d'étude; recherche et développement (industrie),N0Z90
+Normandie,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Normandie,Maîtres d'hôtel,S2Z80
+Normandie,Ouvriers qualifiés de la maintenance en électricité et en électronique,G0A41
+Normandie,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Normandie,Ouvriers qualifiés travaillant par enlèvement de métal,D1Z41
+Normandie,Régleurs,D1Z40
+Normandie,Spécialistes de l'appareillage médical,V3Z71
+Normandie,Techniciens des assurances,Q1Z81
+Normandie,Techniciens des services comptables et financiers,L4Z81
+Normandie,Techniciens d'étude et de développement en informatique,M1Z80
+Normandie,Techniciens en électricité et en électronique,C2Z70
+Normandie,Techniciens en mécanique et travail des métaux,D6Z70
+Normandie,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Normandie,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Nouvelle-Aquitaine,Agriculteurs salariés,A0Z40
+Nouvelle-Aquitaine,Éleveurs salariés,A0Z41
+Nouvelle-Aquitaine,Maraîchers; horticulteurs salariés,A1Z40
+Nouvelle-Aquitaine,Viticulteurs; arboriculteurs salariés,A1Z42
+Nouvelle-Aquitaine,Agents de maîtrise et assimilés des industries de process,E2Z80
+Nouvelle-Aquitaine,Bouchers,S0Z40
+Nouvelle-Aquitaine,Cadres des transports,J6Z90
+Nouvelle-Aquitaine,Cadres techniques de la maintenance et de l'environnement,H0Z91
+Nouvelle-Aquitaine,Carrossiers automobiles,G0B40
+Nouvelle-Aquitaine,Charcutiers; traiteurs,S0Z41
+Nouvelle-Aquitaine,Charpentiers (bois),B2Z43
+Nouvelle-Aquitaine,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Nouvelle-Aquitaine,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Nouvelle-Aquitaine,Conducteurs routiers,J3Z43
+Nouvelle-Aquitaine,Couvreurs,B2Z44
+Nouvelle-Aquitaine,Dessinateurs en électricité et en électronique,C2Z71
+Nouvelle-Aquitaine,Dessinateurs en mécanique et travail des métaux,D6Z71
+Nouvelle-Aquitaine,Géomètres,B6Z70
+Nouvelle-Aquitaine,Ingénieurs du bâtiment et des travaux publics; chefs de chantier et conducteurs de travaux (cadres),B7Z91
+Nouvelle-Aquitaine,Ingénieurs et cadres de la logistique; du planning et de l'ordonnancement,J6Z92
+Nouvelle-Aquitaine,Ingénieurs et cadres des télécommunications,M2Z92
+Nouvelle-Aquitaine,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Nouvelle-Aquitaine,Maçons,B2Z40
+Nouvelle-Aquitaine,Ouvriers qualifiés de la maintenance en électricité et en électronique,G0A41
+Nouvelle-Aquitaine,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Nouvelle-Aquitaine,Régleurs,D1Z40
+Nouvelle-Aquitaine,Spécialistes de l'appareillage médical,V3Z71
+Nouvelle-Aquitaine,Techniciens en mécanique et travail des métaux,D6Z70
+Nouvelle-Aquitaine,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Nouvelle-Aquitaine,Techniciens et agents de maîtrise des matériaux souples; du bois et des industries graphiques,F5Z70
+Nouvelle-Aquitaine,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Nouvelle-Aquitaine,Tuyauteurs,D2Z41
+Occitanie,Agriculteurs salariés,A0Z40
+Occitanie,Éleveurs salariés,A0Z41
+Occitanie,Maraîchers; horticulteurs salariés,A1Z40
+Occitanie,Viticulteurs; arboriculteurs salariés,A1Z42
+Occitanie,Agents de maîtrise en entretien,G1Z80
+Occitanie,Aides à domicile et aides ménagères,T2A60
+Occitanie,Aides-soignants,V0Z60
+Occitanie,Autres ouvriers qualifiés en verre; céramique; métallurgie; matériaux de construction et énergie,E1Z43
+Occitanie,Autres professionnels para-médicaux,V3Z80
+Occitanie,Bouchers,S0Z40
+Occitanie,Bûcherons; sylviculteurs salariés et agents forestiers,A0Z42
+Occitanie,Cadres administratifs; comptables et financiers (hors juristes),L5Z90
+Occitanie,Cadres techniques de la maintenance et de l'environnement,H0Z91
+Occitanie,Charpentiers (bois),B2Z43
+Occitanie,Charpentiers (métal),B2Z42
+Occitanie,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Occitanie,Couvreurs,B2Z44
+Occitanie,Dessinateurs en électricité et en électronique,C2Z71
+Occitanie,Dessinateurs en mécanique et travail des métaux,D6Z71
+Occitanie,Géomètres,B6Z70
+Occitanie,Infirmiers,V1Z80
+Occitanie,Ingénieurs du bâtiment et des travaux publics; chefs de chantier et conducteurs de travaux (cadres),B7Z91
+Occitanie,Ingénieurs et cadres des télécommunications,M2Z92
+Occitanie,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Occitanie,Maçons,B2Z40
+Occitanie,Ouvriers non qualifiés des industries agro-alimentaires,E0Z21
+Occitanie,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Occitanie,Ouvriers qualifiés des travaux publics; du béton et de l'extraction,B1Z40
+Occitanie,Techniciens des services comptables et financiers,L4Z81
+Occitanie,Techniciens en électricité et en électronique,C2Z70
+Occitanie,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Occitanie,Techniciens médicaux et préparateurs,V3Z70
+Pays de la Loire,Agents de maîtrise et assimilés des industries de process,E2Z80
+Pays de la Loire,Agents de services hospitaliers,T4Z61
+Pays de la Loire,Agents d'entretien de locaux,T4Z60
+Pays de la Loire,Aides à domicile et aides ménagères,T2A60
+Pays de la Loire,Aides-soignants,V0Z60
+Pays de la Loire,Bouchers,S0Z40
+Pays de la Loire,Carrossiers automobiles,G0B40
+Pays de la Loire,Charpentiers (bois),B2Z43
+Pays de la Loire,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Pays de la Loire,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Pays de la Loire,Conducteurs routiers,J3Z43
+Pays de la Loire,Couvreurs,B2Z44
+Pays de la Loire,Dessinateurs en mécanique et travail des métaux,D6Z71
+Pays de la Loire,Infirmiers,V1Z80
+Pays de la Loire,Ingénieurs du bâtiment et des travaux publics; chefs de chantier et conducteurs de travaux (cadres),B7Z91
+Pays de la Loire,Ingénieurs et cadres d'étude; recherche et développement (industrie),N0Z90
+Pays de la Loire,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Pays de la Loire,Mécaniciens et électroniciens de véhicules,G0B41
+Pays de la Loire,Ouvriers non qualifiés de l'emballage et manutentionnaires,J0Z20
+Pays de la Loire,Ouvriers qualifiés de l'électricité et de l'électronique,C1Z40
+Pays de la Loire,Ouvriers qualifiés du magasinage et de la manutention,J1Z40
+Pays de la Loire,Ouvriers qualifiés du travail du bois et de l'ameublement,F3Z41
+Pays de la Loire,Ouvriers qualifiés travaillant par enlèvement de métal,D1Z41
+Pays de la Loire,Plombiers; chauffagistes,B4Z41
+Pays de la Loire,Professionnels de l'animation socioculturelle,V5Z81
+Pays de la Loire,Techniciens en électricité et en électronique,C2Z70
+Pays de la Loire,Techniciens en mécanique et travail des métaux,D6Z70
+Pays de la Loire,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Pays de la Loire,Techniciens et agents d'encadrement d'exploitations agricoles,A2Z70
+Pays de la Loire,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Provence-Alpes-Côte d'Azur,Agents de maîtrise et assimilés des industries de process,E2Z80
+Provence-Alpes-Côte d'Azur,Autres professionnels para-médicaux,V3Z80
+Provence-Alpes-Côte d'Azur,Cadres techniques de la maintenance et de l'environnement,H0Z91
+Provence-Alpes-Côte d'Azur,Charpentiers (bois),B2Z43
+Provence-Alpes-Côte d'Azur,Chaudronniers; tôliers; traceurs; serruriers; métalliers; forgerons,D2Z40
+Provence-Alpes-Côte d'Azur,Chefs de chantier; conducteurs de travaux (non cadres),B6Z73
+Provence-Alpes-Côte d'Azur,Conducteurs routiers,J3Z43
+Provence-Alpes-Côte d'Azur,Dessinateurs en électricité et en électronique,C2Z71
+Provence-Alpes-Côte d'Azur,Dessinateurs en mécanique et travail des métaux,D6Z71
+Provence-Alpes-Côte d'Azur,Géomètres,B6Z70
+Provence-Alpes-Côte d'Azur,Ingénieurs du bâtiment et des travaux publics; chefs de chantier et conducteurs de travaux (cadres),B7Z91
+Provence-Alpes-Côte d'Azur,Ingénieurs et cadres de la logistique; du planning et de l'ordonnancement,J6Z92
+Provence-Alpes-Côte d'Azur,Ingénieurs et cadres des télécommunications,M2Z92
+Provence-Alpes-Côte d'Azur,Ingénieurs et cadres d'étude; recherche et développement (industrie),N0Z90
+Provence-Alpes-Côte d'Azur,Ingénieurs et cadres d'étude; recherche et développement en informatique; chefs de projets informatiques,M2Z90
+Provence-Alpes-Côte d'Azur,Ingénieurs; cadres techniques de l'agriculture,A2Z90
+Provence-Alpes-Côte d'Azur,Ouvriers qualifiés de la maintenance en mécanique,G0A40
+Provence-Alpes-Côte d'Azur,Ouvriers qualifiés du travail du bois et de l'ameublement,F3Z41
+Provence-Alpes-Côte d'Azur,Ouvriers qualifiés travaillant par enlèvement de métal,D1Z41
+Provence-Alpes-Côte d'Azur,Techniciens des assurances,Q1Z81
+Provence-Alpes-Côte d'Azur,Techniciens des services comptables et financiers,L4Z81
+Provence-Alpes-Côte d'Azur,Techniciens en électricité et en électronique,C2Z70
+Provence-Alpes-Côte d'Azur,Techniciens en mécanique et travail des métaux,D6Z70
+Provence-Alpes-Côte d'Azur,Techniciens et agents de maîtrise de la maintenance et de l'environnement,G1Z70
+Provence-Alpes-Côte d'Azur,Techniciens et chargés d'études du bâtiment et des travaux publics,B6Z71
+Provence-Alpes-Côte d'Azur,Techniciens médicaux et préparateurs,V3Z70
