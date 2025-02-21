@@ -1,16 +1,16 @@
 import os
 import psycopg2
 
-class DatabaseClient:
-    def __init__(self):
+class DatabaseClient():
+    def __init__(self, autocommit=True):
         self.connection = psycopg2.connect(
-            dbname=os.environ['DB_PG_NAME'],
-            user=os.environ['DB_PG_USER'],
-            password=os.environ['DB_PG_PWD'],
-            host=os.environ['DB_PG_HOST'],
-            port=os.environ['DB_PG_PORT']
+            dbname=os.getenv('PG_DB_NAME'),
+            user=os.getenv('PG_DB_USER'),
+            password=os.getenv('PG_DB_PWD'),
+            host=os.getenv('PG_DB_HOST'),
+            port=os.getenv('PG_DB_PORT')
         )
-        self.connection.autocommit = True
+        self.connection.autocommit = autocommit
         self.cursor = self.connection.cursor()
 
     def execute(self, query, params=None):
@@ -18,6 +18,9 @@ class DatabaseClient:
             self.cursor.execute(query, params)
         except Exception as e:
             print(f"An error occurred: {e}")
+
+    def commit(self):
+        self.connection.commit()
 
     def close(self):
         self.cursor.close()
