@@ -8,11 +8,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_BASE_CONFIG = {
-    'dbname': 'postgres',
+    'dbname': os.environ['PG_DB_NAME'],
     'user': os.environ['PG_DB_USER'],
     'password': os.environ['PG_DB_PWD'],
-    'host': 'localhost',
-    'port': '5432'
+    'host': os.environ['PG_DB_HOST'],
+    'port': os.environ['PG_DB_PORT']
 }
 
 DB_TARGET_NAME = os.environ['PG_DB_NAME']
@@ -25,7 +25,7 @@ def db_connect(DB_NAME='postgres') -> connection:
             dbname=DB_NAME,
             user=os.getenv('PG_DB_USER'),
             password=os.getenv('PG_DB_PWD'),
-            host='localhost',
+            host=os.getenv('PG_DB_HOST'),
             port=os.getenv('PG_DB_PORT'),
         )
         co.autocommit = True

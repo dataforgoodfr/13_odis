@@ -13,4 +13,24 @@ domains:
         type: metadonnees_api
         url: https://api.insee.fr/metadonnees/V1/geo/communes
         format: json
+  employment_references:
+    sources: 
+      - name: regions
+        type: metadonnees_api
+        url: https://open.urssaf.fr/api/explore/v2.1/catalog/datasets/nombre-detablissements-employeurs-et-effectifs-salaries-du-secteur-prive-par-reg/exports/json
+        format: json
 
+      - name: departments
+        type: metadonnees_api
+        url: https://open.urssaf.fr/api/explore/v2.1/catalog/datasets/nombre-detablissements-employeurs-et-effectifs-salaries-du-secteur-prive-par-dep/exports/json
+        format: json
+        
+      - name: communes
+        type: metadonnees_api
+        url: https://open.urssaf.fr/api/explore/v2.1/catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/json
+        format: json
+ 
+
+
+
+ 
