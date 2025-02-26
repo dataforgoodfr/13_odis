@@ -1,0 +1,35 @@
+version: 2
+
+models:
+
+  - name: geographical_references_communes
+    columns:
+      - name: chef_lieu
+        description: Identifiant unique des communes
+        tests:
+          - unique
+          - not_null
+
+
+  - name: geographical_references_departments
+    columns:
+      - name: chef_lieu
+        description: Identifiant unique des départements
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('geographical_references_regions')
+              field: code
+
+
+  - name: geographical_references_regions
+    columns:
+      - name: chef_lieu
+        description: Identifiant unique des régions
+        tests:
+          - unique
+          - not_null
+      
+
+ 
