@@ -1,5 +1,5 @@
 {{ config(
-    alias = 'geographical_references_communes'
+    alias = 'vw_geographical_references_communes'
     )
 }}
 
@@ -8,17 +8,14 @@ with communes as
 (
     select 
         id as id, 
-        data -> 'uri' as uri, 
-        data -> 'code' as code, 
-        data -> 'type' as type, 
-        data -> 'chefLieu' as chef_lieu, 
-        data -> 'intitule' as intitule, 
-        data -> 'typeArticle' as type_article, 
-        data -> 'dateCreation' as date_creation,
-        data -> 'intituleSansArticle' as intitule_sans_article,
+        JSON_VALUE(data, '$.uri') as uri, 
+        JSON_VALUE(data, '$.code') as code, 
+        JSON_VALUE(data, '$.type') as type,  
+        JSON_VALUE(data, '$.intitule') as intitule, 
+        JSON_VALUE(data, '$.typeArticle') as type_article, 
+        JSON_VALUE(data, '$.dateCreation') as date_creation,
+        JSON_VALUE(data, '$.intituleSansArticle') as intitule_sans_article,
         created_at as created_at
-
-    from {{ source('bronze', 'geographical_references_communes') }}  
-)
+    from odis.bronze.geographical_references_communes
 
 select * from communes
