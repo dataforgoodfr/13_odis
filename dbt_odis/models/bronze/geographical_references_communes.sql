@@ -8,14 +8,15 @@ with communes as
 (
     select 
         id as id, 
-        JSON_VALUE(data, '$.uri') as uri, 
-        JSON_VALUE(data, '$.code') as code, 
-        JSON_VALUE(data, '$.type') as type,  
-        JSON_VALUE(data, '$.intitule') as intitule, 
-        JSON_VALUE(data, '$.typeArticle') as type_article, 
-        JSON_VALUE(data, '$.dateCreation') as date_creation,
-        JSON_VALUE(data, '$.intituleSansArticle') as intitule_sans_article,
+        json_value(data, '$.uri') as uri, 
+        json_value(data, '$.code') as code, 
+        json_value(data, '$.type') as type,  
+        json_value(data, '$.intitule') as intitule, 
+        json_value(data, '$.typeArticle') as type_article, 
+        json_value(data, '$.dateCreation') as date_creation,
+        json_value(data, '$.intituleSansArticle') as intitule_sans_article,
         created_at as created_at
-    from odis.bronze.geographical_references_communes
+    from {{ source('bronze', 'geographical_references_communes') }} 
+)
 
 select * from communes
