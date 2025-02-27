@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: bronze 
+    schema: bronze
+    tables:
+      - name: vw_geographical_references_communes
+        description: Model de la vue contenant les références des communes
+        loaded_at_field: created_at
+
+      - name: vw_geographical_references_departments
+        description: Model de la vue contenant les références des départements
+        loaded_at_field: created_at
+
+      - name: vw_geographical_references_regions
+        description: Model de la vue contenant les références des régions
+        loaded_at_field: created_at
+
+
+
+      
