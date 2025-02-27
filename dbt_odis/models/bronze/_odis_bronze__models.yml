@@ -11,7 +11,7 @@ models:
           - not_null
 
 
-  - name: geographical_references_departments
+  - name: geographical_references_departements
     columns:
       - name: chef_lieu
         description: Code des départements

@@ -1,7 +1,7 @@
 dbt_odis:
-  target: dev
+  target: dev_custom
   outputs:
-    dev:
+    dev_live:
       dbname: odis
       host: localhost
       pass: odis
@@ -16,7 +16,7 @@ dbt_odis:
       host: localhost
       pass: odis
       port: 5432
-      schema: SMM
+      schema: JBN
       threads: 16
       type: postgres
       user: odis
