@@ -1,9 +1,9 @@
 {% macro generate_schema_name(custom_schema_name, node) -%}
 
     {%- set default_schema = target.schema -%}
-    {%- if custom_schema_name is none or custom_schema_name[:-4] == 'live' -%}
+    {%- if custom_schema_name is not none or 'live' in default_schema -%}
 
-        {{ default_schema }}
+        {{ custom_schema_name }}
 
     {%- else -%}
 
