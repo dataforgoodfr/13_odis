@@ -13,7 +13,7 @@ domains:
         type: metadonnees_api
         url: https://api.insee.fr/metadonnees/V1/geo/communes
         format: json
-  employment_references:
+  employment:
     sources: 
       - name: regions
         type: metadonnees_api
