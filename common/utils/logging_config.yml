@@ -1,0 +1,32 @@
+version: 1
+
+loggers:
+
+  main:
+    handlers: [console,file,error]
+    level: INFO
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: base
+    stream: ext://sys.stdout
+  file:
+    class: logging.handlers.TimedRotatingFileHandler
+    formatter: base
+    level: DEBUG
+    filename: log/odis.log
+    when: W0
+    backupCount: 4
+  error:
+    class: logging.handlers.TimedRotatingFileHandler
+    formatter: base
+    level: ERROR
+    filename: log/odis_error.log
+    when: W0
+    backupCount: 4
+
+formatters:
+  base:
+    format: '%(asctime)s - %(name)s - %(levelname)s :: %(filename)s :: %(message)s'
+
