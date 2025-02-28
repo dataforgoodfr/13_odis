@@ -31,9 +31,9 @@ select
     dep.coddep,
     com.libgeo
 
-from regions reg 
+from communes com 
+    left join regions reg
+        on reg.codreg = substring(com.codgeo, 1, 2)
     left join departements dep 
-        on reg.codreg = substring(dep.coddep, 1, 2)
-    left join communes com 
         on dep.coddep = substring(com.codgeo, 1, 2)
 
