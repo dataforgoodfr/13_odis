@@ -27,7 +27,7 @@ domains:
         type: metadonnees_api
         url: https://open.urssaf.fr/api/explore/v2.1/catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/json
         format: json
-  opendatasoft_references:
+  election:
     sources: 
       - name: communes
         type: metadonnees_api
