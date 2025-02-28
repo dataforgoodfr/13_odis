@@ -56,3 +56,6 @@ models:
   
   elementary:
     +schema: tec_odis  
+
+seeds:
+  +schema: silver
