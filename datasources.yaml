@@ -13,4 +13,17 @@ domains:
         type: metadonnees_api
         url: https://api.insee.fr/metadonnees/V1/geo/communes
         format: json
+  logements:
+      - name: logements-vacants
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&OCS=DW_VAC
+        format: json
+      - name: logements-nb-pieces
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&NOR={room_count}
+        format: json
+      - name: logements-apr-type
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&TDW={type}
+        format: json
 
