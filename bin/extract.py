@@ -3,7 +3,7 @@ import argparse
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common.utils.source_extractors import MetadonneesApiExtractor, FileExtractor, JsonExtractor
+from common.utils.source_extractors import FileExtractor, JsonExtractor
 from common.config import load_config
 
 def parse_args():
@@ -16,7 +16,6 @@ def parse_args():
 def get_source_extractor(source_type):
     # This can be expanded based on supported source types
     extractors = {
-        'metadonnees_api': MetadonneesApiExtractor,
         'file_extractor': FileExtractor,
         'json_extractor': JsonExtractor
     }
