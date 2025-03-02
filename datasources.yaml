@@ -13,7 +13,7 @@ APIs:
     description: INSEE - API de données locales
     base_url: https://api.insee.fr/melodi
     apidoc: https://portail-api.insee.fr/catalog/api/a890b735-159c-4c91-90b7-35159c7c9126/doc?page=ee625968-272a-4637-a259-68272aa63766
-    rate_limit: 2.5
+    # throttle: 2.5
     # # Keeping this for orientation for future task to manage pagination
     # pagination:
     #   style: pages
@@ -28,12 +28,12 @@ APIs:
     description: API de données du Ministère du logement et développement durable
     base_url: https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1
     apidoc: https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1/apidoc.html#/
-    rate_limit: 0.1
-    pagination:
-      style: pages
-      token_key: page
-      size_key: pageSize
-      max_size: 100
+    # throttle: 0.1
+    # pagination:
+    #   style: pages
+    #   token_key: page
+    #   size_key: pageSize
+    #   max_size: 100
     default_headers:
       accept: application/json
 
@@ -46,17 +46,16 @@ domains:
       name: regions
       API: INSEE.Metadonnees
       type: json_extractor
-      base_url: 
       url: https://api.insee.fr/metadonnees/V1/geo/regions
       urlpath: /geo/regions
       format: json
 
-    departments:
+    departements:
       name: departments
       API: INSEE.Metadonnees
       type: json_extractor
       url: https://api.insee.fr/metadonnees/V1/geo/departements
-      urlpath: /geo/departments
+      urlpath: /geo/departements
       format: json
 
     communes:
@@ -74,12 +73,16 @@ domains:
         API: DiDo
         type: json_extractor
         urlpath: /datasets
+        params:
+          page: 1
+          pageSize: all
 
       annual_dept_data:
         name: donnees_annuelles_departementales
         API: DiDo
         type: file_extractor
         urlpath: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
+        format: csv
         params:
           withColumnName: true
           withColumnDescription: true
