@@ -11,8 +11,8 @@ class SourceExtractor(ABC):
     def download(self, domain: str, source_config):
         pass
 
-class MetadonneesApiExtractor(SourceExtractor):
-    """Extract data from Metadonnees API"""
+class JsonApiExtractor(SourceExtractor):
+    """Extract data from a Json API"""
     def download(self, domain: str, source_config):
         headers = {
             'Accept': 'application/json',
