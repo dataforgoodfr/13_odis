@@ -13,3 +13,23 @@ domains:
         type: json_api
         url: https://geo.api.gouv.fr/communes?fields=code,nom,population,departement,region,centre
         format: json
+  employment:
+    sources: 
+      - name: regions
+        type: json_api
+        url: https://open.urssaf.fr/api/explore/v2.1/catalog/datasets/nombre-detablissements-employeurs-et-effectifs-salaries-du-secteur-prive-par-reg/exports/json
+        format: json
+      - name: departments
+        type: json_api
+        url: https://open.urssaf.fr/api/explore/v2.1/catalog/datasets/nombre-detablissements-employeurs-et-effectifs-salaries-du-secteur-prive-par-dep/exports/json
+        format: json
+      - name: communes
+        type: json_api
+        url: https://open.urssaf.fr/api/explore/v2.1/catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/json
+        format: json
+  election:
+    sources: 
+      - name: communes
+        type: json_api
+        url: https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/exports/json
+        format: json
