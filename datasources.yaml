@@ -6,11 +6,10 @@ domains:
         url: https://api.insee.fr/metadonnees/V1/geo/regions
         format: json
       - name: departments
-        type: metadonnees_api
+        type: json_api
         url: https://api.insee.fr/metadonnees/V1/geo/departements
         format: json
       - name: communes
-        type: metadonnees_api
-        url: https://api.insee.fr/metadonnees/V1/geo/communes
+        type: json_api
+        url: https://geo.api.gouv.fr/communes?fields=code,nom,population,departement,region,centre
         format: json
-
