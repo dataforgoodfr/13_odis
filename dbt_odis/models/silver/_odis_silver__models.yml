@@ -1,0 +1,14 @@
+version: 2
+
+models:
+
+  - name: com_dep_reg
+    columns:
+      - name: libgeo
+        description: Libellé géographique
+        tests:
+          - unique
+          - not_null
+
+
+ 
