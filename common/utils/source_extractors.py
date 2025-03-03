@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import requests, urllib
 import datetime
-import json
+import json, pprint
 from bson import ObjectId
 from pathlib import Path
 
@@ -32,7 +32,17 @@ class SourceExtractor(ABC):
         pass
 
     def set_query_parameters(self, source_model_name: str):
-        """Set all parameteres for an API call from the source model configuration"""
+        """Set all parameteres for an API call from the source model configuration, given in datasources.yaml :
+
+            - builds and sets the complete URL to be queried
+            - sets the specified headers
+            - sets the query parameters, if specified in the source model's yaml block
+            - sets the expected output file format
+
+            Headers default to the API definition's 'default_headers', if any.
+            
+            Return : None. Only sets the above as properties of the current Extractor object.
+        """
 
         # Get the dict definitions of the source model and its related API
         source_model = self.source_models[source_model_name]
@@ -50,20 +60,19 @@ class SourceExtractor(ABC):
         self.url = urllib.parse.urljoin(f"https://{base_split.netloc}", full_path)
         
         # Add logging entry once logging PR is merged
-        # print(f"URL: {self.url}")
+        # logger.debug(f"URL: {self.url}")
         
         # Set headers with the order of preference :
         # Specified in source model > specified in API defaults > None
-        default_headers = api_conf['default_headers'] if 'default_headers' in api_conf.keys() else None
-        
-        self.headers = source_model['headers'] if 'headers' in source_model.keys() else default_headers
+        default_headers = api_conf.get('default_headers')
+        self.headers = source_model.get('headers', default_headers)
         
         # Set request parameters if any
-        self.params = source_model['params'] if 'params' in source_model.keys() else None
+        self.params = source_model.get('params')
         
-        # Set file format
-        self.format = source_model['format'] if 'format' in source_model.keys() else DEFAULT_FILE_FORMAT
-        
+        # Set expected output file format
+        self.format = source_model.get('format', DEFAULT_FILE_FORMAT)
+
 
 class FileExtractor(SourceExtractor):
     """Generic extractor for one-shot file downloads from an API"""
@@ -74,6 +83,9 @@ class FileExtractor(SourceExtractor):
         self.source_models = config['domains'][domain]
 
     def download(self, domain: str, source_model_name: str):
+        """Downloads data corresponding to the given source model.
+        The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
+        """
         
         start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -107,6 +119,9 @@ class JsonExtractor(SourceExtractor):
         self.source_models = config['domains'][domain]
 
     def download(self, domain: str, source_model_name: str):
+        """Downloads data corresponding to the given source model.
+        The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
+        """
         
         start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
