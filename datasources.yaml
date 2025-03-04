@@ -18,12 +18,60 @@ domains:
         type: metadonnees_api
         url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&OCS=DW_VAC
         format: json
-      - name: logements-nb-pieces
+        year: 2021
+      - name: logements-residence-principales
         type: metadonnees_api
-        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&NOR={room_count}
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&OCS=DW_MAIN
         format: json
-      - name: logements-apr-type
+        year: 2021
+      - name: logements-residence-secondaires
         type: metadonnees_api
-        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&TDW={type}
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&OCS=DW_SEC
         format: json
+        year: 2021
+      - name: logements-residence-principale-1-pieces
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&OCS=DW_MAIN&NOR=R1
+        format: json
+        year: 2021
+      - name: logements-residence-principale-2-pieces
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&OCS=DW_MAIN&NOR=R2
+        format: json
+        year: 2021
+      - name: logements-residence-principale-3-pieces
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&OCS=DW_MAIN&NOR=R3
+        format: json
+        year: 2021
+      - name: logements-residence-principale-4-pieces
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&OCS=DW_MAIN&NOR=R4
+        format: json
+        year: 2021
+      - name: logements-residence-principale-5-pieces-et-plus
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&OCS=DW_MAIN&NOR=RGE_5
+        format: json
+        year: 2021
+      - name: logements-maison
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&TDW=1
+        format: json
+        year: 2021
+      - name: logements-appartement
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD={year}&TDW=2
+        format: json
+        year: 2021
+      - name: logements-maison-residence-principale
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&OCS=DW_MAIN&TDW=1
+        format: json
+        year: 2021
+      - name: logements-appartement-residence-principale
+        type: metadonnees_api
+        url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&OCS=DW_MAIN&TDW=2
+        format: json
+        year: 2021
 
