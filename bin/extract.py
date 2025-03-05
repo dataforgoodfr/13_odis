@@ -4,6 +4,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common.utils.source_extractors import MetadonneesApiExtractor
+from common.utils.logging_odis import logger
 from common.config import load_config
 
 def parse_args():
@@ -24,30 +25,31 @@ def extract_data(config, domain=None):
     if config['domains'][domain]:
         sources = config['domains'][domain]['sources']
         if not sources:
-            print(f"No sources found for domain: {domain}")
+            logger.info(f"No sources found for domain: {domain}")
             return
     
     for source in sources:
         source_name = source.get('name')
 
-        print(f"Extracting source: {domain}/{source_name}")
+        logger.info(f"Extracting source: {domain}/{source_name}")
+        logger.debug("BLEEHJHH")
         
         source_type = source['type']
         if not source_type:
-            print(f"Source type not specified for {source_name}, skipping...")
+            logger.info(f"Source type not specified for {source_name}, skipping...")
             continue
             
         extractor_class = get_source_extractor(source_type)
         if not extractor_class:
-            print(f"No extractor implemented for source type: {source_type}")
+            logger.info(f"No extractor implemented for source type: {source_type}")
             continue
             
         try:
             extractor = extractor_class()
             filepath = extractor.download(domain, source)
-            print(f"Data extracted from {source_name} and saved to {filepath}")
+            logger.info(f"Data extracted from {source_name} and saved to {filepath}")
         except Exception as e:
-            print(f"Error extracting data from {source_name}: {str(e)}")
+            logger.exception(f"Error extracting data from {source_name}: {str(e)}")
 
 def main():
     args = parse_args()
@@ -55,7 +57,7 @@ def main():
     try:
         config = load_config(args.config)
     except Exception as e:
-        print(f"Error loading config file: {str(e)}")
+        logger.info(f"Error loading config file: {str(e)}")
         sys.exit(1)
         
     extract_data(config, args.domain)
