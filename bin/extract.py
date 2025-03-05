@@ -116,7 +116,7 @@ def extract_data(config, domain=None, sources=None):
             
         try:
             extractor = extractor_class(config,domain)
-            filepath = extractor.download(domain, source)
+            filepath = extractor.download(domain, source_name)
             logger.info(f"Data extracted from {source_name} and saved to {filepath}")
         except Exception as e:
             logger.exception(f"Error extracting data from {source_name}: {str(e)}")
