@@ -2,55 +2,66 @@
 import argparse
 import sys
 import os
-from pprint import pp
+from pprint import PrettyPrinter
 import json
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common.utils.source_extractors import FileExtractor, JsonExtractor
 from common.config import load_config
 
 explanation_needed = False
+pp = PrettyPrinter(indent=4)
 
 def explain_source(config, apis=None, domain=None, models=None, default_all=False):
 
     all_apis = config.get('APIs')
+    apis_list = list(all_apis.keys())
+
     all_domains = config.get('domains')
+    domains_list = list(all_domains.keys())
+
+    models_list = []
     all_models = []
-    for domain_value in all_domains.values():
+    for domain_name, domain_value in all_domains.items():
+        # all_models.extend(domain_value.items())
         for name, conf in domain_value.items():
-            all_models.append({'name': name, 'definition': conf})
+            models_list.append(name)
+            full_model_info = [domain_name, name, conf]
+            all_models.append(full_model_info)
 
     # Pretty print information about the APIs
     print(f"\n\n================= API explanations =================\n")
-    print(f"Available APIs from config : {list(all_apis.keys())}")
+    print(f"Available APIs from config : {apis_list}")
     api_selection = [(api,all_apis.get(api)) for api in apis] if apis else []
     for api_name,api_conf in api_selection:
         print(f"\n~~~~~~ {api_name} ~~~~~~")
         print(f"{json.dumps(api_conf,indent=4)}")
         used_in = [
-            model['name'] for model in all_models if model['definition']['API'] == api_name 
+            (model[0],model[1]) for model in all_models if model[2]['API'] == api_name 
         ]
-        print(f"This API is used in the following models : {used_in}\n")
+        print(f"This API is used in the following models : {pp.pformat(used_in)}\n")
 
 
     # Pretty print information about the domains and source models
-    print(f"\n\n================= Domain Models explanations =================\n")
-    print(f"Available Domains from config : {list(all_domains.keys())}\n")
-    
-    print(f"Current selected domain: {domain}")
+    print(f"\n\n================= Domain & Models explanations =================\n")
+    print(f"Available Domains from config : {domains_list}\n")
+    print(f"Available Models from config : {models_list}\n")
 
     models_to_explain = []
-    domain_to_explain = all_domains.get(domain)
     
     if models:
-        models_to_explain = [(model['name'], model['definition']) for model in all_models if model['name'] in models]
+        models_to_explain = [model for model in all_models if model[1] in models]
     else:
         if domain:
-            models_to_explain = domain_to_explain.items()
+            domain_to_explain = all_domains.get(domain)
+            models_to_explain = [model for model in all_models if model[1] in domain_to_explain.keys()]
+            print("------------------------------------------------")
+            print(f"Current selected domain: {domain}")
+            print("------------------------------------------------\n")
         else:
             models_to_explain = []
 
-    for model_name, model_conf in models_to_explain:
-        print(f"\n~~~~~~ Source Model: {model_name} ~~~~~~")
+    for domain_name, model_name, model_conf in models_to_explain:
+        print(f"\nSOURCE MODEL: {domain_name} :: {model_name}")
         print(f"{json.dumps(model_conf,indent=4)}")
 
 
