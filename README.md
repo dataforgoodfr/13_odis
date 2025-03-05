@@ -87,7 +87,7 @@ Pour comprendre en détail comment ça marche, et comprendre comment ajouter des
 
 ## Chargement des données brutes
 
-Le script [load.py](http://load.py) permet de charger un fichier local dans la base de données.
+Le script `load.py` permet de charger un fichier local dans la base de données.
 
 ```bash
 poetry run python bin/load.py --domain geographical_references
