@@ -165,4 +165,5 @@ log/*
 data/imports/*
 !data/imports/.gitkeep
 .DS_Store
-**/.DS_Store
+
+log/*
