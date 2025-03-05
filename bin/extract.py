@@ -4,8 +4,9 @@ import sys
 import os
 from pprint import PrettyPrinter
 import json
+from importlib import import_module
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common.utils.source_extractors import FileExtractor, JsonExtractor
 from common.utils.logging_odis import logger
 from common.config import load_config
 
@@ -77,15 +78,12 @@ def parse_args():
     return parser.parse_args()
 
 def get_source_extractor(source_type):
-    # This can be expanded based on supported source types
-    extractors = {
-        'file_extractor': FileExtractor,
-        'json_extractor': JsonExtractor
-    }
-    if source_type not in extractors.keys():
-        print(f"No extractor implemented for source type: {source_type}")
-
-    return extractors.get(source_type)
+    
+    # imports the Extractor class from the source_extractors module
+    source_module = import_module('common.utils.source_extractors')
+    extractor_class = getattr(source_module, source_type)
+    logger.debug(f"Extractor class: {extractor_class}")
+    return extractor_class
 
 def extract_data(config, domain=None, sources=None):
 
@@ -108,13 +106,13 @@ def extract_data(config, domain=None, sources=None):
         if not source_type:
             logger.info(f"Source type not specified for {source_name}, skipping...")
             continue
-            
+        
+        # Import the Extractor class specified in the source config
+        source_type = source.get('type')
         extractor_class = get_source_extractor(source_type)
-        if not extractor_class:
-            logger.info(f"No extractor implemented for source type: {source_type}")
-            continue
             
         try:
+            # Instantiate the Extractor and execute download
             extractor = extractor_class(config,domain)
             filepath = extractor.download(domain, source_name)
             logger.info(f"Data extracted from {source_name} and saved to {filepath}")
