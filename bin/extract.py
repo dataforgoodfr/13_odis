@@ -28,7 +28,7 @@ def explain_source(config, apis=None, domain=None, models=None, default_all=Fals
             all_models.append(full_model_info)
 
     # Pretty print information about the APIs
-    print(f"\n\n================= API explanations =================\n")
+    print("\n\n================= API explanations =================\n")
     print(f"Available APIs from config : {apis_list}")
     api_selection = [(api,all_apis.get(api)) for api in apis] if apis else []
     for api_name,api_conf in api_selection:
@@ -41,7 +41,7 @@ def explain_source(config, apis=None, domain=None, models=None, default_all=Fals
 
 
     # Pretty print information about the domains and source models
-    print(f"\n\n================= Domain & Models explanations =================\n")
+    print("\n\n================= Domain & Models explanations =================\n")
     print(f"Available Domains from config : {domains_list}\n")
     print(f"Available Models from config : {models_list}\n")
 

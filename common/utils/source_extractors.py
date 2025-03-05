@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-import requests, urllib
+import requests
+import urllib
 import datetime
-import json, pprint
+import json
 from bson import ObjectId
 from pathlib import Path
 
