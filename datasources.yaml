@@ -84,5 +84,60 @@ domains:
           withColumnDescription: true
           withColumnUnit: true
 
+      logements_total:
+        API: INSEE.Melodi
+        description: nombre de logement
+        type: json_extractor
+        urlpath: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=_T
+        format: json
+
+      logements_residences_principales:
+        API: INSEE.Melodi
+        description: nombre de residences principales
+        type: json_extractor
+        urlpath: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=DW_MAIN&TDW=_T
+        format: json
+
+      logements_vacants:
+        API: INSEE.Melodi
+        description: nombre de logement vacants
+        type: json_extractor
+        urlpath: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=DW_VAC&TDW=_T
+        format: json
+
+      logements_maison:
+        API: INSEE.Melodi
+        description: nombre de maison
+        type: json_extractor
+        urlpath: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=1
+        format: json
+
+      logements_appartement:
+        API: INSEE.Melodi
+        description: nombre d'appartement
+        type: json_extractor
+        urlpath: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=2
+        format: json
+
+      logements_maison_et_residences_principales:
+        API: INSEE.Melodi
+        description: nombre de maison residence principale
+        type: json_extractor
+        urlpath: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=DW_MAIN&TDW=1
+        format: json
+
+      logements_appartement_et_residences_principales:
+        API: INSEE.Melodi
+        description: nombre d'appartement residence principale
+        type: json_extractor
+        urlpath: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=DW_MAIN&TDW=2
+        format: json
+
+      logements_pieces:
+        API: INSEE.Melodi
+        description: nombre de piece par residence principales
+        type: json_extractor
+        urlpath: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS_ROOMS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=DW_MAIN&TDW=_T
+        format: json
 
 
