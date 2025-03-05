@@ -8,7 +8,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common.utils.source_extractors import FileExtractor, JsonExtractor
 from common.config import load_config
 
-explanation_needed = False
 pp = PrettyPrinter(indent=4)
 
 def explain_source(config, apis=None, domain=None, models=None, default_all=False):
