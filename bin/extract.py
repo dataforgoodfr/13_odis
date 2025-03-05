@@ -6,6 +6,7 @@ from pprint import PrettyPrinter
 import json
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common.utils.source_extractors import FileExtractor, JsonExtractor
+from common.utils.logging_odis import logger
 from common.config import load_config
 
 pp = PrettyPrinter(indent=4)
@@ -105,18 +106,20 @@ def extract_data(config, domain=None, sources=None):
         
         source_type = source['type']
         if not source_type:
-            print(f"Source type not specified for {source_name}, skipping...")
+            logger.info(f"Source type not specified for {source_name}, skipping...")
             continue
             
         extractor_class = get_source_extractor(source_type)
-
-        if extractor_class:
-            extractor = extractor_class(config, domain)      
-            # try:
-            filepath = extractor.download(domain, source_name)
-            print(f"Data extracted from {source_name} and saved to {filepath}")
-            # except Exception as e:
-            #     print(f"Error extracting data from {source_name}: {str(e)}")
+        if not extractor_class:
+            logger.info(f"No extractor implemented for source type: {source_type}")
+            continue
+            
+        try:
+            extractor = extractor_class(config,domain)
+            filepath = extractor.download(domain, source)
+            logger.info(f"Data extracted from {source_name} and saved to {filepath}")
+        except Exception as e:
+            logger.exception(f"Error extracting data from {source_name}: {str(e)}")
 
 def main():
     args = parse_args()
@@ -126,7 +129,7 @@ def main():
         config = load_config(args.config)
    
     except Exception as e:
-        print(f"Error loading config file: {str(e)}")
+        logger.info(f"Error loading config file: {str(e)}")
         sys.exit(1)
     
     if needs_explanation:
