@@ -1,5 +1,5 @@
 dbt_odis:
-  target: dev_custom
+  target: dev_live
   outputs:
     dev_live:
       dbname: odis
