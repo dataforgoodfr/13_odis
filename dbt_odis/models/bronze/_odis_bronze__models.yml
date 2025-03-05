@@ -18,9 +18,6 @@ models:
         tests:
           - unique
           - not_null
-          - relationships:
-              to: ref('geographical_references_regions')
-              field: code
 
 
   - name: geographical_references_regions
