@@ -161,6 +161,7 @@ cython_debug/
 # Precommit hooks: ruff cache
 .ruff_cache
 
+log/*
 data/imports/*
 !data/imports/.gitkeep
 .DS_Store
