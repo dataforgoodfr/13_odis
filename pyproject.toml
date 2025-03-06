@@ -16,10 +16,6 @@ poetry-plugin-export = ">=1.9"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-# numpy = "^1.21.1"
-# pandas = "^1.1.1"
-# jupyter = "^1.0.0"
-# ipykernel = "^5.3.4"
 python-dotenv = "^1.0.1"
 boto3 = "^1.36.6"
 psycopg2-binary = "^2.9.10"
@@ -27,6 +23,8 @@ requests = "^2.32.3"
 pandas = "^2.2.3"
 dbt-core = "^1.9.2"
 dbt-postgres = "^1.9.0"
+bson = "^0.5.10"
+python-json-logger = "^3.2.1"
 pyyaml = "^6.0.2"
 
 [tool.poetry.group.dev.dependencies]
