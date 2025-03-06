@@ -55,7 +55,7 @@ class SourceExtractor(ABC):
         base_split = urllib.parse.urlsplit(base_url)
 
         # expand the query path with the source config
-        full_path = f"{base_split.path}{source_model['urlpath']}"
+        full_path = f"{base_split.path}{source_model['endpoint']}"
         
         # rebuild the full URL with complete path
         self.url = urllib.parse.urljoin(f"https://{base_split.netloc}", full_path)
