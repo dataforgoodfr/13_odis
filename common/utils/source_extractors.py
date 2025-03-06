@@ -18,7 +18,7 @@ class bJSONEncoder(json.JSONEncoder):
 
 class SourceExtractor(ABC):
     """Abstract class defining a datasource extractor.
-    Only the 'extract' method is mandatory, which is responsible
+    Only the 'download' method is mandatory, which is responsible
     for pulling the data and storing it in a local file.
     """
     api_confs : dict
