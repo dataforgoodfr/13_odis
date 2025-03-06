@@ -8,7 +8,7 @@ APIs:
     base_url: https://api.insee.fr/metadonnees/V1
     apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
     default_headers:
-        accept: application/json
+      accept: application/json
 
   INSEE.Melodi:
     name: MELODI
@@ -22,6 +22,14 @@ APIs:
     #   token_key: page
     #   size_key: maxResult
     #   max_size: 10000
+    default_headers:
+      accept: application/json
+
+  GEO.api.gouv.fr:
+    name: GEO api.gouv.fr
+    description: API gouvernemental pour interreoger les référentiels géographiques
+    base_url: https://geo.api.gouv.fr
+    apidoc: https://geo.api.gouv.fr/
     default_headers:
       accept: application/json
 
@@ -57,10 +65,10 @@ domains:
       endpoint: /geo/departements
 
     communes:
-      API: INSEE.Metadonnees
-      description: Référentiel géographique INSEE - niveau commune
+      API: GEO.api.gouv.fr
+      description: Référentiel géographique GEO - niveau commune
       type: JsonExtractor
-      endpoint: /geo/communes
+      endpoint: /communes?fields=code,nom,population,departement,region,centre
 
   logement:
 
@@ -83,6 +91,3 @@ domains:
           withColumnName: true
           withColumnDescription: true
           withColumnUnit: true
-
-
-
