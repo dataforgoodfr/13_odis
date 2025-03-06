@@ -1,0 +1,28 @@
+version: 2
+
+models:
+
+  - name: com_dep_reg
+    columns:
+      - name: CODGEO
+        description: Code géographique français
+        tests:
+          - unique
+          - not_null
+
+
+  - name: gps_dep_reg
+    columns:
+      - name: code_INSEE
+        description: Code géographique français
+        tests:
+          - not_null
+
+
+  - name: typologie_territoires
+    columns:
+      - name: CodGeo
+        description: Code géographique français
+        tests:
+          - unique
+          - not_null
