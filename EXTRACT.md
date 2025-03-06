@@ -9,7 +9,7 @@ Les spécificités de chacune se situent souvent dans la structure de leurs cham
 - certains paramètres à passer dans les requêtes, des headers à préciser…
 - dans certains cas (plutôt rares), présenter une authentification ( = un mot de passe ou équivalent)
 
-Pour rendre l’extraction de ces diverses sources facilement extensible (ie permettre de rapidement rajouter des nouvelles sources d’extraction sans trop de code) tout ne restant assez flexible pour s’adapter aux spécificités de chacune, nous avons adopté une approche basée sur des configurations déclaratives, et des objets Extracteurs.
+Pour rendre l’extraction de ces diverses sources facilement extensible (ie permettre de rapidement rajouter des nouvelles sources d’extraction sans trop de code) tout en restant assez flexible pour s’adapter aux spécificités de chacune, nous avons adopté une approche basée sur des configurations déclaratives, et des objets Extracteurs.
 
 ## Extractors
 
@@ -82,8 +82,8 @@ Un bloc “source” définit obligatoirement les champs suivants :
 - `API` : quelle API est à la source de ce dataset
 - `description` : description claire et concise pour aider à la compréhension
 - `type` : quel type d’Extracteur doit être utilisé pour récupérer ce dataset
-- `urlpath` : comment l’URL de l’API doit être complétée pour requêter ce jeu de données
-
+- `urlpath` : c'est un endpoint(point de terminaison) permettant d'accèder au jeu de données
+  
 Dans l’exemple donné, pour récupérer le dataset “regions”, un Extracteur de classe “JsonExtractor” sera donc instancié, pour requêter l’API INSEE.Metadonnees sur l’URL complète suivante :
 
 `https://api.insee.fr/metadonnees/v1/geo/regions`
