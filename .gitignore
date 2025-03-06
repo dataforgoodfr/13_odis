@@ -168,3 +168,4 @@ data/imports/*
 dbt_odis/seeds/*
 !dbt_odis/seeds/.gitkeep
 log/*
+!log/.gitkeep
