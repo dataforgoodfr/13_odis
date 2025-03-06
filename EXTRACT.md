@@ -82,7 +82,7 @@ Un bloc “source” définit obligatoirement les champs suivants :
 - `API` : quelle API est à la source de ce dataset
 - `description` : description claire et concise pour aider à la compréhension
 - `type` : quel type d’Extracteur doit être utilisé pour récupérer ce dataset
-- `urlpath` : c'est un endpoint(point de terminaison) permettant d'accèder au jeu de données
+- `endpoint` : c'est un endpoint (point de terminaison) permettant d'accèder au jeu de données. C'est ce qui doit compléter l'URL de base de l'API pour trouver un jeu de données
   
 Dans l’exemple donné, pour récupérer le dataset “regions”, un Extracteur de classe “JsonExtractor” sera donc instancié, pour requêter l’API INSEE.Metadonnees sur l’URL complète suivante :
 
