@@ -48,19 +48,19 @@ domains:
       API: INSEE.Metadonnees
       description: Référentiel géographique INSEE - niveau régional
       type: JsonExtractor
-      urlpath: /geo/regions
+      endpoint: /geo/regions
 
     departements:
       API: INSEE.Metadonnees
       description: Référentiel géographique INSEE - niveau départemental
       type: JsonExtractor
-      urlpath: /geo/departements
+      endpoint: /geo/departements
 
     communes:
       API: INSEE.Metadonnees
       description: Référentiel géographique INSEE - niveau commune
       type: JsonExtractor
-      urlpath: /geo/communes
+      endpoint: /geo/communes
 
   logement:
 
@@ -68,7 +68,7 @@ domains:
         API: DiDo
         description: Catalogue de tous les datasets dispo sur l'API DiDo (logement / développement durable)
         type: JsonExtractor
-        urlpath: /datasets
+        endpoint: /datasets
         params:
           page: 1
           pageSize: all
@@ -77,7 +77,7 @@ domains:
         API: DiDo
         description: Données Annuelles Départementales de l'API DiDo
         type: FileExtractor
-        urlpath: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
+        endpoint: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
         format: csv
         params:
           withColumnName: true
