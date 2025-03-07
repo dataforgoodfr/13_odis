@@ -13,7 +13,7 @@ Pour rendre l’extraction de ces diverses sources facilement extensible (ie per
 
 ## Extractors
 
-Les Extractors sont des classes Python, définies dans le fichier `common/utils/source_extractors.py`. Chaque Extractor déclare une méthode `extract` servant à requêter des API, et récupérer ce qui sort pour le stocker dans un format adéquat (JSON ou CSV par exemple), ou bien le passer à une autre fonction Python qui continuerait la chaîne d’ELT.
+Les Extractors sont des classes Python, définies dans le fichier `common/utils/source_extractors.py`. Chaque Extractor déclare une méthode `download` servant à requêter des API, et récupérer ce qui sort pour le stocker dans un format adéquat (JSON ou CSV par exemple), ou bien le passer à une autre fonction Python qui continuerait la chaîne d’ELT.
 
 Un Extractor peut être assez générique, pour être réutilisé dans divers cas : `FileExtractor` par exemple, qui récupère un fichier entier depuis n’importe quelle API http sans authentification ni pagination. Ou au contraire très spécifique et adapté à un cas particulier : récupérer une API avec des contraintes très particulières d’authentification, de format, de pagination par exemple.
 
@@ -98,7 +98,7 @@ Une fois que vous savez ce que vous voulez récupérer, il faut ajouter une ou d
 2. Ajouter les déclarations d’API, domaine et sources dans `datasources.yaml` , selon le format décrit plus haut
 3. Si aucun des Extractors existants dans `common/utils/source_extractors.py` ne convient aux besoins et contraintes de l’API que vous ciblez, vous pouvez soit modifier un Extractor existant, soit en créer un nouveau adapté à vos besoins, en respectant les deux contraintes suivantes :
     1. Tout Extractor doit hériter de `SourceExtractor`
-    2. Tout Extractor doit définir une méthode `extract`
+    2. Tout Extractor doit définir une méthode `download`
 4. La valeur du champ `type` pour vos définitions de sources dans la config doit correspondre exactement au nom de votre classe d'extracteur (par exemple FileExtractor)
 5. Tester en local, et une fois que ça marche pour vous, soumettre une PR 
 
