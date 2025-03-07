@@ -27,6 +27,7 @@ class SourceExtractor(ABC):
     headers : dict
     params : dict
     format : str
+    throttle: int = 0
 
     @abstractmethod
     def download(self, domain: str, source_config):
@@ -62,6 +63,9 @@ class SourceExtractor(ABC):
         
         # Add logging entry once logging PR is merged
         # logger.debug(f"URL: {self.url}")
+        
+        # Set api throttle
+        self.throttle = api_conf.get('throttle')
         
         # Set headers with the order of preference :
         # Specified in source model > specified in API defaults > None
