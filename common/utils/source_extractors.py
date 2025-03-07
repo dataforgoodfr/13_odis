@@ -6,6 +6,9 @@ import json
 from bson import ObjectId
 from pathlib import Path
 
+from prefect import task, flow
+from prefect.logging import get_run_logger
+
 DEFAULT_FILE_FORMAT = 'json'
 
 class bJSONEncoder(json.JSONEncoder):
@@ -32,6 +35,7 @@ class SourceExtractor(ABC):
     def download(self, domain: str, source_config):
         pass
 
+    @task
     def set_query_parameters(self, source_model_name: str):
         """Set all parameteres for an API call from the source model configuration, given in datasources.yaml :
 
@@ -60,8 +64,8 @@ class SourceExtractor(ABC):
         # rebuild the full URL with complete path
         self.url = urllib.parse.urljoin(f"https://{base_split.netloc}", full_path)
         
-        # Add logging entry once logging PR is merged
-        # logger.debug(f"URL: {self.url}")
+        pflogger = get_run_logger()
+        pflogger.info(f"Complete URL: {self.url}")
         
         # Set headers with the order of preference :
         # Specified in source model > specified in API defaults > None
@@ -119,6 +123,29 @@ class JsonExtractor(SourceExtractor):
         self.api_confs = config['APIs']
         self.source_models = config['domains'][domain]
 
+    @task
+    def save_data(self, domain:str, source_model_name:str, start_time:str, payload:dict = None):
+        
+        # Create data directory if it doesn't exist
+        data_dir = Path(f"data/imports/{domain}")
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate filename from source name
+        filename = f"{start_time}_{domain}_{source_model_name}.json"
+        filepath = data_dir / filename
+
+        # encode json data
+        encoder = bJSONEncoder()
+        encoded_json = encoder.encode(payload)
+        loaded_json = json.loads(encoded_json)
+        
+        # Write response json content to file
+        with open(filepath,"w") as f:
+            json.dump(loaded_json,f)
+
+        return str(filepath)
+
+    @flow(log_prints=True)
     def download(self, domain: str, source_model_name: str):
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
@@ -135,21 +162,8 @@ class JsonExtractor(SourceExtractor):
 
         raw_result = response.json()
 
-        # Create data directory if it doesn't exist
-        data_dir = Path(f"data/imports/{domain}")
-        data_dir.mkdir(parents=True, exist_ok=True)
+        json_filepath = self.save_data(domain, source_model_name, start_time, payload = raw_result)
 
-        # Generate filename from source name
-        filename = f"{start_time}_{domain}_{source_model_name}.json"
-        filepath = data_dir / filename
+        return json_filepath
 
-        # encode json data
-        encoder = bJSONEncoder()
-        encoded_json = encoder.encode(raw_result)
-        loaded_json = json.loads(encoded_json)
-        
-        # Write response json content to file
-        with open(filepath,"w") as f:
-            json.dump(loaded_json,f)
-
-        return str(filepath)
+   
