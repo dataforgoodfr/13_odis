@@ -39,8 +39,15 @@ APIs:
     default_headers:
       accept: application/json
 
-
 domains:
+
+  recensement: 
+
+    melodi_catalogue:
+      API: INSEE.Melodi
+      description: catalogue des data INSEE melodi_catalogue
+      type: JsonExtractor
+      endpoint: /catalog/all
 
   geographical_references:
 
