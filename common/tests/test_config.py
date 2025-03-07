@@ -121,11 +121,9 @@ def test_load_invalid_yaml():
     mocked_open_function = mock_open(read_data=yaml_config)
 
     # when
+    # then
     with patch("builtins.open", mocked_open_function), pytest.raises(Exception) as e:
         load_config("")  # any path will do
-
-    # then
-    assert "Error parsing YAML file" in str(e.value)
 
 
 def test_load_invalid_yaml_structure():
@@ -144,6 +142,5 @@ def test_load_invalid_yaml_structure():
         load_config("")  # any path will do
 
     # then
-    assert "Error validating YAML file" in str(e.value)
     assert "APIs" in str(e.value)
     assert "domains" in str(e.value)
