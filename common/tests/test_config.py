@@ -122,7 +122,7 @@ def test_load_invalid_yaml():
 
     # when
     # then
-    with patch("builtins.open", mocked_open_function), pytest.raises(Exception) as e:
+    with patch("builtins.open", mocked_open_function), pytest.raises(Exception):
         load_config("")  # any path will do
 
 
