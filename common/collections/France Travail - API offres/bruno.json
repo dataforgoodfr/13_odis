@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "France Travail - API offres",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

@@ -169,3 +169,6 @@ dbt_odis/seeds/*
 !dbt_odis/seeds/.gitkeep
 log/*
 !log/.gitkeep
+
+# ignore .env files for Bruno to avoid sharing secrets
+common/collections/** */.env
