@@ -122,7 +122,9 @@ def test_load_invalid_yaml():
 
     # when
     # then
-    with patch("builtins.open", mocked_open_function), pytest.raises(Exception):
+    with patch("builtins.open", mocked_open_function), pytest.raises(
+        Exception  # noqa B017
+    ):
         load_config("")  # any path will do
 
 
@@ -138,7 +140,9 @@ def test_load_invalid_yaml_structure():
     mocked_open_function = mock_open(read_data=yaml_config)
 
     # when
-    with patch("builtins.open", mocked_open_function), pytest.raises(Exception) as e:
+    with patch("builtins.open", mocked_open_function), pytest.raises(
+        Exception  # noqa B017
+    ) as e:
         load_config("")  # any path will do
 
     # then
