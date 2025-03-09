@@ -4,6 +4,44 @@ from pydantic_core import ValidationError
 from ..data_source_model import APIModel, DataSourceModel, DomainModel
 
 
+def test_EndPoint_may_be_slash():
+
+    # given
+    path = "/"
+
+    # when
+    model = DomainModel(API="INSEE.Metadonnees", type="JsonExtractor", endpoint=path)
+
+    # then
+    assert model.endpoint == path  # no exception, this is OK
+
+
+def test_EndPoint_must_start_with_slash():
+
+    # given
+    path = "geo/regions"  # missing leading '/'
+
+    # when
+    with pytest.raises(ValidationError) as e:
+        DomainModel(API="INSEE.Metadonnees", type="JsonExtractor", endpoint=path)
+
+    # then
+    assert "endpoint" in str(e.value)
+
+
+def test_EndPoint_must_have_min_length():
+
+    # given
+    path = ""  # empty string
+
+    # when
+    with pytest.raises(ValidationError) as e:
+        DomainModel(API="INSEE.Metadonnees", type="JsonExtractor", endpoint=path)
+
+    # then
+    assert "endpoint" in str(e.value)
+
+
 def test_APIModel():
     # given
 
