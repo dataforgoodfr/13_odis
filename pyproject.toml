@@ -26,6 +26,7 @@ dbt-postgres = "^1.9.0"
 bson = "^0.5.10"
 python-json-logger = "^3.2.1"
 pyyaml = "^6.0.2"
+pydantic = "^2.10.6"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.1.0"
