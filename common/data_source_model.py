@@ -6,7 +6,7 @@ EndPoint = Annotated[
     str,
     StringConstraints(
         strip_whitespace=True,
-        pattern=r"^\/.+",  # must start with a '/'
+        pattern=r"^\/.*",  # must start with a '/'
         min_length=1,
     ),
 ]
@@ -68,5 +68,6 @@ class DataSourceModel(BaseModel):
                 if subdomain.API not in self.APIs:
                     raise ValueError(f"API '{subdomain.API}' not found in APIs section")
 
+        return self
         return self
         return self
