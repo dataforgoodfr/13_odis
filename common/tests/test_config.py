@@ -1,3 +1,4 @@
+import json
 from unittest.mock import mock_open, patch
 
 import pytest
@@ -148,3 +149,69 @@ def test_load_invalid_yaml_structure():
     # then
     assert "APIs" in str(e.value)
     assert "domains" in str(e.value)
+
+
+def test_load_config_is_json_serializable():
+
+    # given
+    yaml_config = """
+    APIs:
+        INSEE.Metadonnees:
+            name: Metadonnees INSEE
+            description: INSEE - API des métadonnées
+            base_url: https://api.insee.fr/metadonnees/V1
+            apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
+            
+    domains:
+        geographical_references:
+            regions:
+                API: INSEE.Metadonnees
+                type: JsonExtractor
+                endpoint: /geo/regions
+                description: Référentiel géographique INSEE - niveau régional
+    """
+    mocked_open_function = mock_open(read_data=yaml_config)
+
+    # when
+    with patch("builtins.open", mocked_open_function):
+        result = json.dumps(load_config(""))
+
+    # then
+    assert result is not None
+
+
+def test_load_config_default_mode_is_strict():
+    # given
+
+    yaml_config = """
+    my_key: my_value
+    """
+
+    mocked_open_function = mock_open(read_data=yaml_config)
+
+    # when
+    with patch("builtins.open", mocked_open_function), pytest.raises(  # noqa B017
+        Exception
+    ) as e:
+        load_config("")  # any path will do
+
+    # then
+    assert "APIs" in str(e.value)
+    assert "domains" in str(e.value)
+
+
+def test_load_config_non_strict_mode():
+    # given
+    yaml_config = """
+    my_key: my_value
+    """
+
+    mocked_open_function = mock_open(read_data=yaml_config)
+
+    # when
+    with patch("builtins.open", mocked_open_function):
+        result = load_config("", strict=False)
+
+    # then
+    assert result is not None
+    assert result == {"my_key": "my_value"}

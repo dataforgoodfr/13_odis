@@ -20,8 +20,6 @@ class HeaderModel(BaseModel):
 class APIModel(BaseModel):
     """the API section of the yaml file"""
 
-    model_config = ConfigDict(extra="ignore")
-
     name: str
     base_url: HttpUrl
     apidoc: Optional[HttpUrl] = None
@@ -50,7 +48,11 @@ class DomainModel(BaseModel):
     format: Optional[Literal["csv", "json"]] = "json"
 
 
-class DataSourceModel(BaseModel):
+class ConfigurationModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+
+class DataSourceModel(ConfigurationModel):
     """global model for the yaml file"""
 
     APIs: dict[str, APIModel]
@@ -68,5 +70,4 @@ class DataSourceModel(BaseModel):
                 if subdomain.API not in self.APIs:
                     raise ValueError(f"API '{subdomain.API}' not found in APIs section")
 
-        return self
         return self
