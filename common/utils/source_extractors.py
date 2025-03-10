@@ -3,8 +3,14 @@ import requests
 import urllib
 import datetime
 import json
+import time
 from bson import ObjectId
 from pathlib import Path
+
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from common.utils.logging_odis import logger
 
 DEFAULT_FILE_FORMAT = 'json'
 
@@ -27,6 +33,7 @@ class SourceExtractor(ABC):
     headers : dict
     params : dict
     format : str
+    throttle: int = 0
 
     @abstractmethod
     def download(self, domain: str, source_config):
@@ -62,6 +69,9 @@ class SourceExtractor(ABC):
         
         # Add logging entry once logging PR is merged
         # logger.debug(f"URL: {self.url}")
+        
+        # Set api throttle
+        self.throttle = api_conf.get('throttle')
         
         # Set headers with the order of preference :
         # Specified in source model > specified in API defaults > None
@@ -153,3 +163,62 @@ class JsonExtractor(SourceExtractor):
             json.dump(loaded_json,f)
 
         return str(filepath)
+
+class MelodiExtractor(SourceExtractor):
+    """Extractor for getting JSON data from an API"""
+
+    def __init__(self,config: dict, domain: str):
+
+        self.api_confs = config['APIs']
+        self.source_models = config['domains'][domain]
+
+    def download(self, domain: str, source_model_name: str) -> str:
+        # Set up the request : url, headers, query parameters
+        self.set_query_parameters(source_model_name)
+        
+        page_number = 1
+        logger.info(f"querying {self.url}")
+        
+        self.url = self.download_page(domain, source_model_name, page_number)
+        
+        while self.url is not None:
+            time.sleep(60 / self.throttle)
+            logger.info(f"querying {self.url}")
+            page_number += 1
+            self.url = self.download_page(domain, source_model_name, page_number)
+
+        return "/" + domain
+
+    def download_page(self, domain: str, source_model_name: str, page_number: int = 1):
+        """Downloads data corresponding to the given source model.
+        The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
+        """
+        
+        start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            
+        # Send request to API
+        response = requests.get(self.url, headers=self.headers, params=self.params)
+        response.raise_for_status()
+
+        raw_result = response.json()
+
+        # Create data directory if it doesn't exist
+        data_dir = Path(f"data/imports/{domain}")
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate filename from source name
+        filename = f"{start_time}_{domain}_{source_model_name}_{page_number}.json"
+        filepath = data_dir / filename
+
+        # encode json data
+        encoder = bJSONEncoder()
+        encoded_json = encoder.encode(raw_result)
+        loaded_json = json.loads(encoded_json)
+        
+        # Write response json content to file
+        with open(filepath,"w") as f:
+            json.dump(loaded_json,f)
+
+        if "paging" in raw_result and "next" in raw_result["paging"]:
+            return raw_result["paging"]["next"]
+        
