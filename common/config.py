@@ -1,4 +1,3 @@
-
 import yaml
 from pydantic_core import ValidationError
 
@@ -11,7 +10,7 @@ def load_config(file_path: str, strict: bool = True) -> dict:
 
     Args:
         file_path (str): the path to the yaml file
-        strict (bool): if True, the yaml file must match a `ConfigurationModel` schema
+        strict (bool): if True, the yaml file must match a `DataSourceModel` schema, defaults to True
 
     """
 
