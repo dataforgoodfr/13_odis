@@ -15,7 +15,7 @@ APIs:
     description: INSEE - API de données locales
     base_url: https://api.insee.fr/melodi
     apidoc: https://portail-api.insee.fr/catalog/api/a890b735-159c-4c91-90b7-35159c7c9126/doc?page=ee625968-272a-4637-a259-68272aa63766
-    # throttle: 2.5
+    throttle: 30 # requetes / minutes
     # # Keeping this for orientation for future task to manage pagination
     # pagination:
     #   style: pages
@@ -91,3 +91,10 @@ domains:
           withColumnName: true
           withColumnDescription: true
           withColumnUnit: true
+
+      logements_total:
+        API: INSEE.Melodi
+        description: nombre de logement
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=_T&maxResult=10000
+        format: json
