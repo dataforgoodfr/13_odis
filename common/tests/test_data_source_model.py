@@ -1,7 +1,7 @@
 import pytest
 from pydantic_core import ValidationError
 
-from ..data_source_model import APIModel, DataSourceModel, DomainModel
+from ..data_source_model import APIModel, DataSourceModel, DomainModel, HeaderModel
 
 
 def test_EndPoint_may_be_slash():
@@ -40,6 +40,36 @@ def test_EndPoint_must_have_min_length():
 
     # then
     assert "endpoint" in str(e.value)
+
+
+def test_HeaderModel_default_accept():
+    # given
+
+    # when
+    model = HeaderModel()
+
+    # then
+    assert model.accept == "application/json"
+
+
+def test_HeaderModel_accept_xml():
+    # given
+
+    # when
+    model = HeaderModel(accept="application/xml")
+
+    # then
+    assert model.accept == "application/xml"
+
+
+def test_HeaderModel_accept_csv():
+    # given
+
+    # when
+    model = HeaderModel(accept="text/csv")
+
+    # then
+    assert model.accept == "text/csv"
 
 
 def test_APIModel():
@@ -176,4 +206,5 @@ def test_DataSourceModel_domain_api_is_not_referenced():
         DataSourceModel(**model_dict)
 
     # then
+    assert "api2" in str(e.value)
     assert "api2" in str(e.value)
