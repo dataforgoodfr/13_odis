@@ -26,7 +26,7 @@ models:
           - accepted_values:
               values: ['Préfecture','Préfecture de région']
       - name: code_INSEE
-        description: 
+        description: Code officiel français de la commune
         tests:
           - not_null
       - name: commune 
