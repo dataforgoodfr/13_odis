@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Data Education Gouv API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
