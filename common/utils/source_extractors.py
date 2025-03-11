@@ -84,6 +84,32 @@ class SourceExtractor(ABC):
         # Set expected output file format
         self.format = source_model.get('format', DEFAULT_FILE_FORMAT)
 
+    def file_dump(self, domain: str, source_model_name: str, payload= None, pagenumber: int = None):
+
+        # Create data directory if it doesn't exist
+        data_dir = Path(f"data/imports/{domain}")
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate filename from source name
+        suffix = str(pagenumber) if pagenumber else 'full'
+        filename = f"{domain}_{source_model_name}_{suffix}.{self.format}"
+        filepath = data_dir / filename
+        
+        # Write payload content to file
+        if self.format == 'json':
+
+            with open(filepath,"w") as f:
+                # encode json data
+                encoder = bJSONEncoder()
+                encoded_json = encoder.encode(payload)
+                loaded_json = json.loads(encoded_json)
+                json.dump(loaded_json,f)
+            
+        else: 
+            with open(filepath,"wb") as f:
+                f.write(payload)
+
+        return str(filepath)
 
 class FileExtractor(SourceExtractor):
     """Generic extractor for one-shot file downloads from an API"""
@@ -98,7 +124,7 @@ class FileExtractor(SourceExtractor):
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
         
-        start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        # start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
         # Set up the request : url, headers, query parameters
         self.set_query_parameters(source_model_name)
@@ -107,17 +133,7 @@ class FileExtractor(SourceExtractor):
         response = requests.get(self.url, headers=self.headers, params=self.params)
         response.raise_for_status()
 
-        # Create data directory if it doesn't exist
-        data_dir = Path(f"data/imports/{domain}")
-        data_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate filename from source name
-        filename = f"{start_time}_{domain}_{source_model_name}.{self.format}"
-        filepath = data_dir / filename
-
-        # Write response content to file
-        with open(filepath, 'wb') as f:
-            f.write(response.content)
+        filepath = self.file_dump(domain, source_model_name, payload = response.content)
 
         return str(filepath)
 
@@ -134,7 +150,7 @@ class JsonExtractor(SourceExtractor):
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
         
-        start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        # start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
         # Set up the request : url, headers, query parameters
         self.set_query_parameters(source_model_name)
@@ -145,22 +161,7 @@ class JsonExtractor(SourceExtractor):
 
         raw_result = response.json()
 
-        # Create data directory if it doesn't exist
-        data_dir = Path(f"data/imports/{domain}")
-        data_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate filename from source name
-        filename = f"{start_time}_{domain}_{source_model_name}.json"
-        filepath = data_dir / filename
-
-        # encode json data
-        encoder = bJSONEncoder()
-        encoded_json = encoder.encode(raw_result)
-        loaded_json = json.loads(encoded_json)
-        
-        # Write response json content to file
-        with open(filepath,"w") as f:
-            json.dump(loaded_json,f)
+        filepath = self.file_dump(domain, source_model_name, payload = raw_result)
 
         return str(filepath)
 
@@ -178,6 +179,8 @@ class MelodiExtractor(SourceExtractor):
         
         page_number = 1
         logger.info(f"querying {self.url}")
+        if self.params: 
+            logger.info(f"Passing parameters: {self.params}")
         
         self.url = self.download_page(domain, source_model_name, page_number)
         
@@ -194,7 +197,7 @@ class MelodiExtractor(SourceExtractor):
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
         
-        start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        # start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             
         # Send request to API
         response = requests.get(self.url, headers=self.headers, params=self.params)
@@ -202,22 +205,7 @@ class MelodiExtractor(SourceExtractor):
 
         raw_result = response.json()
 
-        # Create data directory if it doesn't exist
-        data_dir = Path(f"data/imports/{domain}")
-        data_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate filename from source name
-        filename = f"{start_time}_{domain}_{source_model_name}_{page_number}.json"
-        filepath = data_dir / filename
-
-        # encode json data
-        encoder = bJSONEncoder()
-        encoded_json = encoder.encode(raw_result)
-        loaded_json = json.loads(encoded_json)
-        
-        # Write response json content to file
-        with open(filepath,"w") as f:
-            json.dump(loaded_json,f)
+        filepath = self.file_dump(domain, source_model_name, payload = raw_result, pagenumber = page_number)
 
         if "paging" in raw_result and "next" in raw_result["paging"]:
             return raw_result["paging"]["next"]
