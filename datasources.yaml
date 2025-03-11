@@ -311,3 +311,23 @@ domains:
           limit: -1
           refine: rentree_scolaire:2023
           timezone: UTC
+
+  
+  services:
+
+      services:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE
+        format: json
+        params:
+          maxResult: 10000
+          TIME_PERIOD: 2023
+          GEO: ["COM","REG","DEP"]
+          FACILITY_TYPE: ["A122", "A128", "A203", "A206", "A208","A304","A501","A503", "A504"]
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+        
