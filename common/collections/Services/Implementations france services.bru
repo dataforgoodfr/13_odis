@@ -1,0 +1,18 @@
+meta {
+  name: Implementations france services
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A128&maxResult=10000
+  body: none
+  auth: none
+}
+
+params:query {
+  GEO: COM
+  TIME_PERIOD: 2023
+  FACILITY_TYPE: A128
+  maxResult: 10000
+}
