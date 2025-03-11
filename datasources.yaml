@@ -98,3 +98,68 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=_T&maxResult=10000
         format: json
+  
+  services:
+
+      reseau_proximite_pole_emploi:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A122&maxResult=10000
+        format: json
+
+      implementations_france_service:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A128&maxResult=10000
+        format: json
+
+      banque_caisse_depargne:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A203&maxResult=10000
+        format: json
+
+      bureau_de_poste:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A206&maxResult=10000
+        format: json
+
+      agence_postale:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A208&maxResult=10000
+        format: json
+
+      ecole_conduite:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A304&maxResult=10000
+        format: json
+
+      coiffure:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A501&maxResult=10000
+        format: json
+
+      agence_travail_temporaire:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A503&maxResult=10000
+        format: json
+
+      restaurant_restauration_rapide:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A504&maxResult=10000
+        format: json
