@@ -1,4 +1,4 @@
-name: pre-commit
+name: pre-commit & unit tests
 
 on:
   pull_request:
@@ -24,3 +24,9 @@ jobs:
         path: ~/.cache/pre-commit
         key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
     - uses: pre-commit/action@v3.0.0
+    - name: Unit tests /common
+      run: |
+        pytest -s common/tests
+    - name: Verify tests results
+      if: ${{ failure() }}
+      run: exit 1
