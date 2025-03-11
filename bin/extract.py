@@ -2,15 +2,20 @@
 import argparse
 import sys
 import os
+import datetime
 from pprint import PrettyPrinter
 import json
 from importlib import import_module
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common.utils.logging_odis import logger
+
 from common.config import load_config
+from common.utils.logging_odis import logger
+from common.utils.file_handler import FileHandler
 
 pp = PrettyPrinter(indent=4)
+
+fh = FileHandler()
 
 def explain_source(config, apis=None, domain=None, models=None, default_all=False):
 
@@ -95,6 +100,8 @@ def extract_data(config, domain=None, sources=None):
     
     # Set the source list : if none was given in input, take all for given domain
     sources_list = sources if sources else all_sources
+
+    start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     
     for source_name in sources_list:
 
@@ -114,8 +121,38 @@ def extract_data(config, domain=None, sources=None):
         try:
             # Instantiate the Extractor and execute download
             extractor = extractor_class(config,domain)
-            filepath = extractor.download(domain, source_name)
-            logger.info(f"Data extracted from {source_name} and saved to {filepath}")
+
+            # All extractors 'download' must yield iterable results
+            extract_generator = extractor.download(domain, source_name)
+            
+            file_dumps = []
+            last_page_downloaded = 0
+            complete = False
+            
+            # iterate through the extraction generator
+            for _, page_number, is_last, filepath in extract_generator:
+
+                last_page_downloaded = page_number
+                complete = is_last
+                filedump_info = {
+                    'page' : page_number,
+                    'filepath' : filepath
+                }
+                file_dumps.append(filedump_info)
+
+            logger.debug(f"LAST PAGE DOWNLOADED: {last_page_downloaded}")
+
+            # dump the log of the full extract iteration
+            extract_metadata = {
+                'domain': domain,
+                'source': source_name,
+                'last_run_time': start_time,
+                'last_page_downloaded': last_page_downloaded,
+                'successfully_completed': complete,
+                'file_dumps': file_dumps
+            }
+            metadata_filepath = fh.file_dump(domain, f"{source_name}_metadata", payload = extract_metadata)
+            
         except Exception as e:
             logger.exception(f"Error extracting data from {source_name}: {str(e)}")
 

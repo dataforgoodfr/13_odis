@@ -7,6 +7,7 @@ APIs:
     description: INSEE - API des métadonnées
     base_url: https://api.insee.fr/metadonnees/V1
     apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
+    throttle: 30
     default_headers:
       accept: application/json
 
@@ -16,12 +17,6 @@ APIs:
     base_url: https://api.insee.fr/melodi
     apidoc: https://portail-api.insee.fr/catalog/api/a890b735-159c-4c91-90b7-35159c7c9126/doc?page=ee625968-272a-4637-a259-68272aa63766
     throttle: 30 # requetes / minutes
-    # # Keeping this for orientation for future task to manage pagination
-    # pagination:
-    #   style: pages
-    #   token_key: page
-    #   size_key: maxResult
-    #   max_size: 10000
     default_headers:
       accept: application/json
 
@@ -30,6 +25,7 @@ APIs:
     description: API gouvernemental pour interreoger les référentiels géographiques
     base_url: https://geo.api.gouv.fr
     apidoc: https://geo.api.gouv.fr/
+    throttle: 120
     default_headers:
       accept: application/json
 
@@ -38,12 +34,7 @@ APIs:
     description: API de données du Ministère du logement et développement durable
     base_url: https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1
     apidoc: https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1/apidoc.html#/
-    # throttle: 0.1
-    # pagination:
-    #   style: pages
-    #   token_key: page
-    #   size_key: pageSize
-    #   max_size: 100
+    throttle: 60
     default_headers:
       accept: application/json
 
@@ -55,13 +46,13 @@ domains:
     regions:
       API: INSEE.Metadonnees
       description: Référentiel géographique INSEE - niveau régional
-      type: JsonExtractor
+      type: MelodiExtractor
       endpoint: /geo/regions
 
     departements:
       API: INSEE.Metadonnees
       description: Référentiel géographique INSEE - niveau départemental
-      type: JsonExtractor
+      type: MelodiExtractor
       endpoint: /geo/departements
 
     communes:
@@ -110,5 +101,9 @@ domains:
           BUILD_END: _T
           OCS: _T
           TDW: _T
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
 
             
