@@ -30,7 +30,7 @@ jobs:
     - name: Activate environment
       run: |
         poetry env activate
-    - name: Unit tests /common
+    - name: Execute unit tests 
       run: |
         poetry run pytest -v
     - name: Verify tests results
