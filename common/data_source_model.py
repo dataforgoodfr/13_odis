@@ -27,6 +27,7 @@ class APIModel(BaseModel):
     apidoc: Optional[HttpUrl] = None
     description: Optional[str] = None
     default_headers: Optional[HeaderModel] = None
+    throttle: Optional[int] = 60
 
 
 class DomainParamsModel(BaseModel):
@@ -72,6 +73,9 @@ class DataSourceModel(ConfigurationModel):
                 if subdomain.API not in self.APIs:
                     raise ValueError(f"API '{subdomain.API}' not found in APIs section")
 
+        return self
+        return self
+        return self
         return self
         return self
         return self

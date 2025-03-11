@@ -92,6 +92,42 @@ def test_APIModel():
     assert str(model.apidoc) == model_dict["apidoc"]
     assert model.description == model_dict["description"]
     assert model.default_headers.accept == model_dict["default_headers"]["accept"]
+    assert model.throttle == 60
+
+
+def test_APIModel_no_apidoc():
+    # given
+
+    model_dict = {
+        "name": "INSEE.Metadonnees",
+        "base_url": "https://api.insee.fr/",
+        "description": "API de métadonnées INSEE",
+        "default_headers": {"accept": "application/json"},
+    }
+
+    # when
+    model = APIModel(**model_dict)
+
+    # then
+    assert model.apidoc is None
+
+
+def test_APIModel_set_throttle():
+
+    # given
+    model_dict = {
+        "name": "INSEE.Metadonnees",
+        "base_url": "https://api.insee.fr/",
+        "description": "API de métadonnées INSEE",
+        "default_headers": {"accept": "application/json"},
+        "throttle": 120,
+    }
+
+    # when
+    model = APIModel(**model_dict)
+
+    # then
+    assert model.throttle == 120
 
 
 def test_DomainModel():
@@ -206,5 +242,7 @@ def test_DataSourceModel_domain_api_is_not_referenced():
         DataSourceModel(**model_dict)
 
     # then
+    assert "api2" in str(e.value)
+    assert "api2" in str(e.value)
     assert "api2" in str(e.value)
     assert "api2" in str(e.value)
