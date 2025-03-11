@@ -82,13 +82,13 @@ def parse_args():
     
     return parser.parse_args()
 
-def get_source_extractor(source_type):
+def get_connector_class(connector_name: str, module_name: str):
     
-    # imports the Extractor class from the source_extractors module
-    source_module = import_module('common.utils.source_extractors')
-    extractor_class = getattr(source_module, source_type)
-    logger.debug(f"Extractor class: {extractor_class}")
-    return extractor_class
+    # imports the Extractor class from the specified module
+    source_module = import_module(f"common.utils.{module_name}")
+    imported_class = getattr(source_module, connector_name)
+    logger.debug(f"Imported class: {imported_class}")
+    return imported_class
 
 def extract_data(config, domain=None, sources=None):
 
@@ -116,7 +116,7 @@ def extract_data(config, domain=None, sources=None):
         
         # Import the Extractor class specified in the source config
         source_type = source.get('type')
-        extractor_class = get_source_extractor(source_type)
+        extractor_class = get_connector_class(source_type, 'source_extractors')
             
         try:
             # Instantiate the Extractor and execute download
@@ -151,12 +151,13 @@ def extract_data(config, domain=None, sources=None):
                 'successfully_completed': complete,
                 'file_dumps': file_dumps
             }
-            metadata_filepath = fh.file_dump(domain, f"{source_name}_metadata", payload = extract_metadata)
+            fh.file_dump(domain, f"{source_name}_metadata", payload = extract_metadata)
             
         except Exception as e:
             logger.exception(f"Error extracting data from {source_name}: {str(e)}")
 
 def main():
+
     args = parse_args()
     needs_explanation = args.explain
     
