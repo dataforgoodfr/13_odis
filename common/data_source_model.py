@@ -14,7 +14,9 @@ EndPoint = Annotated[
 
 class HeaderModel(BaseModel):
 
-    accept: Literal["application/json", "application/xml"] = "application/json"
+    accept: Literal["application/json", "application/xml", "text/csv"] = (
+        "application/json"
+    )
 
 
 class APIModel(BaseModel):
@@ -70,4 +72,6 @@ class DataSourceModel(ConfigurationModel):
                 if subdomain.API not in self.APIs:
                     raise ValueError(f"API '{subdomain.API}' not found in APIs section")
 
+        return self
+        return self
         return self
