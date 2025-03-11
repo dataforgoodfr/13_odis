@@ -20,6 +20,14 @@ APIs:
     default_headers:
       accept: application/json
 
+  Data.Gouv.Education:
+    name: Data.Gouv.Education
+    description: Data.Gouv.Education - API de données
+    base_url: https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets
+    apidoc: https://data.education.gouv.fr/api/explore/v2.1/console
+    default_headers:
+      accept: application/json
+
   GEO.api.gouv.fr:
     name: GEO api.gouv.fr
     description: API gouvernemental pour interreoger les référentiels géographiques
@@ -262,3 +270,44 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
+
+  education:
+
+      moyenne_eleve_commune:
+        API: Data.Gouv.Education
+        description: moyenne d'eleve par classe par commune
+        type: JsonExtractor
+        endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
+        format: json
+        params:
+          select: commune,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+          group_by: commune
+          limit: -1
+          refine: rentree_scolaire:2023
+          timezone: UTC
+
+      moyenne_eleve_region:
+        API: Data.Gouv.Education
+        description: moyenne d'eleve par classe par region academique
+        type: JsonExtractor
+        endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
+        format: json
+        params:
+          select: region_academique,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+          group_by: region_academique
+          limit: -1
+          refine: rentree_scolaire:2023
+          timezone: UTC
+
+      moyenne_eleve_departement:
+        API: Data.Gouv.Education
+        description: moyenne d'eleve par classe par departement
+        type: JsonExtractor
+        endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
+        format: json
+        params:
+          select: departement,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+          group_by: departement
+          limit: -1
+          refine: rentree_scolaire:2023
+          timezone: UTC
