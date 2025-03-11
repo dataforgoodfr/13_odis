@@ -96,5 +96,19 @@ domains:
         API: INSEE.Melodi
         description: nombre de logement
         type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=_T&maxResult=10000
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
+        params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          RP_MEASURE: DWELLINGS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: _T
+          TDW: _T
+
+            
