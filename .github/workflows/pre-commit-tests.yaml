@@ -29,7 +29,7 @@ jobs:
         poetry install --no-interaction
     - name: Activate environment
       run: |
-        source .venv/bin/activate
+        poetry env activate
     - name: Unit tests /common
       run: |
         poetry run pytest -v
