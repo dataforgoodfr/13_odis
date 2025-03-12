@@ -3,16 +3,8 @@ import requests
 import urllib
 import jmespath
 import time
-
 import os
 import sys
-import time
-import urllib
-from abc import ABC, abstractmethod
-from pathlib import Path
-
-import requests
-from bson import ObjectId
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common.utils.logging_odis import logger

@@ -105,5 +105,3 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
-
-            
