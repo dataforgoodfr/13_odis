@@ -102,8 +102,8 @@ Par exemple, ceci :
 ```yaml
 endpoint: /domain/model
 params:
-	scope: FR
-	annual_data: 2023
+  scope: FR
+  annual_data: 2023
 
 ```
 
@@ -159,7 +159,7 @@ Je veux récupérer la valeur de “paging.next” pour paginer, je définis :
 
 ```yaml
 response_map:
-	next: paging.next
+  next: paging.next
 ```
 
 Cela permet de récupérer en utilisant la fonction python `jmespath.search`
