@@ -1,12 +1,13 @@
 # OD&IS
 
-DataForGood saison 13. 
+Created: March 5, 2025 5:54 PM
+type: documentation
 
-OD&IS est une application permettant à l’association J’Accueille de visualiser des données utiles à l’insertion et l’implantation de personnes en situation de migration, vers des territoires adaptés à leurs besoins en termes de logement, santé, services publics, éducation etc…
+DataForGood saison 13. OD&IS est une application permettant à l’association J’Accueille de visualiser des données utiles à l’insertion et l’implantation de personnes en situation de migration, vers des territoires adaptés à leurs besoins en termes de logement, santé, services publics, éducation etc…
 
 Le but de ce projet est de récupérer et traiter les différentes sources de données utiles, de façon fiable, répétable et régulièrement mise à jour.
 
-## Installation
+# Installation
 
 Pour prendre en main ce repository et installer les dépendances du projet :
 - [Guide d'installation](./INSTALL.md)
@@ -30,7 +31,7 @@ Pour initialiser ou réinitialiser la base de données :
 poetry run python bin/db.py init
 ```
 
-## Approche : ELT + architecture médaillon
+# Approche : ELT + architecture médaillon
 
 Pour récupérer les données et les modeler selon les besoins de J’Accueille, ce projet implémente une approche ELT : Extract-Load-Transform.
 
@@ -41,6 +42,8 @@ Une approche ELT avec une architecture de données en médaillon, ça donne donc
 1. On extrait les données OpenData de toutes nos sources intéressantes ( = Extract )
 2. On charge toutes ces données brutes dans la couche “bronze” de la base ( = Load )
 3. On effectue toutes les transformations nécessaires pour aller de la couche Bronze à la Silver puis la Gold ( = Transform )
+
+# Utilisation
 
 ## Extraction
 
@@ -62,6 +65,14 @@ poetry run python bin/extract.py --domain geographical_references
 poetry run python bin/extract.py --domain geographical_references --sources regions departements
 ```
 
+Pour comprendre en détail comment ça fonctionne : 
+
+[Comprendre la configuration déclarative des sources de données](./docs/configurations.md)
+
+[Comprendre les Extracteurs de données](./docs/extract.md)
+
+## Sonder les sources disponibles
+
 L’option “explain” permet de voir facilement comment les API, Domaines et Sources sont définis dans la configuration. Si l’option “explain” est passée, le script n’extrait aucune donnée mais montre seulement les infos sur les configurations demandées.
 
 ```bash
@@ -81,13 +92,9 @@ poetry run python bin/extract.py --explain --api INSEE.Melodi INSEE.Metadonneees
 poetry run python bin/extract.py --explain --api DiDo --domain logement --source dido_catalogue 
 ```
 
-Pour comprendre en détail comment ça marche, et comprendre comment ajouter des Extracteurs et aller chercher des nouvelles sources de données, c’est ici :
-
-- [Extractors](./EXTRACT.md)
-
 ## Chargement des données brutes
 
-Le script `load.py` permet de charger un fichier local dans la base de données.
+Le script [load.py](http://load.py) permet de charger un fichier local dans la base de données.
 
 ```bash
 poetry run python bin/load.py --domain geographical_references
