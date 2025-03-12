@@ -30,14 +30,14 @@ class APIModel(BaseModel):
     throttle: Optional[int] = 60
 
 
-class DomainParamsModel(BaseModel):
-    """domain parameters"""
+# class DomainParamsModel(BaseModel):
+#     """domain parameters"""
 
-    withColumnName: bool = False
-    withColumnDescription: bool = False
-    withColumnUnit: bool = False
-    page: Optional[int] = 1
-    pageSize: Optional[Literal["all"]] = "all"
+#     withColumnName: Optional[bool] = False
+#     withColumnDescription: Optional[bool] = False
+#     withColumnUnit: bool = False
+#     page: Optional[int] = 1
+#     pageSize: Optional[Literal["all"]] = "all"
 
 
 class DomainModel(BaseModel):
@@ -47,7 +47,8 @@ class DomainModel(BaseModel):
     type: str
     endpoint: EndPoint
     description: Optional[str] = None
-    params: Optional[DomainParamsModel] = None
+    params: Optional[dict] = None
+    response_map: Optional[dict] = {}
     format: Optional[Literal["csv", "json"]] = "json"
 
 

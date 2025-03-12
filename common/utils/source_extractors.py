@@ -183,6 +183,13 @@ class MelodiExtractor(SourceExtractor):
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
         
+        # if needed, update self.params with params in the URL query string
+        url_params = urllib.parse.parse_qsl(urllib.parse.urlparse(self.url).query)
+        self.params |= url_params
+
+        logger.debug(f"URL PARAMS: {url_params}")
+        logger.debug(f"UPDATED PARAMS: {self.params}")
+
         # Send request to API
         response = requests.get(self.url, headers=self.headers, params=self.params)
         response.raise_for_status()
@@ -206,7 +213,7 @@ class MelodiExtractor(SourceExtractor):
 
         logger.debug(f"Next Page URL : {next}")
         logger.debug(f"Mapped key for is_last : {is_last_key}")
-        logger.debug(f"Is this page the last one ? {is_last}")        
+        logger.debug(f"Is this page the last one ? {is_last}")
 
         return payload, next, is_last, filepath
         
