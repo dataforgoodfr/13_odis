@@ -143,7 +143,6 @@ Si dans une réponse JSON qui ressemble à ça :
     {
       [etc...]
     }
-  ]
   ],
   "paging": {
     "first": "https://api.insee.fr/melodi/data/DS_IPCH_A?page=1&maxResult=20&totalCount=true&startPeriod=2020-01-01&endPeriod=2021-01-01&idObservation=true&range=true&idTerritoire=true&includeHistory=true",
