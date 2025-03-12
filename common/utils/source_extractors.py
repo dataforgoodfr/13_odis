@@ -6,25 +6,35 @@ import time
 
 import os
 import sys
+import time
+import urllib
+from abc import ABC, abstractmethod
+from pathlib import Path
+
+import requests
+from bson import ObjectId
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common.utils.logging_odis import logger
 from common.utils.file_handler import FileHandler
 
 fh = FileHandler()
 
-DEFAULT_FILE_FORMAT = 'json'
+DEFAULT_FILE_FORMAT = "json"
+
 
 class SourceExtractor(ABC):
     """Abstract class defining a datasource extractor.
     Only the 'download' method is mandatory, which is responsible
     for pulling the data and storing it in a local file.
     """
-    api_confs : dict
-    source_models : dict
-    url : str
-    headers : dict
-    params : dict
-    format : str
+
+    api_confs: dict
+    source_models: dict
+    url: str
+    headers: dict
+    params: dict
+    format: str
     throttle: int = 0
     response_map: dict = {}
 
@@ -35,31 +45,31 @@ class SourceExtractor(ABC):
     def set_query_parameters(self, source_model_name: str):
         """Set all parameteres for an API call from the source model configuration, given in datasources.yaml :
 
-            - builds and sets the complete URL to be queried
-            - sets the specified headers
-            - sets the query parameters, if specified in the source model's yaml block
-            - sets the expected output file format
+        - builds and sets the complete URL to be queried
+        - sets the specified headers
+        - sets the query parameters, if specified in the source model's yaml block
+        - sets the expected output file format
 
-            Headers default to the API definition's 'default_headers', if any.
-            
-            Return : None. Only sets the above as properties of the current Extractor object.
+        Headers default to the API definition's 'default_headers', if any.
+
+        Return : None. Only sets the above as properties of the current Extractor object.
         """
 
         # Get the dict definitions of the source model and its related API
         source_model = self.source_models[source_model_name]
-        api_name = source_model['API']
+        api_name = source_model["API"]
         api_conf = self.api_confs[api_name]
 
         # Decompose base API URl
-        base_url = api_conf['base_url']
+        base_url = api_conf["base_url"]
         base_split = urllib.parse.urlsplit(base_url)
 
         # expand the query path with the source config
         full_path = f"{base_split.path}{source_model['endpoint']}"
-        
+
         # rebuild the full URL with complete path
         self.url = urllib.parse.urljoin(f"https://{base_split.netloc}", full_path)
-        
+
         # Add logging entry once logging PR is merged
         # logger.debug(f"URL: {self.url}")
         
@@ -68,14 +78,14 @@ class SourceExtractor(ABC):
         
         # Set headers with the order of preference :
         # Specified in source model > specified in API defaults > None
-        default_headers = api_conf.get('default_headers')
-        self.headers = source_model.get('headers', default_headers)
-        
+        default_headers = api_conf.get("default_headers")
+        self.headers = source_model.get("headers", default_headers)
+
         # Set request parameters if any
-        self.params = source_model.get('params')
-        
+        self.params = source_model.get("params")
+
         # Set expected output file format
-        self.format = source_model.get('format', DEFAULT_FILE_FORMAT)
+        self.format = source_model.get("format", DEFAULT_FILE_FORMAT)
 
         # Set Response mapping guide, empty dict if not provided
         self.response_map = source_model.get('response_map', {})
@@ -84,10 +94,10 @@ class SourceExtractor(ABC):
 class FileExtractor(SourceExtractor):
     """Generic extractor for one-shot file downloads from an API"""
 
-    def __init__(self,config: dict, domain: str):
+    def __init__(self, config: dict, domain: str):
 
-        self.api_confs = config['APIs']
-        self.source_models = config['domains'][domain]
+        self.api_confs = config["APIs"]
+        self.source_models = config["domains"][domain]
 
     def download(self, domain: str, source_model_name: str):
         """Downloads data corresponding to the given source model.
@@ -111,13 +121,14 @@ class FileExtractor(SourceExtractor):
         yield payload, page_number, is_last, filepath
 
 
+
 class JsonExtractor(SourceExtractor):
     """Extractor for getting JSON data from an API"""
 
-    def __init__(self,config: dict, domain: str):
+    def __init__(self, config: dict, domain: str):
 
-        self.api_confs = config['APIs']
-        self.source_models = config['domains'][domain]
+        self.api_confs = config["APIs"]
+        self.source_models = config["domains"][domain]
 
     def download(self, domain: str, source_model_name: str):
         """Downloads data corresponding to the given source model.
@@ -141,13 +152,14 @@ class JsonExtractor(SourceExtractor):
         # yield the request result
         yield payload, page_number, is_last, filepath
 
+
 class MelodiExtractor(SourceExtractor):
     """Extractor for getting JSON data from an API"""
 
-    def __init__(self,config: dict, domain: str):
+    def __init__(self, config: dict, domain: str):
 
-        self.api_confs = config['APIs']
-        self.source_models = config['domains'][domain]
+        self.api_confs = config["APIs"]
+        self.source_models = config["domains"][domain]
 
     def download(self, domain: str, source_model_name: str):
         # Set up the request : url, headers, query parameters
