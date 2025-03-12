@@ -56,14 +56,14 @@ class SourceExtractor(ABC):
         base_url = api_conf["base_url"]
         base_split = urllib.parse.urlsplit(base_url)
 
-        # expand the query path with the source config
-        full_path = f"{base_split.path}{source_model['endpoint']}"
+        # expand the URL endpoint path with the source config
+        if base_split.path == "/":
+            full_path = source_model['endpoint']
+        else:
+            full_path = f"{base_split.path}{source_model['endpoint']}"
 
         # rebuild the full URL with complete path
         self.url = urllib.parse.urljoin(f"https://{base_split.netloc}", full_path)
-
-        # Add logging entry once logging PR is merged
-        # logger.debug(f"URL: {self.url}")
         
         # Set api throttle, defaults to 30 requests / minute
         self.throttle = api_conf.get('throttle', 30)
@@ -113,7 +113,6 @@ class FileExtractor(SourceExtractor):
         yield payload, page_number, is_last, filepath
 
 
-
 class JsonExtractor(SourceExtractor):
     """Extractor for getting JSON data from an API"""
 
@@ -129,6 +128,12 @@ class JsonExtractor(SourceExtractor):
         
         # Set up the request : url, headers, query parameters
         self.set_query_parameters(source_model_name)
+        
+        # if url has a query string, ignore the dict-defined parameters
+        url_querystr = urllib.parse.urlparse(self.url).query
+        passed_params = self.params if url_querystr=='' else None
+        logger.info(f"querying {self.url}")
+        logger.info(f"passing parameters: {passed_params}")
 
         # Send request to API
         response = requests.get(self.url, headers=self.headers, params=self.params)
@@ -163,8 +168,6 @@ class MelodiExtractor(SourceExtractor):
         while not is_last:
             
             page_number += 1
-            logger.info(f"querying {self.url}")
-            logger.debug(f"query params: {self.params}")
 
             # Fetch next page's data
             payload, next, is_last, filepath = self.download_page(domain, source_model_name, page_number)
@@ -183,15 +186,14 @@ class MelodiExtractor(SourceExtractor):
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
         
-        # if needed, update self.params with params in the URL query string
-        url_params = urllib.parse.parse_qsl(urllib.parse.urlparse(self.url).query)
-        self.params |= url_params
-
-        logger.debug(f"URL PARAMS: {url_params}")
-        logger.debug(f"UPDATED PARAMS: {self.params}")
+        # if url has a query string, ignore the dict-defined parameters
+        url_querystr = urllib.parse.urlparse(self.url).query
+        passed_params = self.params if url_querystr=='' else None
+        logger.info(f"querying {self.url}")
+        logger.info(f"passing parameters: {passed_params}")
 
         # Send request to API
-        response = requests.get(self.url, headers=self.headers, params=self.params)
+        response = requests.get(self.url, headers=self.headers, params=passed_params)
         response.raise_for_status()
 
         payload = response.json()
