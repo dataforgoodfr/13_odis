@@ -65,13 +65,13 @@ domains:
       API: INSEE.Metadonnees
       description: Référentiel géographique INSEE - niveau régional
       type: JsonExtractor
-      urlpath: /geo/regions
+      endpoint: /geo/regions
 
     departements:
       API: INSEE.Metadonnees
       description: Référentiel géographique INSEE - niveau départemental
       type: JsonExtractor
-      urlpath: /geo/departements
+      endpoint: /geo/departements
 ```
 
 Dans l’exemple ci-dessus, est déclaré le domaine “geographical_references”, qui contient les modèles source pour les jeux de donnée “régions” et “départements” du référentiel géographique de l’INSEE.
@@ -83,7 +83,7 @@ Dans l’exemple ci-dessus, est déclaré le domaine “geographical_references�
 - `API` : quelle API est à la source de ce dataset
 - `description` : description claire et concise pour aider à la compréhension
 - `type` : quel type d’Extracteur doit être utilisé pour récupérer ce dataset
-- `urlpath` : comment l’URL de l’API doit être complétée pour requêter ce jeu de données
+- `endpoint` : comment l’URL de l’API doit être complétée pour requêter ce jeu de données
 
 Dans l’exemple donné, pour récupérer le dataset “regions”, un Extracteur de classe “JsonExtractor” sera donc instancié, pour requêter l’API INSEE.Metadonnees sur l’URL complète suivante :
 
