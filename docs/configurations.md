@@ -113,6 +113,8 @@ Est équivalent à ceci :
 endpoint: /data/model?scope=FR&annual_data=2024
 ```
 
+** Si des params sont définis dans ´endpoint´ ET dans ´params´, c'est ´endpoint´ qui l'emporte : les valeurs dans ´params´sont ignorés.**
+
 ### Mapping de la réponse
 
 `response_map` est un dictionnaire qui indique comment trouver, dans le corps de la réponse, toute information intéressante. 
