@@ -1,6 +1,13 @@
 from typing import Annotated, Literal, Optional, Self
 
-from pydantic import BaseModel, ConfigDict, HttpUrl, StringConstraints, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    HttpUrl,
+    StringConstraints,
+    model_validator,
+)
 
 EndPoint = Annotated[
     str,
@@ -30,16 +37,6 @@ class APIModel(BaseModel):
     throttle: Optional[int] = 60
 
 
-# class DomainParamsModel(BaseModel):
-#     """domain parameters"""
-
-#     withColumnName: Optional[bool] = False
-#     withColumnDescription: Optional[bool] = False
-#     withColumnUnit: bool = False
-#     page: Optional[int] = 1
-#     pageSize: Optional[Literal["all"]] = "all"
-
-
 class DomainModel(BaseModel):
     """the domain section of the yaml file"""
 
@@ -47,8 +44,19 @@ class DomainModel(BaseModel):
     type: str
     endpoint: EndPoint
     description: Optional[str] = None
-    params: Optional[dict] = None
-    response_map: Optional[dict] = {}
+
+    params: Optional[dict] = Field(
+        default=None,
+        examples=[{"key": "value", "key2": 1.2}],
+        description="arbitrary query parameters passed to the API",
+    )
+
+    response_map: Optional[dict] = Field(
+        default={},
+        examples=[{"next": "paging.next"}],
+        description="mapping of response keys to domain-specific keys",
+    )
+
     format: Optional[Literal["csv", "json"]] = "json"
 
 
@@ -74,9 +82,4 @@ class DataSourceModel(ConfigurationModel):
                 if subdomain.API not in self.APIs:
                     raise ValueError(f"API '{subdomain.API}' not found in APIs section")
 
-        return self
-        return self
-        return self
-        return self
-        return self
         return self

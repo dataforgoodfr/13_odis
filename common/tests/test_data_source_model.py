@@ -243,6 +243,69 @@ def test_DataSourceModel_domain_api_is_not_referenced():
 
     # then
     assert "api2" in str(e.value)
-    assert "api2" in str(e.value)
-    assert "api2" in str(e.value)
-    assert "api2" in str(e.value)
+
+
+def test_DomainModel_params_is_arbitrary_dict():
+    # given
+
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "endpoint": "/geo/regions",
+        "params": {"key": "value", "key2": 1.2},
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    assert model.params == model_dict["params"]
+
+
+def test_DomainModel_params_default_value():
+    # given
+
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "endpoint": "/geo/regions",
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    assert model.params is None
+
+
+def test_DomainModel_response_map_is_arbitrary_dict():
+    # given
+
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "endpoint": "/geo/regions",
+        "response_map": {"next": "paging.next"},
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    assert model.response_map == model_dict["response_map"]
+
+
+def test_DomainModel_response_map_default_value():
+
+    # given
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "endpoint": "/geo/regions",
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    assert model.response_map == {}
