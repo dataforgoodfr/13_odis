@@ -11,7 +11,7 @@ dbt (Data Build Tool) est un outil de transformation de données qui permet aux 
 Les modèles sont des fichiers SQL qui transforment vos données. Chaque modèle :
 
 - Correspond à un fichier SQL unique dans votre projet
-- Contient des sous-requêtes avec WITH AS pour préparer les jointures, puis une seule requête SELECT
+- Contient des sous-requêtes avec WITH AS pour préparer la/les jointure(s), puis une seule requête SELECT (une seule table/vue créée par model)
 - Crée une table ou une vue dans l'entrepôt de données
 
 ```sql
@@ -90,7 +90,7 @@ dbt_project/
 └── seeds/                   # Fichiers CSV injectés dans la base de données
 ```
 
-## How to Use dbt
+## Utiliser dbt
 
 ### Installation de dbt
 
@@ -143,8 +143,11 @@ dbt test --models model_name
 # Construire tous les modèles
 dbt build
 
-# Construire un modèle et ses dépendances
+# Construire un modèle et ses dépendances/modèles enfants
 dbt build --select model_name+
+
+# Construire un modèle et ses racines/modèles parents
+dbt build --select +model_name
 
 # Construire avec un rafraîchissement complet des tables et vues
 dbt build --full-refresh
@@ -153,7 +156,11 @@ dbt build --full-refresh
 ### Génération de la documentation
 
 ```bash
+# Créer un fichier JSON recensant toutes les tables, colonnes et connexions de votre projet DBT
+# Path : 13_odis/dbt_odis/target/catalog.json
 dbt docs generate
+
+# Lancer une page web en Localhost montrant toutes les informations de votre projet DBT, CTRL+C pour arrêter la webpage
 dbt docs serve
 ```
 
@@ -161,6 +168,7 @@ dbt docs serve
 
 ```bash
 dbt clean
+# Veiller à refaire la commande dbt deps ensuite
 ```
 
 ## Configuration
