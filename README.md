@@ -129,7 +129,7 @@ cd dbt_odis
 
 Toutes les commandes DBT intégrées directement dans la CI ici : 
 
-- [Commandes DBT](./dbt_odis/DBT.md)
+- [Commandes DBT](./DBT.md)
 
 
 
