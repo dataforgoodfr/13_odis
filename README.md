@@ -101,3 +101,40 @@ Il s'agit d'une méthodologie reprenant les opérations de transformation effect
 poetry run python ./common/utils/download_target_data.py
 
 ```
+
+## Lancer le projet DBT
+
+### Installation de dbt
+
+```bash
+pip install dbt-core
+# Adapter pour PostgreSQL
+pip install dbt-postgres
+# Vérifier l’installation
+dbt --version
+```
+
+### Installation des dépendances
+
+```bash
+dbt deps
+```
+
+### Se placer sur le dossier DBT pour commencer à travailler
+(pour reconnaître votre dbt_project.yml)
+
+```bash
+cd dbt_odis
+```
+
+Toutes les commandes DBT intégrées directement dans la CI ici : 
+
+- [Commandes DBT](./dbt_odis/DBT.md)
+
+
+
+
+
+
+
+
