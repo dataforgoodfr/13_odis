@@ -5,15 +5,15 @@ sources:
     schema: bronze
     tables:
       - name: geographical_references_communes
-        description: Model de la vue contenant les références des communes
+        description: Source JSON loadée dans le champ data contenant les références des communes
         loaded_at_field: created_at
 
       - name: geographical_references_departments
-        description: Model de la vue contenant les références des départements
+        description: Source JSON loadée dans le champ data contenant les références des départements
         loaded_at_field: created_at
 
       - name: geographical_references_regions
-        description: Model de la vue contenant les références des régions
+        description: Source JSON loadée dans le champ data contenant les références des régions
         loaded_at_field: created_at
 
       

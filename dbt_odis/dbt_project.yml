@@ -34,8 +34,6 @@ flags:
 models:
   dbt_odis:
     # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
 
     bronze:
       +schema: bronze
