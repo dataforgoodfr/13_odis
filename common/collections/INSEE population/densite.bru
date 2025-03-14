@@ -1,0 +1,26 @@
+meta {
+  name: densite
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DSD_RP_SERIE_HISTO?TIME_PERIOD=2021&AGE=Y_LT15&AGE=Y_LT15&AGE=Y15T24&AGE=Y25T39&AGE=Y40T54&AGE=Y55T64&AGE=Y65T79&AGE=Y_GE80&SEX=F&SEX=M&maxResult=10
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  AGE: Y_LT15
+  AGE: Y_LT15
+  AGE: Y15T24
+  AGE: Y25T39
+  AGE: Y40T54
+  AGE: Y55T64
+  AGE: Y65T79
+  AGE: Y_GE80
+  SEX: F
+  SEX: M
+  maxResult: 10
+}

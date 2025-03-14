@@ -98,3 +98,19 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=_T&maxResult=10000
         format: json
+
+  population:
+      
+      repartition_sexe:
+        API: INSEE.Melodi
+        description: repartition de la population par sexe
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&GEO=COM&AGE=_T&SEX=F&SEX=M&maxResult=10000
+        format: json
+      
+      repartition_sexe_age:
+        API: INSEE.Melodi
+        description: repartition de la population par sexe et par tranche d'age
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&GEO=COM&SEX=F&SEX=M&maxResult=10000
+        format: json
