@@ -1,0 +1,24 @@
+meta {
+  name: nombre menages
+  type: http
+  seq: 6
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_MENAGES_PRINC?TIME_PERIOD=2021&maxResult=10&GEO=COM&GEO=DEP&GEO=REG&CIVIL_STATUS=_T&COUPLE=_T&NOC=_T&RP_MEASURE=DWELLINGS_POPSIZE&OCS=_T
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  maxResult: 10
+  GEO: COM
+  GEO: DEP
+  GEO: REG
+  CIVIL_STATUS: _T
+  COUPLE: _T
+  NOC: _T
+  RP_MEASURE: DWELLINGS_POPSIZE
+  OCS: _T
+}

@@ -1,0 +1,30 @@
+meta {
+  name: categorie socio pro
+  type: http
+  seq: 5
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_POPULATION_COMP?TIME_PERIOD=2021&maxResult=10&GEO=COM&GEO=DEP&GEO=REG&SEX=_T&RP_MEASURE=POP&AGE=Y_GE15&PCS=1&PCS=2&PCS=3&PCS=4&PCS=5&PCS=6&PCS=7&PCS=9
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  maxResult: 10
+  GEO: COM
+  GEO: DEP
+  GEO: REG
+  SEX: _T
+  RP_MEASURE: POP
+  AGE: Y_GE15
+  PCS: 1
+  PCS: 2
+  PCS: 3
+  PCS: 4
+  PCS: 5
+  PCS: 6
+  PCS: 7
+  PCS: 9
+}
