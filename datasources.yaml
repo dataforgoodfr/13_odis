@@ -447,3 +447,98 @@ domains:
           next: paging.next
           is_last: paging.isLast
         
+
+        
+  population:
+      
+      repartition_sexe:
+        API: INSEE.Melodi
+        description: repartition de la population par sexe
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_POPULATION_PRINC
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM","DEP","REG"]
+          SEX: ["F","M"]
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+      
+      repartition_sexe_age:
+        API: INSEE.Melodi
+        description: repartition de la population par sexe et par tranche d'age
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_POPULATION_PRINC
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM","DEP","REG"]
+          SEX: ["F","M"]
+          AGE: ["Y_LT15","Y15T24","Y25T39","Y40T54","Y55T64","Y65T79","Y_GE80"]
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+      
+      population_superficie:
+        API: INSEE.Melodi
+        description: recuperation de la population et de la superficie pour calcul de densite
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_SERIE_HISTORIQUE
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM","DEP","REG"]
+          RP_MEASURE: ["POP","SUP"]
+          OCS: "_T"
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+      
+      categorie_socio_pro:
+        API: INSEE.Melodi
+        description: recuperation de la population de 15 ans et plus par categorie socio-pro 
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_POPULATION_COMP
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM","DEP","REG"]
+          SEX: "_T"
+          RP_MEASURE: "POP"
+          AGE: "Y_GE15"
+          PCS: ["1","2","3","4","5","6","7","9"]
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+      
+      nb_menages:
+        API: INSEE.Melodi
+        description: recuperation de la du nombre de menage
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_MENAGES_PRINC
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM","DEP","REG"]
+          RP_MEASURE: POP
+          AGE: Y_GE15
+          OCS: _T
+          NOC: _T
+          CIVIL_STATUS: _T
+          COUPLE: _T
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+
+        

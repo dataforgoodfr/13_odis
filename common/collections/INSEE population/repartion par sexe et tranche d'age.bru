@@ -1,0 +1,29 @@
+meta {
+  name: repartion par sexe et tranche d'age
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&GEO=COM&GEO=REG&GEO=DEP&AGE=Y_LT15&AGE=Y_LT15&AGE=Y15T24&AGE=Y25T39&AGE=Y40T54&AGE=Y55T64&AGE=Y65T79&AGE=Y_GE80&SEX=F&SEX=M&maxResult=10
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  GEO: COM
+  GEO: REG
+  GEO: DEP
+  AGE: Y_LT15
+  AGE: Y_LT15
+  AGE: Y15T24
+  AGE: Y25T39
+  AGE: Y40T54
+  AGE: Y55T64
+  AGE: Y65T79
+  AGE: Y_GE80
+  SEX: F
+  SEX: M
+  maxResult: 10
+}
