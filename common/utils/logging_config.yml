@@ -4,7 +4,7 @@ loggers:
 
   main:
     handlers: [console,file,error]
-    level: INFO
+    level: DEBUG
 
 handlers:
   console:
