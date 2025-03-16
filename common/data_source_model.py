@@ -80,11 +80,12 @@ class DataSourceModel(ConfigurationModel):
         verify the domain API is in the APIs dict
         """
         for domain in self.domains.values():
-            for subdomain in domain.values():
-                if subdomain.API not in self.APIs:
-                    raise ValueError(f"API '{subdomain.API}' not found in APIs section")
+            for model in domain.values():
+                if model.API not in self.APIs:
+                    raise ValueError(f"API '{model.API}' not found in APIs section")
 
         return self
+<<<<<<< HEAD
     
 
 @dataclass
@@ -146,6 +147,7 @@ class DataProcessLog():
         
         pagelog = self.pages.get(str(pageno))
 
+<<<<<<< HEAD
         if pagelog is None:
             # if pagenumber was not found, create a new PageLog
             pagelog = PageLog(pageno, **pagelog_params )
@@ -171,3 +173,70 @@ class DataProcessLog():
 
         
     
+=======
+    
+=======
+
+    def get_api_domains(self, api_name: str) -> dict[str, list[str]]:
+        """
+        get the domains that use the given API name,
+        the result is a dict with the domain name as key and the subdomain names list using the API as value
+
+        Example:
+        ```python
+
+        # config is a DataSourceModel instance
+        config.get_api_domains("INSEE.Metadonnees")
+        # output
+        # {
+        #     "geographical_references": ["regions", "departments"],
+        # }
+        # means that the API "INSEE.Metadonnees" is used in the "geographical_references" domain
+        # for the "regions" and "departments" models
+        ```
+
+        """
+        return {
+            domain_name: [
+                model_name
+                for model_name, model in domain.items()
+                if model.API == api_name
+            ]
+            for domain_name, domain in self.domains.items()
+        }
+
+    def list_domains(self) -> list[str]:
+        return list(self.domains.keys())
+
+    def get_models(self, domain: str = None) -> dict[str, DomainModel]:
+        """provides the list of models for a given domain, or all models if no domain is provided
+
+        when no domain is provided, the key is the concatenation of the domain and the model name
+
+        Example:
+        ```python
+
+        # config is a DataSourceModel instance
+        # assuming the domains are "Metadonnees" and "Geographical" with models "INSEE" and "IGN"
+
+        config.get_models()
+        # output
+        # {
+        #     "Metadonnees.INSEE": DomainModel(...),
+        #     "Geographical.INSEE": DomainModel(...),
+        #     "Geographical.IGN": DomainModel(...),
+        # }
+        # means that the "INSEE" domain has 2 models and the "IGN" domain has 1 model
+        ```
+
+        """
+        if domain:
+            return self.domains[domain]
+
+        return {
+            f"{name}.{model_name}": model
+            for name, d in self.domains.items()
+            for model_name, model in d.items()
+        }
+>>>>>>> 9fb78f0 (test & refacto explain_source)
+>>>>>>> 14d9d61 (test & refacto explain_source)
