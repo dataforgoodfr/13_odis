@@ -309,3 +309,251 @@ def test_DomainModel_response_map_default_value():
 
     # then
     assert model.response_map == {}
+
+
+def test_get_api_domains():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+            "api2": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "domain1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+                "domain2": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+                "domain3": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+
+    domains = m.get_api_domains("api1")
+
+    # then
+    assert domains == {"level1": ["domain1"]}
+
+
+def test_get_api_domains_multiple():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+            "api2": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "domain1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+                "domain2": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+                "domain3": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+
+    domains = m.get_api_domains("api2")
+
+    # then
+    assert domains == {"level1": ["domain2", "domain3"]}
+
+
+def test_list_domains():
+
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+            "api2": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "domain1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+                "domain2": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+                "domain3": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+    domains = m.list_domains()
+
+    # then
+    assert domains == ["level1"]
+
+
+def test_get_models():
+
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+            "api2": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "model1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+                "model2": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+                "model3": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+    models = m.get_models()
+
+    # then
+    assert len(models) == 3
+    assert "level1.model1" in models
+    assert "level1.model2" in models
+    assert "level1.model3" in models
+    assert all([isinstance(v, DomainModel) for v in models.values()])
+
+
+def test_get_models_by_domain():
+
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+            "api2": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+                "mod2_lvl1": {
+                    "API": "api2",  # OK, api2 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            },
+            "level2": {
+                "mod1_lvl2": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                }
+            },
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+    models = m.get_models(domain="level1")
+
+    # then
+    assert len(models) == 2
+    assert "mod1_lvl1" in models
+    assert "mod2_lvl1" in models
+    assert all([isinstance(v, DomainModel) for v in models.values()])

@@ -17,7 +17,7 @@ from pprint import PrettyPrinter
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from common.config import load_config
-from common.data_source_model import DataSourceModel
+from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.file_handler import FileHandler
 
 from common.data_source_model import DataProcessLog
@@ -50,27 +50,19 @@ def parse_args():
     
     return parser.parse_args()
 
-def get_connector_class(connector_name: str, module_name: str):
-    
-    # imports the Extractor class from the specified module
-    source_module = import_module(f"common.utils.{module_name}")
-    imported_class = getattr(source_module, connector_name)
-    logger.debug(f"Imported class: {imported_class}")
-    return imported_class
-
-def explain(apis:list[str] = None, domain:str = None, sources:list[str] = None, **params):
-
-    all_apis = CONFIG.get('APIs')
-    apis_list = list(all_apis.keys())
-
-    all_domains = CONFIG.get('domains')
 
 
-def explain_source(
-    config, apis=None, domain=None, models=None, default_all=False
+
+def explain(
+    config: DataSourceModel,
+    apis: list[str] = None,
+    domain: str = None,
+    models: list[str] = None,
+    default_all: bool = False,
 ) -> str:
 
     output = StringIO()
+
 
     all_apis = config.get("APIs")
     apis_list = list(all_apis.keys())
@@ -88,16 +80,27 @@ def explain_source(
             full_model_info = [domain_name, name, conf]
             all_models.append(full_model_info)
 
+
     # Pretty print information about the APIs
     output.write("\n\n================= API explanations =================\n")
-    output.write(f"Available APIs from config : {apis_list}")
-    api_selection = [(api, all_apis.get(api)) for api in apis] if apis else []
-    for api_name, api_conf in api_selection:
-        output.write(f"\n~~~~~~ {api_name} ~~~~~~")
-        output.write(f"{json.dumps(api_conf,indent=4)}")
-        used_in = [
-            (model[0], model[1]) for model in all_models if model[2]["API"] == api_name
+    output.write(f"Available APIs from config : {list(config.APIs.keys())}\n")
+
+    api_selection = (
+        [
+            v
+            for k, v in config.APIs.items()
+            if k.casefold()
+            in [a.casefold() for a in apis]  # case insensitive comparison
         ]
+        if apis
+        else []
+    )
+
+    for a in api_selection:
+        output.write(f"\n~~~~~~ {a.name} ~~~~~~")
+        output.write(f"{a.model_dump_json(indent=4)}\n")
+
+        used_in = config.get_api_domains(a.name)
         output.write(
             f"This API is used in the following models : {pp.pformat(used_in)}\n"
         )
@@ -106,10 +109,10 @@ def explain_source(
     output.write(
         "\n\n================= Domain & Models explanations =================\n"
     )
-    output.write(f"Available Domains from config : {domains_list}\n")
-    output.write(f"Available Models from config : {models_list}\n")
+    output.write(f"Available Domains from config : {list(config.domains.keys())}\n")
+    output.write(f"Available Models from config : {list(config.get_models().keys())}\n")
 
-    models_to_explain = []
+    models_to_explain: dict[str, DomainModel] = config.get_models()
 
     
     if sources:
@@ -117,23 +120,26 @@ def explain_source(
 
 
     if models:
+
         models_to_explain = [model for model in all_models if model[1] in models]
+
+
+        # explain only the selected models
+        models_to_explain = {
+            k: v for k, v in config.get_models().items() if k in models
+        }
 
     else:
         if domain:
-            domain_to_explain = all_domains.get(domain)
-            models_to_explain = [
-                model for model in all_models if model[1] in domain_to_explain.keys()
-            ]
+            # explain all models for the selected domain
+            models_to_explain = config.get_models(domain=domain)
             output.write("------------------------------------------------")
             output.write(f"Current selected domain: {domain}")
             output.write("------------------------------------------------\n")
-        else:
-            models_to_explain = []
 
-    for domain_name, model_name, model_conf in models_to_explain:
-        output.write(f"\nSOURCE MODEL: {domain_name} :: {model_name}")
-        output.write(f"{json.dumps(model_conf,indent=4)}")
+    for k, v in models_to_explain.items():
+        output.write(f"\nSOURCE MODEL: {k}\n")
+        output.write(f"{v.model_dump_json(indent=4)}\n")
 
     return output.getvalue()
 
@@ -272,6 +278,7 @@ def main():
         sys.exit(1)
 
     if needs_explanation:
+        config = load_config(args.config, response_model=DataSourceModel)
         explanations = explain_source(
             config, domain=args.domain, apis=args.apis, models=args.sources
         )
