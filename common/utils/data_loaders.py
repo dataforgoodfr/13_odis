@@ -27,7 +27,7 @@ class JsonDataLoader(DataLoader):
     def load(self, domain: str, source_name: str):
 
         # read data extraction log provided by extractor
-        data_index_name = f"{source_name}_metadata"
+        data_index_name = f"{source_name}_extract_log"
         data_index = self.fh.json_load(domain = domain, source_name = data_index_name)
 
         # initiate database session
@@ -45,9 +45,9 @@ class JsonDataLoader(DataLoader):
         db.commit()
 
         # load actual data:
-        for item in data_index.get('file_dumps'):
+        for item in data_index.get('pages'):
             
-            pageno = item.get('page')
+            pageno = item.get('pageno')
             filepath = item.get('filepath')
 
             page_data = self.fh.json_load(filepath = filepath)
@@ -65,7 +65,6 @@ class JsonDataLoader(DataLoader):
                 # insert Data
                 insert_query = f"INSERT INTO bronze.{table_name} (data) VALUES (%s)"
                 for record in page_data:
-                    logger.debug(f"Executing query: {insert_query}")
                     db.execute(insert_query, (Json(record),))
                 db.commit()
 
