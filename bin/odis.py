@@ -12,6 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common.config import load_config
 from common.utils.logging_odis import logger
 from common.utils.file_handler import FileHandler
+from common.data_source_model import DataProcessLog
 
 pp = PrettyPrinter(indent=4)
 fh = FileHandler()
@@ -103,10 +104,13 @@ def extract(domain:str = None, sources:list[str] = None, **params):
     # Set the source list : if none was given in input, take all for given domain
     sources_list = sources if sources else SOURCES_INDEX[domain]
 
-    start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    # start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     
     for source_name in sources_list:
-
+        
+        # initialize process log
+        processlog = DataProcessLog(domain, source_name, 'extract')
+        
         print(f"Extracting source: {domain}/{source_name}")
 
         source = DOMAINS[domain][source_name]
@@ -126,34 +130,13 @@ def extract(domain:str = None, sources:list[str] = None, **params):
 
             # All extractors 'download' must yield iterable results
             extract_generator = extractor.download(domain, source_name)
-            
-            file_dumps = []
-            last_page_downloaded = 0
-            complete = False
-            
+    
             # iterate through the extraction generator
             for _, page_number, is_last, filepath in extract_generator:
+                processlog.add_pagelog(page_number, filepath = filepath, is_last = is_last)
 
-                last_page_downloaded = page_number
-                complete = is_last
-                filedump_info = {
-                    'page' : page_number,
-                    'filepath' : filepath
-                }
-                file_dumps.append(filedump_info)
-
-            logger.debug(f"LAST PAGE DOWNLOADED: {last_page_downloaded}")
-
-            # dump the log of the full extract iteration
-            extract_metadata = {
-                'domain': domain,
-                'source': source_name,
-                'last_run_time': start_time,
-                'last_page_downloaded': last_page_downloaded,
-                'successfully_completed': complete,
-                'file_dumps': file_dumps
-            }
-            fh.file_dump(domain, f"{source_name}_metadata", payload = extract_metadata)
+            # save the process log locally
+            fh.file_dump(domain, f"{source_name}_extract_log", payload = processlog.to_dict())
             
         except Exception as e:
             logger.exception(f"Error extracting data from {source_name}: {str(e)}")
@@ -173,16 +156,17 @@ def load(domain:str = None, sources:list[str] = None, **params):
         source_format = source['format']
         # little trick to build the loader class name from format
         loader_name = f"{str.capitalize(source_format)}DataLoader"
-        # Import the Loader module
-        data_loader_class = get_connector_class(loader_name, 'data_loaders')
+        
+        try: 
+            # Import the Loader module
+            data_loader_class = get_connector_class(loader_name, 'data_loaders')
 
-        if not data_loader_class:
-            print(f"No extractor implemented for source type: {source_format}")
-            continue
-
-        # Instantiate the loader and execute data load
-        data_loader = data_loader_class()
-        data_loader.load(domain, source_name)
+            # Instantiate the loader and load files from local data folder
+            data_loader = data_loader_class()
+            data_loader.load(domain, source_name)
+        
+        except Exception as e:
+            logger.exception(f"Issue in loading data : {e}")
 
 if __name__ == '__main__':
     
