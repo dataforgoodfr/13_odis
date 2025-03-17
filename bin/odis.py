@@ -14,15 +14,43 @@ from common.utils.logging_odis import logger
 from common.utils.file_handler import FileHandler
 
 pp = PrettyPrinter(indent=4)
-
 fh = FileHandler()
 
-def explain_source(config, apis=None, domain=None, models=None, default_all=False):
+# define globals
+DEFAULT_CONFIGFILE = 'datasources.yaml'
+CONFIG: dict
+DOMAINS: dict
+SOURCES_INDEX: dict
 
-    all_apis = config.get('APIs')
+
+def parse_args():
+    """Defines the Argument Parser and returns parsed args"""
+
+    # Define Argument Parser
+    parser = argparse.ArgumentParser(description='Extract data from configured sources')
+    parser.add_argument('operation', action='store', help='Action to be taken : extract, load, explain')
+    parser.add_argument('-d', '--domain', help='Extract data for specific domain only')
+    parser.add_argument('-s','--sources', help='List of sources to extract from', nargs='*')
+    parser.add_argument('-f','--file', help='Path to an input file')
+    parser.add_argument('--config', default=DEFAULT_CONFIGFILE, help='Path to datasources config file')
+    parser.add_argument('--apis', help='APIs to be explained', nargs='*')
+    
+    return parser.parse_args()
+
+def get_connector_class(connector_name: str, module_name: str):
+    
+    # imports the Extractor class from the specified module
+    source_module = import_module(f"common.utils.{module_name}")
+    imported_class = getattr(source_module, connector_name)
+    logger.debug(f"Imported class: {imported_class}")
+    return imported_class
+
+def explain(apis:list[str] = None, domain:str = None, sources:list[str] = None, **params):
+
+    all_apis = CONFIG.get('APIs')
     apis_list = list(all_apis.keys())
 
-    all_domains = config.get('domains')
+    all_domains = CONFIG.get('domains')
     domains_list = list(all_domains.keys())
 
     models_list = []
@@ -54,8 +82,8 @@ def explain_source(config, apis=None, domain=None, models=None, default_all=Fals
 
     models_to_explain = []
     
-    if models:
-        models_to_explain = [model for model in all_models if model[1] in models]
+    if sources:
+        models_to_explain = [model for model in all_models if model[1] in sources]
     else:
         if domain:
             domain_to_explain = all_domains.get(domain)
@@ -70,37 +98,10 @@ def explain_source(config, apis=None, domain=None, models=None, default_all=Fals
         print(f"\nSOURCE MODEL: {domain_name} :: {model_name}")
         print(f"{json.dumps(model_conf,indent=4)}")
 
+def extract(domain:str = None, sources:list[str] = None, **params):
 
-def parse_args():
-
-    parser = argparse.ArgumentParser(description='Extract data from configured sources')
-    parser.add_argument('load', action='store')
-    parser.add_argument('-d', '--domain', help='Extract data for specific domain only')
-    parser.add_argument('-s','--sources', help='List of sources to extract from', nargs='*')
-    parser.add_argument('--config', default='datasources.yaml', help='Path to datasources config file')
-    parser.add_argument('-e','--explain', help='Explain the chosen data sources', action='store_true')
-    parser.add_argument('--apis', help='APIs to be explained', nargs='*')
-    
-    return parser.parse_args()
-
-def get_connector_class(connector_name: str, module_name: str):
-    
-    # imports the Extractor class from the specified module
-    source_module = import_module(f"common.utils.{module_name}")
-    imported_class = getattr(source_module, connector_name)
-    logger.debug(f"Imported class: {imported_class}")
-    return imported_class
-
-def extract_data(config, domain=None, sources=None):
-
-    if config['domains'][domain]:
-        all_sources = config['domains'][domain].keys()
-        if not all_sources:
-            print(f"No sources found for domain: {domain}")
-            return
-    
     # Set the source list : if none was given in input, take all for given domain
-    sources_list = sources if sources else all_sources
+    sources_list = sources if sources else SOURCES_INDEX[domain]
 
     start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     
@@ -108,7 +109,7 @@ def extract_data(config, domain=None, sources=None):
 
         print(f"Extracting source: {domain}/{source_name}")
 
-        source = config['domains'][domain][source_name]
+        source = DOMAINS[domain][source_name]
         
         source_type = source['type']
         if not source_type:
@@ -121,7 +122,7 @@ def extract_data(config, domain=None, sources=None):
             
         try:
             # Instantiate the Extractor and execute download
-            extractor = extractor_class(config,domain)
+            extractor = extractor_class(CONFIG,domain)
 
             # All extractors 'download' must yield iterable results
             extract_generator = extractor.download(domain, source_name)
@@ -157,23 +158,53 @@ def extract_data(config, domain=None, sources=None):
         except Exception as e:
             logger.exception(f"Error extracting data from {source_name}: {str(e)}")
 
-def main():
 
-    args = parse_args()
-    needs_explanation = args.explain
+def load(domain:str = None, sources:list[str] = None, **params):
     
-    try:
-        config = load_config(args.config)
-   
-    except Exception as e:
-        logger.info(f"Error loading config file: {str(e)}")
-        sys.exit(1)
-    
-    if needs_explanation:
-        explain_source(config, domain = args.domain, apis = args.apis, models = args.sources)
+    # Set the source list : if none was given in input, take all for given domain
+    sources_list = sources if sources else SOURCES_INDEX[domain]
 
-    else:
-        extract_data(config, args.domain, args.sources)
+    for source_name in sources_list:
+
+        print(f"Loading source: {domain}/{source_name}")
+
+        source = DOMAINS[domain][source_name]
+        
+        source_format = source['format']
+        # little trick to build the loader class name from format
+        loader_name = f"{str.capitalize(source_format)}DataLoader"
+        # Import the Loader module
+        data_loader_class = get_connector_class(loader_name, 'data_loaders')
+
+        if not data_loader_class:
+            print(f"No extractor implemented for source type: {source_format}")
+            continue
+
+        # Instantiate the loader and execute data load
+        data_loader = data_loader_class()
+        data_loader.load(domain, source_name)
 
 if __name__ == '__main__':
-    main()
+    
+    try:
+        args = parse_args()
+
+        # load config file
+        config_name = args.config
+        CONFIG = load_config(config_name)
+        
+        # build useful dicts 
+        DOMAINS = CONFIG.get('domains')
+        SOURCES_INDEX = {}
+        for domain_name in DOMAINS.keys():
+            SOURCES_INDEX[domain_name] = [name for name in DOMAINS[domain_name].keys()]
+
+        # load the function to be executed
+        operation = locals()[args.operation]
+   
+    except Exception as e:
+        logger.exception(f"Error preparing CLI arguments: {e}")
+        sys.exit(1)
+    
+    # execute operation with args
+    operation(**vars(args))

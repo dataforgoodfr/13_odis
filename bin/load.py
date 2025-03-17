@@ -12,6 +12,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Load raw data in database bronze layer')
     parser.add_argument('--domain', help='Load data for specific domain only')
     parser.add_argument('--config', default='datasources.yaml', help='Path to datasources config file')
+    parser.add_argument('--filepath', type=str, help='Path to the file to be loaded')
     return parser.parse_args()
 
 def get_data_loader(source_format):
@@ -20,18 +21,22 @@ def get_data_loader(source_format):
     }
     return data_loaders.get(source_format)
 
-def load_data(config, domain=None):
+def load_data(config, domain=None, sources=None):
 
     if config['domains'][domain]:
-        sources = config['domains'][domain]['sources']
-        if not sources:
+        all_sources = config['domains'][domain].keys()
+        if not all_sources:
             print(f"No sources found for domain: {domain}")
             return
     
-    for source in sources:
-        source_name = source.get('name')
+    # Set the source list : if none was given in input, take all for given domain
+    sources_list = sources if sources else all_sources
+
+    for source_name in sources_list:
 
         print(f"Loading source: {domain}/{source_name}")
+
+        source = config['domains'][domain][source_name]
         
         source_format = source['format']
         if not source_format:
@@ -43,12 +48,9 @@ def load_data(config, domain=None):
             print(f"No extractor implemented for source type: {source_format}")
             continue
 
-        try:
-            data_loader = data_loader_class()
-            data_loader.load(domain, source)
-            print(f"Loaded: {domain}/{source_name}")
-        except Exception as e:
-            print(f"Error loading data from {source_name}: {str(e)}")
+        data_loader = data_loader_class()
+        data_loader.load(domain, source)
+        print(f"Loaded: {domain}/{source_name}")
 
 def main():
     args = parse_args()
