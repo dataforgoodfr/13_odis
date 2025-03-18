@@ -38,8 +38,37 @@ APIs:
     default_headers:
       accept: application/json
 
+  Opendatasoft:
+    name: Opendatasoft #erreur 500 avec l'utilisation de header et pas d'erreur sans header
+    description: API de données ouverte
+    base_url: https://public.opendatasoft.com
+    apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
+    throttle: 100
+    #default_headers:
+      #accept: application/json 
 
 domains:
+
+  presentation_page :
+
+    Elu_commune:
+      API: Opendatasoft
+      description: Elu des différentes communes 
+      type: JsonExtractor
+      endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+
+    EPCI:
+      API: Opendatasoft
+      description: Groupement de communes
+      type: JsonExtractor
+      endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+
+    Population:
+      API: INSEE.Melodi
+      description: Population des communes
+      type: MelodiExtractor
+      endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&AGE=_T&SEX=F&SEX=M&maxResult=1000
+      format: JSON
 
   geographical_references:
 
