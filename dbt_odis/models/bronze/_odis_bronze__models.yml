@@ -4,29 +4,67 @@ models:
 
   - name: geographical_references_communes
     columns:
+      - name: nom
+        description: Nom des communes avec articles et tirets 
       - name: code
-        description: Code des communes
+        description: Code officiel français des communes, string pour garder 01...
         tests:
           - unique
           - not_null
+      - name: geo_type
+        description: Type de coordonnées géographiques
+        tests:
+          - accepted_values:
+              values: ['Point']
+      - name: geo_coordonnes_longitude
+        description: Coordonnées longitudinales, string pour données en -01.00
+      - name: geo_coordonnees_lattitude
+        description: Coordonnées lattitudinales string pour éviter les arrondis
+      - name: region_nom
+        description: Nom de la région rattachée à la commune, avec tirets
+      - name: region_code
+        description: Code officiel français de la région rattachée à la commune, string pour garder 01
+      - name: departement_nom
+        description: Nom du département rattaché à la commune, avec tirets
+      - name: departement_code
+        description: Code officiel français du département rattaché à la commune, string pour garder 01
+      - name: population
+        description: Nombre d'habitants dans la commune      
 
 
   - name: geographical_references_departements
     columns:
+      - name: code
+        description: Code officiel français du département, string pour garder 01 
+      - name: type
+        description: Niveau de collectivité
+        tests:
+          - accepted_values:
+              values: ['Departement']
       - name: chef_lieu
-        description: Code des départements
+        description: Code officiel français des communes/préfecture du département, string pour garder 01...
         tests:
           - unique
           - not_null
+      - name: intitule
+        description: Nom du département avec articles et tirets 
 
 
   - name: geographical_references_regions
     columns:
+      - name: code
+        description: Code officiel français de la région, string pour garder 01 
+      - name: type
+        description: Niveau de collectivité
+        tests:
+          - accepted_values:
+              values: ['Region']
       - name: chef_lieu
-        description: Code des régions
+        description: Code officiel français des communes/préfectures de la région, string pour garder 01...
         tests:
           - unique
           - not_null
-      
+      - name: intitule
+        description: Nom de la région avec articles et tirets 
 
  
