@@ -2,7 +2,6 @@
 import argparse
 import sys
 import os
-import datetime
 from pprint import PrettyPrinter
 import json
 from importlib import import_module
