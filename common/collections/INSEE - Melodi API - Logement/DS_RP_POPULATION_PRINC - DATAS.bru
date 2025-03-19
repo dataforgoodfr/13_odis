@@ -1,0 +1,21 @@
+meta {
+  name: DS_RP_POPULATION_PRINC - DATAS
+  type: http
+  seq: 8
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&OCS=DW_VAC&maxResult=10
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  OCS: DW_VAC
+  maxResult: 10
+}
+
+headers {
+  Accept: application/json
+}
