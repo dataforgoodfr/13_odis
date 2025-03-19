@@ -56,19 +56,21 @@ domains:
       description: Elu des différentes communes 
       type: JsonExtractor
       endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+      format: json
 
     EPCI:
       API: Opendatasoft
       description: Groupement de communes
       type: JsonExtractor
       endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+      format: json
 
     Population:
       API: INSEE.Melodi
       description: Population des communes
       type: MelodiExtractor
       endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&AGE=_T&SEX=F&SEX=M&maxResult=1000
-      format: JSON
+      format: json
 
   geographical_references:
 
@@ -77,18 +79,21 @@ domains:
       description: Référentiel géographique INSEE - niveau régional
       type: MelodiExtractor
       endpoint: /geo/regions
+      format: json
 
     departements:
       API: INSEE.Metadonnees
       description: Référentiel géographique INSEE - niveau départemental
       type: MelodiExtractor
       endpoint: /geo/departements
+      format: json
 
     communes:
       API: GEO.api.gouv.fr
       description: Référentiel géographique GEO - niveau commune
       type: JsonExtractor
       endpoint: /communes?fields=code,nom,population,departement,region,centre
+      format: json
 
   logement:
 
@@ -97,6 +102,7 @@ domains:
         description: Catalogue de tous les datasets dispo sur l'API DiDo (logement / développement durable)
         type: MelodiExtractor
         endpoint: /datasets
+        format: json
         params:
           page: 1
           pageSize: all
@@ -135,7 +141,7 @@ domains:
           next: paging.next
           is_last: paging.isLast
           
-logements_maison:
+      logements_maison:
         API: INSEE.Melodi
         description: nombre de maison
         type: MelodiExtractor
