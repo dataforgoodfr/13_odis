@@ -1,4 +1,6 @@
+from dataclasses import dataclass, field
 from typing import Annotated, Literal, Optional, Self
+import datetime
 
 from pydantic import (
     BaseModel,
@@ -83,3 +85,66 @@ class DataSourceModel(ConfigurationModel):
                     raise ValueError(f"API '{subdomain.API}' not found in APIs section")
 
         return self
+    
+
+@dataclass
+class PageLog():
+    
+    pageno: int
+    filepath: Optional[str] # to be enhanced ; needs to be a valid path
+
+@dataclass
+class DataProcessLog():
+    """model for exchanging processing reports between extractors and loaders"""
+
+    domain: str
+    source: str
+    operation: str
+    last_run_time: str = field(default_factory = lambda: datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S"))
+    last_page: int = 0
+    successfully_completed: bool = False
+    pages: list[PageLog] = field(default_factory = list)
+
+    @classmethod
+    def from_dict(dict_data):
+        
+        pagelogs = []
+        for page in dict_data.get('pages'):
+            page_obj = PageLog(
+                pageno = page['pageno'],
+                filepath = page['filepath']
+            )
+            pagelogs.append(page_obj)
+
+        return DataProcessLog(
+            domain = dict_data.get('domain'),
+            source = dict_data.get('source'),
+            operation = dict_data.get('operation'),
+            last_run_time = dict_data.get('last_run_time'),
+            last_page = dict_data.get('last_page'),
+            successfully_completed = dict_data.get('successfully_completed'),
+            pages = pagelogs
+        )
+    
+    def to_dict(self):
+        
+        raw_dict = self.__dict__
+        serialized_pagelogs = []
+        for pagelog in self.pages:
+            serialized_pagelogs.append(pagelog.__dict__)
+
+        # replace the PageLog list by serializable list(dict)
+        raw_dict.pop('pages')
+        serialized_dict = raw_dict
+        serialized_dict['pages'] = serialized_pagelogs
+
+        return serialized_dict
+
+    def add_pagelog(self, pageno: int, filepath:str = None, is_last:bool = False):
+        
+        pagelog = PageLog(pageno = pageno, filepath = filepath)
+        self.pages.append(pagelog)
+        self.last_page = pageno
+        self.successfully_completed = is_last
+
+    
