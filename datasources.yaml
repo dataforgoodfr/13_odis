@@ -68,7 +68,7 @@ domains:
       description: Population des communes
       type: MelodiExtractor
       endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&AGE=_T&SEX=F&SEX=M&maxResult=1000
-      format: JSON
+      format: json
 
   geographical_references:
 
