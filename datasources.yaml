@@ -49,23 +49,24 @@ APIs:
 
 domains:
 
-  presentation_page :
+  presentation_page:
 
-    Elu_commune:
+    elus_communes:
       API: Opendatasoft
-      description: Elu des différentes communes 
-      type: JsonExtractor
+      description: Elus des différentes communes 
+      type: MelodiExtractor
       endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
       format: json
 
-    EPCI:
-      API: Opendatasoft
-      description: Groupement de communes
-      type: JsonExtractor
-      endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
-      format: json
+    # A fixer : même endpoint que elus_communes
+    # epci:
+    #   API: Opendatasoft
+    #   description: Groupement de communes
+    #   type: JsonExtractor
+    #   endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+    #   format: json
 
-    Population:
+    population_communes:
       API: INSEE.Melodi
       description: Population des communes
       type: MelodiExtractor
