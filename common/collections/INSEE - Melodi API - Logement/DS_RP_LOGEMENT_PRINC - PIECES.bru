@@ -1,0 +1,27 @@
+meta {
+  name: DS_RP_LOGEMENT_PRINC - PIECES
+  type: http
+  seq: 12
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS_ROOMS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&TDW=_T
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  RP_MEASURE: DWELLINGS_ROOMS
+  L_STAY: _T
+  TOH: _T
+  CARS: _T
+  NOR: _T
+  TSH: _T
+  BUILD_END: _T
+  TDW: _T
+}
+
+headers {
+  Accept: application/json
+}

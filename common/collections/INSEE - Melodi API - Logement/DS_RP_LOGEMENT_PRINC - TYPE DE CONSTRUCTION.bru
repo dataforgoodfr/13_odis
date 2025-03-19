@@ -1,0 +1,22 @@
+meta {
+  name: DS_RP_LOGEMENT_PRINC - TYPE DE CONSTRUCTION
+  type: http
+  seq: 10
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&maxResult=10&TDW=1&OCS=DW_MAIN
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  maxResult: 10
+  TDW: 1
+  OCS: DW_MAIN
+}
+
+headers {
+  Accept: application/json
+}
