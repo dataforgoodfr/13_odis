@@ -59,7 +59,7 @@ class DomainModel(BaseModel):
         description="mapping of response keys to domain-specific keys",
     )
 
-    format: Optional[Literal["csv", "json"]] = "json"
+    format: Literal["csv", "xlsx", "json"] = "json"
 
 
 class ConfigurationModel(BaseModel):
