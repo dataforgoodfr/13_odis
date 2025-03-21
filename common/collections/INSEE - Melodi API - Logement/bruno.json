@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Melodi - Logements",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
