@@ -20,8 +20,12 @@ EndPoint = Annotated[
     ),
 ]
 
+FILE_FORMAT = Literal["csv", "json"]
+
 
 class HeaderModel(BaseModel):
+
+    model_config = ConfigDict(extra="allow")  # allow extra keys
 
     accept: Literal["application/json", "application/xml", "text/csv"] = (
         "application/json"
@@ -40,12 +44,35 @@ class APIModel(BaseModel):
 
 
 class DomainModel(BaseModel):
-    """the domain section of the yaml file"""
+    """the domain section of the yaml file
+
+    when no headers are provided, default headers are used
+    and are merged with the API default headers
+
+    Example:
+    ```python
+    DomainModel(
+        API="INSEE.Metadonnees",
+        type="json",
+        endpoint="/regions",
+        description="Regions in France",
+        headers=HeaderModel(accept="application/json"),
+        params={"key": "value"},
+        response_map={"next": "paging.next"},
+        format="json",
+    )
+    ```
+
+    """
 
     API: str
     type: str
     endpoint: EndPoint
     description: Optional[str] = None
+    headers: Optional[HeaderModel] = Field(
+        default_factory=HeaderModel,
+        description="headers to be sent with the request",
+    )
 
     params: Optional[dict] = Field(
         default=None,
@@ -59,7 +86,34 @@ class DomainModel(BaseModel):
         description="mapping of response keys to domain-specific keys",
     )
 
+<<<<<<< HEAD
     format: Literal["csv", "xlsx", "json"] = "json"
+=======
+    format: Optional[FILE_FORMAT] = "json"
+
+    name: Optional[str] = Field(
+        default=None,
+        description="""
+            a human-readable name for the model
+        """,
+    )
+
+    def merge_headers(self, api_headers: HeaderModel) -> Self:
+        """
+        local headers are merged with the API headers
+
+        the local headers have precedence over the API headers
+        """
+        if self.headers:
+            if api_headers:
+                d = api_headers.model_dump(mode="json")
+                d.update(self.headers.model_dump(mode="json"))
+                self.headers = HeaderModel(**d)
+        else:
+            self.headers = api_headers
+
+        return self
+>>>>>>> 42ef62f (refacto: tmp waiting for tests)
 
 
 class ConfigurationModel(BaseModel):
@@ -177,9 +231,46 @@ class DataProcessLog():
     
 =======
 
-    def get_api_domains(self, api_name: str) -> dict[str, list[str]]:
+    @model_validator(mode="after")
+    def merge_model_headers(self) -> Self:
         """
-        get the domains that use the given API name,
+        API default headers are merged with the domain headers
+        """
+        for domain in self.domains.values():
+            for model in domain.values():
+                api = self.APIs[model.API]
+                model.merge_headers(api.default_headers)
+
+        return self
+
+    @model_validator(mode="after")
+    def set_model_name(self) -> Self:
+        """
+        set the name of a model in a domain,
+        the name is the concatenation of the domain and the model name
+
+        TODO: test
+
+        Example:
+        ```python
+        {
+            "Metadonnees": {
+                "INSEE": DomainModel(...),
+            },
+        }
+        # name would be Metadonnees.INSEE
+        ```
+
+        """
+        for d_name, domain in self.domains.items():
+            for m_name, model in domain.items():
+                model.name = f"{d_name}.{m_name}"
+        return self
+
+    def get_domains_with_models_for_api(self, api_name: str) -> dict[str, list[str]]:
+        """
+        get the domains and models that use the given API name,
+
         the result is a dict with the domain name as key and the subdomain names list using the API as value
 
         Example:
@@ -205,7 +296,7 @@ class DataProcessLog():
             for domain_name, domain in self.domains.items()
         }
 
-    def list_domains(self) -> list[str]:
+    def list_domains_names(self) -> list[str]:
         return list(self.domains.keys())
 
     def get_models(self, domain: str = None) -> dict[str, DomainModel]:
@@ -234,9 +325,57 @@ class DataProcessLog():
             return self.domains[domain]
 
         return {
-            f"{name}.{model_name}": model
-            for name, d in self.domains.items()
-            for model_name, model in d.items()
+            f"{model.name}": model
+            for d in self.domains.values()
+            for model in d.values()
         }
+<<<<<<< HEAD
 >>>>>>> 9fb78f0 (test & refacto explain_source)
+<<<<<<< HEAD
 >>>>>>> 14d9d61 (test & refacto explain_source)
+=======
+=======
+
+    def get_domain_name(self, model: DomainModel) -> str:
+        """provides the domain name for a given model
+
+        Example:
+        ```python
+
+        # config is a DataSourceModel instance
+        # assuming the domains are "Metadonnees" and "Geographical" with models "INSEE" and "IGN"
+
+        config.get_domain_by_model(DomainModel(...))
+        # output
+        # "Metadonnees"
+        # means that the model is in the "Metadonnees" domain
+        ```
+        """
+        for domain_name, domain in self.domains.items():
+            if model in domain.values():
+                return domain_name
+
+        raise ValueError(f"Model '{model}' not found in domains")
+
+    def get_api(self, model: DomainModel) -> APIModel:
+        """provides the `APIModel` for a given `DomainModel`
+
+        Example:
+        ```python
+
+        # config is a DataSourceModel instance
+        # assuming the domains are "Metadonnees" and "Geographical" with models "INSEE" and "IGN"
+
+        config.get_api(DomainModel(...))
+        # output
+        # APIModel(...)
+        ```
+        """
+
+        for key, api in self.APIs.items():
+            if model.API == key:
+                return api
+
+        raise ValueError(f"API '{model.API}' not found in APIs section")
+>>>>>>> 42ef62f (refacto: tmp waiting for tests)
+>>>>>>> d8c4deb (refacto: tmp waiting for tests)
