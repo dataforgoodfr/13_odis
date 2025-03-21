@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 
+
 import sys
 import os
 from pprint import PrettyPrinter
@@ -8,15 +9,16 @@ from pprint import PrettyPrinter
 import datetime
 
 import json
+
 import os
 import sys
-from importlib import import_module
 from io import StringIO
 from pprint import PrettyPrinter
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from common.config import load_config
+
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.file_handler import FileHandler
 
@@ -27,6 +29,11 @@ from common.utils.logging_odis import logger
 
 pp = PrettyPrinter(indent=4)
 fh = FileHandler()
+
+
+from common.data_source_model import APIModel, DataSourceModel, DomainModel
+from common.utils.extractor_factory import create_extractor
+from common.utils.logging_odis import logger
 
 
 # define globals
@@ -55,13 +62,13 @@ def parse_args():
 
 def explain(
     config: DataSourceModel,
-    apis: list[str] = None,
-    domain: str = None,
-    models: list[str] = None,
+    apis: list[APIModel] = None,
+    models: list[DomainModel] = None,
     default_all: bool = False,
 ) -> str:
 
     output = StringIO()
+    pp = PrettyPrinter(indent=4)
 
 
     all_apis = config.get("APIs")
@@ -85,22 +92,11 @@ def explain(
     output.write("\n\n================= API explanations =================\n")
     output.write(f"Available APIs from config : {list(config.APIs.keys())}\n")
 
-    api_selection = (
-        [
-            v
-            for k, v in config.APIs.items()
-            if k.casefold()
-            in [a.casefold() for a in apis]  # case insensitive comparison
-        ]
-        if apis
-        else []
-    )
-
-    for a in api_selection:
+    for a in apis:
         output.write(f"\n~~~~~~ {a.name} ~~~~~~")
         output.write(f"{a.model_dump_json(indent=4)}\n")
 
-        used_in = config.get_api_domains(a.name)
+        used_in = config.get_domains_with_models_for_api(a.name)
         output.write(
             f"This API is used in the following models : {pp.pformat(used_in)}\n"
         )
@@ -111,6 +107,7 @@ def explain(
     )
     output.write(f"Available Domains from config : {list(config.domains.keys())}\n")
     output.write(f"Available Models from config : {list(config.get_models().keys())}\n")
+
 
     models_to_explain: dict[str, DomainModel] = config.get_models()
 
@@ -141,6 +138,11 @@ def explain(
         output.write(f"\nSOURCE MODEL: {k}\n")
         output.write(f"{v.model_dump_json(indent=4)}\n")
 
+    for m in models:
+        output.write(f"\nSOURCE MODEL: {m.name}\n")
+        output.write(f"{m.model_dump_json(indent=4)}\n")
+
+
     return output.getvalue()
 
 
@@ -162,6 +164,7 @@ def parse_args():
     parser.add_argument("--apis", help="APIs to be explained", nargs="*")
 
     return parser.parse_args()
+
 
 
 def extract_data(config, domain=None, sources=None):
@@ -261,8 +264,20 @@ def load(domain:str = None, sources:list[str] = None, **params):
             }
             fh.file_dump(domain, f"{source_name}_metadata", payload=extract_metadata)
 
+def extract_data(
+    config: DataSourceModel,
+    models: list[DomainModel],
+) -> None:
+
+    for model in models:
+
+        try:
+
+            extractor = create_extractor(config, model)
+            extractor.execute()
+
         except Exception as e:
-            logger.exception(f"Error extracting data from {source_name}: {str(e)}")
+            logger.exception(f"Error extracting data from {model.name}: {str(e)}")
 
 
 def main():
@@ -271,18 +286,22 @@ def main():
     needs_explanation = args.explain
 
     try:
-        config = load_config(args.config)
-
+        config = load_config(args.config, response_model=DataSourceModel)
     except Exception as e:
         logger.info(f"Error loading config file: {str(e)}")
         sys.exit(1)
 
-    if needs_explanation:
-        config = load_config(args.config, response_model=DataSourceModel)
-        explanations = explain_source(
-            config, domain=args.domain, apis=args.apis, models=args.sources
-        )
-        print(explanations)
+    # build the arguments
+    api_selection = (
+        [
+            v
+            for k, v in config.APIs.items()
+            if k.casefold()
+            in [a.casefold() for a in args.apis]  # case insensitive comparison
+        ]
+        if args.apis
+        else []
+    )
 
 
     for source_name in sources_list:
@@ -331,6 +350,22 @@ if __name__ == '__main__':
     
     # execute operation with args
     operation(**vars(args))
+
+    all_models: list[DomainModel] = []
+
+    if args.domain:
+        all_models = list(config.get_models(args.domain).values())
+    elif args.sources:
+        all_models = list(
+            {k: v for k, v in config.get_models().items() if k in args.sources}.values()
+        )
+    else:
+        all_models = list(config.get_models().values())  # get all models
+
+    if needs_explanation:
+        print(explain_source(config, apis=api_selection, models=all_models))
+    else:
+        extract_data(config, all_models)
 
 
 if __name__ == "__main__":
