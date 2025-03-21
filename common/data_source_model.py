@@ -91,7 +91,10 @@ class DataSourceModel(ConfigurationModel):
 class PageLog():
     
     pageno: int
-    filepath: Optional[str] # to be enhanced ; needs to be a valid path
+    filepath: Optional[str] = None # to be enhanced ; needs to be a valid path
+    is_last: Optional[bool] = False
+    extracted: Optional[bool] = False
+    bronze_loaded: Optional[bool] = False
 
 @dataclass
 class DataProcessLog():
@@ -100,39 +103,35 @@ class DataProcessLog():
     domain: str
     source: str
     operation: str
-    source_config: dict = None
     last_run_time: str = field(default_factory = lambda: datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S"))
-    last_page: int = 0
+    exctracted_pages: int = 0
+    loaded_pages: int = 0
     successfully_completed: bool = False
-    pages: list[PageLog] = field(default_factory = list)
+    source_config: dict = None
+    pages: dict[PageLog] = field(default_factory = dict)
 
     @classmethod
-    def from_dict(dict_data):
+    def from_dict(cls, dict_data):
         
-        pagelogs = []
-        for page in dict_data.get('pages'):
-            page_obj = PageLog(
-                pageno = page['pageno'],
-                filepath = page['filepath']
-            )
-            pagelogs.append(page_obj)
+        processed_dict_data = dict_data
 
-        return DataProcessLog(
-            domain = dict_data.get('domain'),
-            source = dict_data.get('source'),
-            operation = dict_data.get('operation'),
-            last_run_time = dict_data.get('last_run_time'),
-            last_page = dict_data.get('last_page'),
-            successfully_completed = dict_data.get('successfully_completed'),
-            pages = pagelogs
-        )
+        # Pop out dict-type pagelogs to reinsert PageLog types
+        pagelogs = {}
+        pages_dict = processed_dict_data.pop('pages')
+        for pageno, pagelog_dict in pages_dict.items():
+            pagelog = PageLog( **pagelog_dict )
+            pagelogs[pageno] = pagelog
+        
+        processed_dict_data['pages'] = pagelogs
+
+        return cls( **processed_dict_data )
     
     def to_dict(self):
         
         raw_dict = self.__dict__
-        serialized_pagelogs = []
-        for pagelog in self.pages:
-            serialized_pagelogs.append(pagelog.__dict__)
+        serialized_pagelogs = {}
+        for pageno, pagelog in self.pages.items():
+            serialized_pagelogs[pageno] = pagelog.__dict__
 
         # replace the PageLog list by serializable list(dict)
         raw_dict.pop('pages')
@@ -141,11 +140,30 @@ class DataProcessLog():
 
         return serialized_dict
 
-    def add_pagelog(self, pageno: int, filepath:str = None, is_last:bool = False):
+    def update_pagelog(self, pageno: int, **pagelog_params):
         
-        pagelog = PageLog(pageno = pageno, filepath = filepath)
-        self.pages.append(pagelog)
-        self.last_page = pageno
-        self.successfully_completed = is_last
+        pagelog = self.pages.get(str(pageno))
 
+        if pagelog is None:
+            # if pagenumber was not found, create a new PageLog
+            pagelog = PageLog(pageno, **pagelog_params )
+            
+        else:
+            # Update PageLog in place
+            for key, value in pagelog_params.items():
+                setattr(pagelog, key, value)
+        
+        # Add page log to pages
+        self.pages[pageno] = pagelog
+
+        if self.operation == 'extract' and pagelog.extracted:
+            self.exctracted_pages += 1
+
+        if self.operation == 'load' and pagelog.bronze_loaded:
+            self.loaded_pages += 1
+
+        
+        self.successfully_completed = pagelog.is_last
+
+        
     
