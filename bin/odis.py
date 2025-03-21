@@ -4,9 +4,10 @@ import sys
 import os
 from pprint import PrettyPrinter
 import json
+import jmespath
 from importlib import import_module
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))    
 
 from common.config import load_config
 from common.utils.logging_odis import logger
@@ -101,23 +102,24 @@ def explain(apis:list[str] = None, domain:str = None, sources:list[str] = None, 
 def extract(domain:str = None, sources:list[str] = None, **params):
 
     # Set the source list : if none was given in input, take all for given domain
-    sources_list = sources if sources else SOURCES_INDEX[domain]
-
-    # start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    sources_list = sources if sources else SOURCES_INDEX.get(domain)
+    if not sources_list:
+        logger.info(f"No domain found in cdatasources.yaml for : {domain}, skipping...")
+        return
     
     for source_name in sources_list:
         
-        # initialize process log
-        processlog = DataProcessLog(domain, source_name, 'extract')
-        
-        print(f"Extracting source: {domain}/{source_name}")
+        source_namespace = f"{domain}.{source_name}"
+        logger.info(f"Extracting source: {source_namespace}")
 
-        source = DOMAINS[domain][source_name]
-        
-        source_type = source['type']
+        source = jmespath.search(source_namespace, DOMAINS)
+        source_type = source.get('type')
         if not source_type:
             logger.info(f"Source type not specified for {source_name}, skipping...")
             continue
+        
+        # initialize process log
+        processlog = DataProcessLog(domain, source_name, 'extract', source_config = source)
         
         # Import the Extractor class specified in the source config
         source_type = source.get('type')
@@ -148,11 +150,15 @@ def load(domain:str = None, sources:list[str] = None, **params):
 
     for source_name in sources_list:
 
-        print(f"Loading source: {domain}/{source_name}")
+        source_namespace = f"{domain}.{source_name}"
+        logger.info(f"Loading source: {source_namespace}")
 
-        source = DOMAINS[domain][source_name]
-        
-        source_format = source['format']
+        source = jmespath.search(source_namespace, DOMAINS)
+        source_format = source.get('format')
+        if not source_format:
+            logger.info(f"Source format not specified for {source_name}, skipping...")
+            continue
+
         # little trick to build the loader class name from format
         loader_name = f"{str.capitalize(source_format)}DataLoader"
         
