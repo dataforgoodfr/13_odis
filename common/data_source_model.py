@@ -100,6 +100,7 @@ class DataProcessLog():
     domain: str
     source: str
     operation: str
+    source_config: dict = None
     last_run_time: str = field(default_factory = lambda: datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S"))
     last_page: int = 0
     successfully_completed: bool = False

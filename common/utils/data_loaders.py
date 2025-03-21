@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from psycopg2.extras import Json
-
+import jmespath
 
 from common.utils.logging_odis import logger
 from common.utils.database_client import DatabaseClient
@@ -30,9 +30,13 @@ class JsonDataLoader(DataLoader):
         data_index_name = f"{source_name}_extract_log"
         data_index = self.fh.json_load(domain = domain, source_name = data_index_name)
 
+        # Load source definition dict
+        source_config = jmespath.search('source_config', data_index)
+        logger.debug(f"Source: {source_config}")
+
         # initiate database session
         db = DatabaseClient(autocommit=False)
-    
+
         # create bronze table drop if it already exists
         table_name = f"{domain}_{source_name}"
         db.execute(f"DROP TABLE IF EXISTS bronze.{table_name}")
@@ -50,7 +54,12 @@ class JsonDataLoader(DataLoader):
             pageno = item.get('pageno')
             filepath = item.get('filepath')
 
-            page_data = self.fh.json_load(filepath = filepath)
+            raw_data = self.fh.json_load(filepath = filepath)
+
+            # get the datapath field and get the actual data records
+            datapath = jmespath.search('response_map.data', source_config)
+            logger.debug(f"Datapath: {datapath}")
+            page_data = jmespath.search(datapath, raw_data)
         
             # Validate data structure
             if not isinstance(page_data, (list, dict)):
