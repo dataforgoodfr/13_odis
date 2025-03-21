@@ -161,8 +161,6 @@ def load(domain:str = None, sources:list[str] = None, **params):
         # little trick to build the loader class name from format
         loader_name = f"{str.capitalize(source_format)}DataLoader"
 
-        load_success = False
-
         try:
             # read data extraction log provided by extractor
             data_index_name = f"{source_name}_extract_log"
@@ -194,8 +192,6 @@ def load(domain:str = None, sources:list[str] = None, **params):
             else:
                 logger.info(f"Could not initialize table {table_name}. Exiting.")
             
-            process_log.successfully_completed = load_success
-
             # save the process log locally
             fh.file_dump(domain, f"{source_name}_load_log", payload = process_log.to_dict())
             

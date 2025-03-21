@@ -78,7 +78,6 @@ class JsonDataLoader(DataLoader):
 
             yield pageno, load_success
 
-
     def load_from_file(self, filepath:str, domain:str, source_name:str, source_config:dict = None):
         """Imports a JSON file and loads it to the database"""
 
