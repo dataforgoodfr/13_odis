@@ -89,6 +89,7 @@ class DataSourceModel(ConfigurationModel):
 
 @dataclass
 class PageLog():
+    """model for easily updating and logging information about the processing of a given page"""
     
     pageno: int
     filepath: Optional[str] = None # to be enhanced ; needs to be a valid path
@@ -141,6 +142,7 @@ class DataProcessLog():
         return serialized_dict
 
     def update_pagelog(self, pageno: int, **pagelog_params):
+        """Creates or Updates a PageLog with the information of how its last processing (extract or load) went"""
         
         pagelog = self.pages.get(str(pageno))
 
@@ -156,13 +158,15 @@ class DataProcessLog():
         # Add page log to pages
         self.pages[pageno] = pagelog
 
+        # If relevant, increment the extracted pages count
         if self.operation == 'extract' and pagelog.extracted:
             self.exctracted_pages += 1
 
+        # If relevant, increment the loaded pages count
         if self.operation == 'load' and pagelog.bronze_loaded:
             self.loaded_pages += 1
 
-        
+        # If this page was the last, then infer process is successful and complete
         self.successfully_completed = pagelog.is_last
 
         
