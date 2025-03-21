@@ -1,0 +1,22 @@
+meta {
+  name: DS_RP_LOGEMENT_PRINC - NB PIECES
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&NOR=R1&OCS=DW_MAIN&maxResult=10
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  NOR: R1
+  OCS: DW_MAIN
+  maxResult: 10
+}
+
+headers {
+  Accept: application/json
+}

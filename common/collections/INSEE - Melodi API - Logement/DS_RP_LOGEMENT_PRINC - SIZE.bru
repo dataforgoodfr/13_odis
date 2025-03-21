@@ -1,0 +1,21 @@
+meta {
+  name: DS_RP_LOGEMENT_PRINC - SIZE
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&maxResult=10&UFS=LT30
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  maxResult: 10
+  UFS: LT30
+}
+
+headers {
+  Accept: application/json
+}
