@@ -128,6 +128,7 @@ domains:
         params:
           maxResult: 10000
           TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
           TOH: _T
@@ -146,33 +147,118 @@ domains:
         API: INSEE.Melodi
         description: nombre de maison
         type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=1&maxResult=10000
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
+        params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: _T
+          TDW: 1
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
 
       logements_appartement:
         API: INSEE.Melodi
         description: nombre d'appartement
         type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=2&maxResult=10000
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
+        params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: _T
+          TDW: 2
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
 
       logements_maison_et_residences_principales:
         API: INSEE.Melodi
         description: nombre de maison residence principale
         type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=DW_MAIN&TDW=1&maxResult=10000
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
+        params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: DW_MAIN
+          TDW: 1
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
 
       logements_appartement_et_residences_principales:
         API: INSEE.Melodi
         description: nombre d'appartement residence principale
         type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=DW_MAIN&TDW=2&maxResult=10000
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
+        params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: DW_MAIN
+          TDW: 2
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
 
       logements_pieces:
         API: INSEE.Melodi
         description: nombre de piece par residence principales
         type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC?TIME_PERIOD=2021&RP_MEASURE=DWELLINGS_ROOMS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=DW_MAIN&TDW=_T&maxResult=10000
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
+        params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS_ROOMS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: DW_MAIN
+          TDW: _T
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
