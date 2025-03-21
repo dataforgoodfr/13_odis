@@ -1,0 +1,18 @@
+meta {
+  name: Agence de travail temporaire
+  type: http
+  seq: 9
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A503&maxResult=10000
+  body: none
+  auth: none
+}
+
+params:query {
+  GEO: COM
+  TIME_PERIOD: 2023
+  FACILITY_TYPE: A503
+  maxResult: 10000
+}
