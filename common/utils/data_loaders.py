@@ -26,7 +26,10 @@ class JsonDataLoader(DataLoader):
         super().__init__()
 
     def init_jsontable(self, table_name:str, schema:str = 'bronze'):
-        """Method to drop a JSON data table if it exists in the schema"""
+        """Initialize or Reinitialize a table in the given database schema.
+        Default schema is 'bronze'.
+        
+        This method drops the table if present, and then re-creates the table from scratch"""
 
         success = False
 
@@ -58,6 +61,8 @@ class JsonDataLoader(DataLoader):
             return success
     
     def load_pagelogs(self, process_log:DataProcessLog):
+        """Method to load pages from json files, indexed in a DataProcessLog object.
+        Yields an iterable result with page number (int) and load success information (bool) for each page"""
 
         for pageno, pagelog in process_log.pages.items():
 
@@ -75,6 +80,7 @@ class JsonDataLoader(DataLoader):
 
 
     def load_from_file(self, filepath:str, domain:str, source_name:str, source_config:dict = None):
+        """Imports a JSON file and loads it to the database"""
 
         raw_data = self.fh.json_load(filepath = filepath)
 
@@ -94,6 +100,7 @@ class JsonDataLoader(DataLoader):
         return load_success
 
     def load(self, payload, domain: str, source_name: str):
+        """Load list(dict)-type data records into the database with table_name = 'domain_source'"""
 
         # Validate data structure
         if not isinstance(payload, (list, dict)):
