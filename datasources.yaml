@@ -47,7 +47,42 @@ APIs:
     #default_headers:
       #accept: application/json 
 
+  statistiques.francetravail.org:
+    name: statistiques francetravail.org
+    description: Site regroupant des statistiques de france Travail
+    base_url: https://statistiques.francetravail.org
+    apidoc: https://www.francetravail.org/statistiques-analyses/
+
 domains:
+
+  emploi:
+    demandeur_emploi_regions:
+      API: statistiques.francetravail.org
+      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par régions
+      endpoint: /stmt/defmexp?li=0&pp=201607-&ss=1
+      type: FileExtractor
+      format: csv
+      params:
+        header: 3
+        skipfooter: 3
+    demandeur_emploi_departements:
+      API: statistiques.francetravail.org
+      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par départements
+      endpoint: /stmt/defmexp?lj=0&pp=201607-&ss=1
+      type: FileExtractor
+      format: csv
+      params:
+        header: 3
+        skipfooter: 3
+    demandeur_emploi_communes:
+      API: statistiques.francetravail.org
+      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par communes de plus de 5000 hab
+      endpoint: /stmt/defmexp?lk=0&pp=201607-&ss=1
+      type: FileExtractor
+      format: csv
+      params:
+        header: 3
+        skipfooter: 3
 
   presentation_page:
 
