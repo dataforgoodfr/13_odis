@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 from psycopg2.extras import Json
+<<<<<<< HEAD
 import pandas as pd
 import unicodedata
 import re
@@ -8,20 +8,19 @@ from common.utils.logging_odis import logger
 from common.utils.database_client import DatabaseClient
 from common.utils.file_handler import FileHandler
 from common.data_source_model import DataProcessLog
+=======
 
-class DataLoader(ABC):
-    """Abstract class defining a datasource extractor.
-    Only the 'load' method is mandatory, which is responsible
-    for loading the data in a database.
-    """
-    @abstractmethod
-    def load(self, domain: str, source_config):
-        pass
+from common.utils.database_client import DatabaseClient
+from common.utils.interfaces.data_loader import AbstractDataLoader
+from common.utils.logging_odis import logger
+>>>>>>> d813691 (merged with main branch)
 
-class JsonDataLoader(DataLoader):
 
-    fh: FileHandler
+class JsonDataLoader(AbstractDataLoader):
 
+    def load_data(self):
+
+<<<<<<< HEAD
     def __init__(self):
         
         self.fh = FileHandler()
@@ -32,9 +31,41 @@ class JsonDataLoader(DataLoader):
         Default schema is 'bronze'.
         
         This method drops the table if present, and then re-creates the table from scratch"""
+=======
+        domain_name = self.config.get_domain_name(self.model)
+
+        # initiate database session
+        db = DatabaseClient(autocommit=False)
+
+        # create bronze table drop if it already exists
+        table_name = f"{domain_name}_{self.model.name}"
+        db.execute(f"DROP TABLE IF EXISTS bronze.{table_name}")
+        db.execute(
+            f"""
+            CREATE TABLE bronze.{table_name} (
+                id SERIAL PRIMARY KEY,
+                data JSONB,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+        """
+        )
+        db.commit()
+
+        # load actual data from metadata
+        metadata_info = self.load_metadata()
+        for item in metadata_info.file_dumps:
+
+            filepath = item.storage_info.location / item.storage_info.file_name
+
+            page_data = self.handler.json_load(filepath=filepath)
+
+            # Validate data structure
+            if not isinstance(page_data, (list, dict)):
+                raise ValueError("JSON data must be either a list or dictionary")
+>>>>>>> d813691 (merged with main branch)
 
         success = False
 
+<<<<<<< HEAD
         try:
             # initiate database session
             db = DatabaseClient(autocommit=False)
@@ -42,6 +73,17 @@ class JsonDataLoader(DataLoader):
             # create bronze table drop if it already exists
             logger.info(f"Dropping table (if exists): {schema}.{table_name}")
             db.execute(f"DROP TABLE IF EXISTS bronze.{table_name}")
+=======
+            try:
+                logger.info(f"Inserting page {item.page} into {table_name}")
+                # insert Data
+                insert_query = f"INSERT INTO bronze.{table_name} (data) VALUES (%s)"
+                for record in page_data:
+                    db.execute(insert_query, (Json(record),))
+                db.commit()
+
+                logger.info(f"Successfully Loaded: {domain_name}/{self.model.name}")
+>>>>>>> d813691 (merged with main branch)
 
             logger.info(f"Creating table: {schema}.{table_name}")
             db.execute(f"""

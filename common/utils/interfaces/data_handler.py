@@ -1,6 +1,6 @@
 from typing import Any, Protocol
 
-from pydantic import BaseModel
+from pydantic import BaseModel, NonNegativeInt
 
 from common.data_source_model import DomainModel
 
@@ -14,10 +14,32 @@ class StorageInfo(BaseModel):
     encoding: str
 
 
+class FileDumpInfo(BaseModel):
+    """Information about the file dump"""
+
+    page: NonNegativeInt
+    storage_info: StorageInfo
+
+
+class MetadataInfo(BaseModel):
+    """Information about the metadata"""
+
+    domain: str
+    source: str
+    last_run_time: str
+    last_page_downloaded: NonNegativeInt
+    successfully_completed: bool
+    file_dumps: list[FileDumpInfo]
+
+
 class IDataHandler(Protocol):
     """base interface to define a handler in charge of handling extracted data.
 
     A handler may be a file writer, a database writer, a data processor, etc.
     """
 
-    def handle(self, model: DomainModel, *args, data: Any, **kwargs) -> StorageInfo: ...
+    def file_dump(
+        self, model: DomainModel, *args, data: Any, **kwargs
+    ) -> StorageInfo: ...
+
+    def json_load(self, model: DomainModel, *args, **kwargs) -> dict: ...
