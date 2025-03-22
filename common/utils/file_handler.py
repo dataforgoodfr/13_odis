@@ -8,7 +8,7 @@ from bson import ObjectId
 from common.data_source_model import DomainModel
 from common.utils.logging_odis import logger
 
-from .interfaces.data_handler import IDataHandler, StorageInfo
+from .interfaces.data_handler import FileDumpInfo, IDataHandler, StorageInfo
 
 DEFAULT_BASE_PATH = "data/imports"
 DEFAULT_FILE_FORMAT = "json"
@@ -118,7 +118,7 @@ class FileHandler(IDataHandler):
 
     def json_load(
         self,
-        storage_info: StorageInfo,
+        filedump: FileDumpInfo,
     ) -> dict:
         """Opinionated utility method to load JSON files.
 
@@ -130,7 +130,9 @@ class FileHandler(IDataHandler):
 
         payload = {}
 
-        filepath = storage_info.location / storage_info.file_name
+        filepath = Path(filedump.storage_info.location) / Path(
+            filedump.storage_info.file_name
+        )
         logger.debug(f"File path: {filepath}")
 
         try:

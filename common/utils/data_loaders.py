@@ -1,3 +1,4 @@
+
 from psycopg2.extras import Json
 <<<<<<< HEAD
 import pandas as pd
@@ -54,9 +55,7 @@ class JsonDataLoader(AbstractDataLoader):
         metadata_info = self.load_metadata()
         for item in metadata_info.file_dumps:
 
-            filepath = item.storage_info.location / item.storage_info.file_name
-
-            page_data = self.handler.json_load(filepath=filepath)
+            page_data = self.handler.json_load(item)
 
             # Validate data structure
             if not isinstance(page_data, (list, dict)):
