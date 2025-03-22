@@ -28,7 +28,7 @@ class ExtractionResult(BaseModel):
     )
 
 
-class ISourceExtractor(ABC):
+class AbstractSourceExtractor(ABC):
     """Abstract class defining a datasource extractor.
     Only the 'download' method is mandatory, which is responsible
     for pulling the data and storing it in a local file.
@@ -51,6 +51,12 @@ class ISourceExtractor(ABC):
         """
         - populates the extractor with the configuration, the model and the handler
         - computes the full URL for the API endpoint
+
+        Args:
+            config (DataSourceModel): the configuration of the data source
+            model (DomainModel): the model of the data source
+            handler (IDataHandler): the handler used to store the data
+            metadata_handler (IDataHandler): the handler used to store the metadata
         """
 
         self.config = config
@@ -75,9 +81,12 @@ class ISourceExtractor(ABC):
 
     def execute(self) -> None:
         """Method to be called to start the extraction process.
+        This method will download the data and store it in a local file; it will also
+        store the metadata of the extraction in a separate file.
 
-        TODO:
-            - test this method
+        Example:
+        >>> extractor = MyExtractor(config, model, handler)
+        >>> extractor.execute()
         """
 
         logger.debug(f"Processing data from {self.url}")
@@ -127,5 +136,17 @@ class ISourceExtractor(ABC):
 
     @abstractmethod
     def download(self, *args, **kwargs) -> Generator[ExtractionResult]:
-        """Method to be implemented by the concrete extractor class."""
+        """Method to be implemented by the concrete extractor class.
+        It should return a generator that yields ExtractionResult objects.
+
+        Example:
+        ```python
+
+        def download(self):
+            for page in range(1, 10):
+                data = self.get_page(page)
+                is_last = page == 9
+                yield ExtractionResult(payload=data, is_last=is_last)
+        ```
+        """
         pass
