@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from common.utils.logging_odis import logger
 
 from ...data_source_model import APIModel, DataSourceModel, DomainModel
-from .data_handler import IDataHandler
+from .data_handler import IDataHandler, MetadataInfo
 
 
 class ExtractionResult(BaseModel):
@@ -103,7 +103,7 @@ class AbstractSourceExtractor(ABC):
 
                 last_page_downloaded += 1
 
-                storage_info = self.handler.handle(self.model, data=result.payload)
+                storage_info = self.handler.file_dump(self.model, data=result.payload)
 
                 filedump_info = {
                     "page": last_page_downloaded,
@@ -119,19 +119,25 @@ class AbstractSourceExtractor(ABC):
             logger.exception(f"Error downloading data: {str(e)}")
 
         # dump the log of the full extract iteration
-        extract_metadata = {
-            "domain": self.config.get_domain_name(self.model),
-            "source": self.model.name,
-            "last_run_time": start_time.isoformat(),
-            "last_page_downloaded": last_page_downloaded,
-            "successfully_completed": complete,
-            "file_dumps": file_dumps,
-        }
+        # just go through pydantic to ensure the data is valid
+        # and process eventual inner things
+        extract_metadata = MetadataInfo(
+            **{
+                "domain": self.config.get_domain_name(self.model),
+                "source": self.model.name,
+                "last_run_time": start_time.isoformat(),
+                "last_page_downloaded": last_page_downloaded,
+                "successfully_completed": complete,
+                "file_dumps": file_dumps,
+            }
+        ).model_dump(
+            mode="json"
+        )  # redump to ensure the data is valid
 
-        storage_info = self.metadata_handler.handle(self.model, data=extract_metadata)
+        meta_info = self.metadata_handler.file_dump(self.model, data=extract_metadata)
 
         logger.debug(
-            f"Metadata written in: '{storage_info.location}/{storage_info.file_name}'"
+            f"Metadata written in: '{meta_info.location}/{meta_info.file_name}'"
         )
 
     @abstractmethod

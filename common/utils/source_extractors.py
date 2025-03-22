@@ -1,13 +1,9 @@
-import os
-import sys
 import time
 import urllib
 from typing import Generator
 
 import jmespath
 import requests
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult

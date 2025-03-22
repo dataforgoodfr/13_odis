@@ -6,7 +6,7 @@ class StubDataHandler(IDataHandler):
 
     is_handled: bool = False
 
-    def handle(self, *args, **kwargs) -> StorageInfo:
+    def file_dump(self, *args, **kwargs) -> StorageInfo:
 
         self.is_handled = True
         return StorageInfo(

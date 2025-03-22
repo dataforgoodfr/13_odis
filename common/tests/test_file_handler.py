@@ -1,7 +1,6 @@
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
-
 from common.data_source_model import DataSourceModel
 from common.utils.file_handler import FileHandler
 
@@ -177,7 +176,7 @@ def test_handle_dict_data_with_csv_format():
 
     # when
     with patch("builtins.open", mock_open_func):
-        storage_info = file_handler.handle(model, dict_data)
+        storage_info = file_handler.file_dump(model, dict_data)
 
     # then
     assert storage_info.file_name == file_name
@@ -215,7 +214,7 @@ def test_handle_csv():
 
     # when
     with patch("builtins.open", mock_open_func):
-        storage_info = file_handler.handle(model, csv_data)
+        storage_info = file_handler.file_dump(model, csv_data)
 
     # then
     assert Path(storage_info.file_name).suffix == ".csv"
@@ -255,7 +254,7 @@ def test_handle_binary_data():
 
     # when
     with patch("builtins.open", mock_open_func):
-        storage_info = file_handler.handle(model, csv_data)
+        storage_info = file_handler.file_dump(model, csv_data)
 
     # then
     assert Path(storage_info.file_name).suffix == ".json"
