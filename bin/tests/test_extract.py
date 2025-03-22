@@ -99,36 +99,6 @@ def test_explain_source_generic_explanations():
     assert isinstance(explanations, str)
 
 
-def test_explain_source_domain():
-    """just validate there is no error when explaining a domain"""
-
-    # given
-    dict_config = {
-        "APIs": {
-            "INSEE.Metadonnees": {
-                "name": "Metadonnees INSEE",
-                "base_url": "https://geo.api.gouv.fr",
-            }
-        },
-        "domains": {
-            "INSEE": {
-                "Metadonnees": {
-                    "API": "INSEE.Metadonnees",
-                    "type": "JsonExtractor",
-                    "endpoint": "/geo/regions",
-                }
-            }
-        },
-    }
-
-    # when
-    explanations = explain_source(DataSourceModel(**dict_config), domain="INSEE")
-
-    # then
-    assert explanations is not None
-    assert isinstance(explanations, str)
-
-
 def test_explain_source_apis():
     # given
     dict_config = {
@@ -148,11 +118,11 @@ def test_explain_source_apis():
             }
         },
     }
+    config = DataSourceModel(**dict_config)
+    apis = list(config.APIs.values())
 
     # when
-    explanations = explain_source(
-        DataSourceModel(**dict_config), apis=["INSEE.Metadonnees"]
-    )
+    explanations = explain_source(config, apis=apis)
 
     # then
     assert explanations is not None
@@ -180,11 +150,11 @@ def test_explain_source_models():
             }
         },
     }
+    config = DataSourceModel(**dict_config)
+    models = list(config.get_models().values())
 
     # when
-    explanations = explain_source(
-        DataSourceModel(**dict_config), models=["Metadonnees"]
-    )
+    explanations = explain_source(config, models=models)
 
     # then
     assert explanations is not None
@@ -221,7 +191,7 @@ def test_create_extractor():
     assert isinstance(extractor, ISourceExtractor)
 
 
-def test_extract_data_all_domains():
+def test_extract_data(mocker):
     # given
 
     dict_config = {
@@ -242,52 +212,17 @@ def test_extract_data_all_domains():
         },
     }
     config = DataSourceModel(**dict_config)
+
+    # verify create_extractor is called
+    mocker.patch(
+        "bin.extract.create_extractor",
+        return_value=StubExtractor(config, list(config.get_models().values())[0]),
+    )
     data_handler = StubDataHandler()
 
     # when
-    extract_data(data_handler, config)
+    extract_data(config, config)
 
     # then
     # no exception raised but handler is not called
     assert not data_handler.is_called
-
-
-def test_extract_data_for_domain(mocker):
-    # given
-
-    dict_config = {
-        "APIs": {
-            "INSEE": {
-                "name": "Metadonnees INSEE",
-                "base_url": "https://geo.api.gouv.fr",
-            }
-        },
-        "domains": {
-            "INSEE": {
-                "Metadonnees": {
-                    "API": "INSEE",
-                    "type": "JsonExtractor",
-                    "endpoint": "/geo/regions",
-                }
-            }
-        },
-    }
-    config = DataSourceModel(**dict_config)
-    handler = StubDataHandler()
-    model = list(config.get_models().values())[0]  # get the first model
-
-    # mock the create_extractor method
-    # to avoid downloading the data
-    mocker.patch(
-        "bin.extract.create_extractor",
-        return_value=StubExtractor(config, model),
-    )
-
-    # when
-    extract_data(handler, config, domain="INSEE")
-
-    # then
-    # no exception raised but handler is not called
-    assert handler.is_called
-    mocker.resetall()
-    mocker.stopall()
