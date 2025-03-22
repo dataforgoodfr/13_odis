@@ -719,3 +719,32 @@ def test_get_api():
 
     # then
     assert api.name == "INSEE.Metadonnees"
+
+
+def test_model_name_is_set():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    # when
+    m = DataSourceModel(**model_dict)
+
+    # then
+    assert m.get_models()["level1.mod1_lvl1"].name == "level1.mod1_lvl1"

@@ -10,8 +10,6 @@ from common.utils.logging_odis import logger
 
 from .interfaces.data_handler import IDataHandler, StorageInfo
 
-DEFAULT_BASE_PATH = "data/imports"
-
 
 class bJSONEncoder(json.JSONEncoder):
     """Utility class to encode JSON or bJSON data, for JSON file I/O"""
@@ -46,8 +44,7 @@ class bJSONEncoder(json.JSONEncoder):
 =======
 class FileHandler(IDataHandler):
     """
-    TODO:
-    - test this class (init, ..)
+    a handler to save data to a file
     """
 
     base_path: str
@@ -56,15 +53,15 @@ class FileHandler(IDataHandler):
 
     def __init__(
         self,
-        base_path: str = DEFAULT_BASE_PATH,
+        base_path: str = "data/imports",
         file_name: str = None,
     ):
-        """_summary_
+        """
 
         Args:
-            base_path (str, optional): _description_. Defaults to DEFAULT_BASE_PATH.
-            file_format (str, optional): _description_. Defaults to DEFAULT_FILE_FORMAT.
-            file_name (str, optional): _description_. Defaults to None.
+            base_path (str, optional): where to store the files, Defaults to 'data/imports'.
+            file_name (str, optional): the name of the file.
+                Defaults to None, in which case the file name is generated
         """
 
         self.base_path = base_path
@@ -74,10 +71,7 @@ class FileHandler(IDataHandler):
         """Generate the directory Path where the data will be stored"""
         return Path(f"{self.base_path}/{model.API}")
 
-    def file_name(
-        self,
-        model: DomainModel,
-    ) -> str:
+    def file_name(self, model: DomainModel) -> str:
         """Generate the file name for the given model and page number
 
         If a file name was provided at initialization, it will be used instead of the generated one
@@ -85,7 +79,8 @@ class FileHandler(IDataHandler):
         When a file name is generated, the name pattern is the following:
         `{model.name}_{current_index}.{model.format}` where `current_index` is an internal counter that is incremented each time a file name is generated
 
-        TODO: test
+        Args:
+            model (DomainModel): the model that generated the data
         """
 
         if self._file_name:
@@ -97,7 +92,16 @@ class FileHandler(IDataHandler):
         return f"{model.name}_{self._index}.{model.format}"
 
     def handle(self, model: DomainModel, data: Any) -> StorageInfo:
-        """TODO: testing"""
+        """
+        saves the data to a file and returns the storage info
+
+        Args:
+            model (DomainModel): the model that generated the data
+            data (Any): the data to save
+
+        Returns:
+            StorageInfo: the storage info, including the location of the file
+        """
 
         # Create data directory if it doesn't exist
         data_dir = self._data_dir(model)
@@ -109,7 +113,7 @@ class FileHandler(IDataHandler):
 
         # Write payload content to file
         # case where we store a metadata file, the data is a dict although the model may not be json
-        if model.format == "json" or isinstance(data, dict):
+        if isinstance(data, dict) or model.format == "json":
 
             with open(filepath, "w") as f:
                 try:
