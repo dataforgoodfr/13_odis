@@ -3,7 +3,7 @@ import pytest
 from bin.extract import create_extractor, explain_source, extract_data
 from common.data_source_model import DataSourceModel
 from common.tests.stubs.source_extractor_stub import StubExtractor
-from common.utils.interfaces.extractor import ISourceExtractor
+from common.utils.interfaces.extractor import AbstractSourceExtractor
 from common.utils.source_extractors import JsonExtractor
 
 from .stubs.handler import StubDataHandler
@@ -188,7 +188,7 @@ def test_create_extractor():
 
     # then
     assert extractor is not None
-    assert isinstance(extractor, ISourceExtractor)
+    assert isinstance(extractor, AbstractSourceExtractor)
 
 
 def test_extract_data(mocker):
