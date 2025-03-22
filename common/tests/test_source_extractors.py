@@ -1,5 +1,6 @@
 from common.data_source_model import DataSourceModel
 
+from .stubs.data_handler import StubDataHandler
 from .stubs.source_extractor_stub import StubExtractor
 
 
@@ -7,7 +8,6 @@ def test_json_extractor_init():
     """verify that the JsonExtractor class is correctly initialized"""
 
     # given
-
     domain_name = "domain1"
     api_name = "api1"
     source_model = "source_model1"
@@ -33,7 +33,7 @@ def test_json_extractor_init():
     )
     model = list(config.get_models().values())[0]
 
-    extractor = StubExtractor(config, model)
+    extractor = StubExtractor(config, model, StubDataHandler(), StubDataHandler())
 
     # when
     # call the next() method to call the generator
