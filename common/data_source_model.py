@@ -249,8 +249,6 @@ class DataProcessLog():
         set the name of a model in a domain,
         the name is the concatenation of the domain and the model name
 
-        TODO: test
-
         Example:
         ```python
         {
