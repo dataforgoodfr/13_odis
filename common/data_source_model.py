@@ -66,14 +66,15 @@ class DomainModel(BaseModel):
 
     """
 
-    API: str
+    API: str = ""
     type: str
-    endpoint: EndPoint
+    endpoint: EndPoint = ""
     description: Optional[str] = None
     headers: Optional[HeaderModel] = Field(
         default_factory=HeaderModel,
         description="headers to be sent with the request",
     )
+    filename: str = ""
 
     params: Optional[dict] = Field(
         default=None,
@@ -137,7 +138,7 @@ class ConfigurationModel(BaseModel):
 class DataSourceModel(ConfigurationModel):
     """global model for the yaml file"""
 
-    APIs: dict[str, APIModel]
+    APIs: dict[str, APIModel] = {}
     domains: dict[str, dict[str, DomainModel]]
 
     # when loading the domains, we need to check that the API is in the APIs dict
@@ -147,10 +148,10 @@ class DataSourceModel(ConfigurationModel):
         """
         verify the domain API is in the APIs dict
         """
-        for domain in self.domains.values():
-            for model in domain.values():
-                if model.API not in self.APIs:
-                    raise ValueError(f"API '{model.API}' not found in APIs section")
+        # for domain in self.domains.values():
+        #     for model in domain.values():
+        #         if model.API not in self.APIs:
+        #             raise ValueError(f"API '{model.API}' not found in APIs section")
 
         return self
 
@@ -161,8 +162,8 @@ class DataSourceModel(ConfigurationModel):
         """
         for domain in self.domains.values():
             for model in domain.values():
-                api = self.APIs[model.API]
-                model.merge_headers(api.default_headers)
+                api = self.APIs.get(model.API, None)
+                model.merge_headers(api.default_headers) if api is not None else None
 
         return self
 
@@ -291,7 +292,7 @@ class DataSourceModel(ConfigurationModel):
             if model.API == key:
                 return api
 
-        raise ValueError(f"API '{model.API}' not found in APIs section")
+        # raise ValueError(f"API '{model.API}' not found in APIs section")
 
 
 @dataclass
