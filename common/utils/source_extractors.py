@@ -10,13 +10,13 @@ import requests
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from common.data_source_model import DataSourceModel, DomainModel
-from common.utils.interfaces.extractor import ExtractionResult, ISourceExtractor
+from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
 from common.utils.logging_odis import logger
 
 from .file_handler import FileHandler
 
 
-class FileExtractor(ISourceExtractor):
+class FileExtractor(AbstractSourceExtractor):
     """Generic extractor for a file dump from an API"""
 
     is_json: bool = False
