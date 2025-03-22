@@ -81,7 +81,8 @@ class AbstractSourceExtractor(ABC):
         self.model = model
 
         # Decompose base API URl
-        base_url = str(self.config.get_api(model).base_url)
+        api = self.config.get_api(model)
+        base_url = str(api.base_url) if api is not None else ""
         base_split = urllib.parse.urlsplit(base_url)
 
         # expand the URL endpoint path with the source config

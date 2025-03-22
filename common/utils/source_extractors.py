@@ -1,6 +1,8 @@
 import time
 import urllib
 from typing import Generator
+import nbformat
+from nbconvert.preprocessors import ExecutePreprocessor
 
 import jmespath
 import requests
@@ -18,6 +20,15 @@ class FileExtractor(AbstractSourceExtractor):
     is_json: bool = False
     handler: FileHandler  # typing
     metadata_handler: FileHandler  # typing
+    api_confs: dict
+    source_models: dict
+    url: str
+    headers: dict
+    params: dict
+    format: str
+    throttle: int = 0
+    response_map: dict = {}
+    filename: str
 
     def __init__(self, config: DataSourceModel, model: DomainModel):
         super().__init__(
@@ -127,4 +138,33 @@ class MelodiExtractor(FileExtractor):
             payload=payload,
             is_last=is_last,
             next_url=next_url
+        )
+
+
+class NotebookExtractor(AbstractSourceExtractor):
+    """Extractor for getting JSON data from an API"""
+
+    def __init__(self, config: DataSourceModel, model: DomainModel):
+        super().__init__(
+            config,
+            model,
+            handler=FileHandler(),
+            metadata_handler=FileHandler(file_name=f"{model.name}_extract_log.json"),
+        )
+
+    def download(self):
+        """Downloads data corresponding to the given source model.
+        The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
+        """
+        
+        with open(f"./notebook/{self.model.filename}") as f:
+            nb_in = nbformat.read(f, nbformat.NO_CONVERT)
+        
+        ep = ExecutePreprocessor(timeout=600)
+        ep.preprocess(nb_in)
+
+        return ExtractionResult(
+            payload="payload",
+            is_last=True,
+            next_url=None,
         )
