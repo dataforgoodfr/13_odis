@@ -8,6 +8,8 @@ from common.utils.source_extractors import FileExtractor
 def create_extractor(config: DataSourceModel, model: DomainModel) -> FileExtractor:
     """instanciates the correct extractor class for the given model"""
 
+    print(f"model: {model}")
+
     try:
         source_module = import_module("common.utils.source_extractors")
         _class = getattr(source_module, model.type)
