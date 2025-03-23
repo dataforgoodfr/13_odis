@@ -1,4 +1,3 @@
-
 from psycopg2.extras import Json
 <<<<<<< HEAD
 import pandas as pd
@@ -39,7 +38,10 @@ class JsonDataLoader(AbstractDataLoader):
         db = DatabaseClient(autocommit=False)
 
         # create bronze table drop if it already exists
-        table_name = f"{domain_name}_{self.model.name}"
+        table_name = f"{domain_name}_{self.model.table_name}"
+
+        logger.info(f"Creating table bronze.{table_name}")
+
         db.execute(f"DROP TABLE IF EXISTS bronze.{table_name}")
         db.execute(
             f"""
