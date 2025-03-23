@@ -8,6 +8,7 @@ from pydantic import (
     Field,
     HttpUrl,
     StringConstraints,
+    computed_field,
     model_validator,
 )
 
@@ -110,6 +111,23 @@ class DomainModel(BaseModel):
             self.headers = api_headers
 
         return self
+
+    @computed_field
+    @property
+    def table_name(self) -> str:
+        """
+        generate the DB table name storing data for this model,
+        It is generated as the last part of the `name` (split by '.')
+
+        Example:
+        ```python
+        DomainModel(name="Metadonnees.INSEE")
+        # table_name would be "INSEE"
+        ```
+        """
+        if self.name:
+            return self.name.split(".")[-1]
+        return None
 
 
 class ConfigurationModel(BaseModel):
