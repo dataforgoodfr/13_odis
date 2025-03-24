@@ -59,28 +59,31 @@ domains:
     demandeur_emploi_regions:
       API: statistiques.francetravail.org
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par régions
-      endpoint: /stmt/defmexp?li=0&pp=201607-&ss=1
+      endpoint: /stmt/defmexp?li=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
       params:
+        separator: ;
         header: 3
         skipfooter: 3
     demandeur_emploi_departements:
       API: statistiques.francetravail.org
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par départements
-      endpoint: /stmt/defmexp?lj=0&pp=201607-&ss=1
+      endpoint: /stmt/defmexp?lj=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
       params:
+        separator: ;
         header: 3
         skipfooter: 3
     demandeur_emploi_communes:
       API: statistiques.francetravail.org
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par communes de plus de 5000 hab
-      endpoint: /stmt/defmexp?lk=0&pp=201607-&ss=1
+      endpoint: /stmt/defmexp?lk=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
       params:
+        separator: ;
         header: 3
         skipfooter: 3
 
