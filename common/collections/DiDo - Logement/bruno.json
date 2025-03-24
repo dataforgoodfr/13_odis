@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "DiDo - Logement",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
