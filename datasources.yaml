@@ -41,7 +41,7 @@ APIs:
   Opendatasoft:
     name: Opendatasoft #erreur 500 avec l'utilisation de header et pas d'erreur sans header
     description: API de données ouverte
-    base_url: https://public.opendatasoft.com
+    base_url: https://public.opendatasoft.com/api/explore/v2.1
     apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
     throttle: 100
     #default_headers:
@@ -55,16 +55,23 @@ domains:
       API: Opendatasoft
       description: Elus des différentes communes 
       type: MelodiExtractor
-      endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
       format: json
+      params:
+        limit: 100
+      response_map:
+        data: results
 
-    # A fixer : même endpoint que elus_communes
-    # epci:
-    #   API: Opendatasoft
-    #   description: Groupement de communes
-    #   type: JsonExtractor
-    #   endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
-    #   format: json
+    epci:
+      API: Opendatasoft
+      description: Groupement de communes
+      type: JsonExtractor
+      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
+      format: json
+      params:
+        limit: 100
+      response_map:
+        data: results
 
     population_communes:
       API: INSEE.Melodi
@@ -72,6 +79,10 @@ domains:
       type: MelodiExtractor
       endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&AGE=_T&SEX=F&SEX=M&maxResult=1000
       format: json
+      response_map:
+        data: observations
+        next: paging.next
+        is_last: paging.isLast
 
   geographical_references:
 
@@ -107,6 +118,8 @@ domains:
         params:
           page: 1
           pageSize: all
+        response_map:
+          data: data
 
       annual_dept_data:
         API: DiDo
