@@ -1,0 +1,15 @@
+meta {
+  name: ODS - Elus Communes
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://public.opendatasoft.com//api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+  body: none
+  auth: inherit
+}
+
+params:query {
+  limit: 100
+}

@@ -20,6 +20,14 @@ APIs:
     default_headers:
       accept: application/json
 
+  Data.Gouv.Education:
+    name: Data.Gouv.Education
+    description: Data.Gouv.Education - API de données
+    base_url: https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets
+    apidoc: https://data.education.gouv.fr/api/explore/v2.1/console
+    default_headers:
+      accept: application/json
+
   GEO.api.gouv.fr:
     name: GEO api.gouv.fr
     description: API gouvernemental pour interreoger les référentiels géographiques
@@ -41,7 +49,7 @@ APIs:
   Opendatasoft:
     name: Opendatasoft #erreur 500 avec l'utilisation de header et pas d'erreur sans header
     description: API de données ouverte
-    base_url: https://public.opendatasoft.com
+    base_url: https://public.opendatasoft.com/api/explore/v2.1
     apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
     throttle: 100
     #default_headers:
@@ -93,16 +101,23 @@ domains:
       API: Opendatasoft
       description: Elus des différentes communes 
       type: MelodiExtractor
-      endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
       format: json
+      params:
+        limit: 100
+      response_map:
+        data: results
 
-    # A fixer : même endpoint que elus_communes
-    # epci:
-    #   API: Opendatasoft
-    #   description: Groupement de communes
-    #   type: JsonExtractor
-    #   endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
-    #   format: json
+    epci:
+      API: Opendatasoft
+      description: Groupement de communes
+      type: JsonExtractor
+      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
+      format: json
+      params:
+        limit: 100
+      response_map:
+        data: results
 
     population_communes:
       API: INSEE.Melodi
@@ -110,6 +125,10 @@ domains:
       type: MelodiExtractor
       endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&AGE=_T&SEX=F&SEX=M&maxResult=1000
       format: json
+      response_map:
+        data: observations
+        next: paging.next
+        is_last: paging.isLast
 
   geographical_references:
 
@@ -145,6 +164,8 @@ domains:
         params:
           page: 1
           pageSize: all
+        response_map:
+          data: data
 
       annual_dept_data:
         API: DiDo
@@ -300,3 +321,64 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
+
+  education:
+
+      moyenne_eleve_commune:
+        API: Data.Gouv.Education
+        description: moyenne d'eleve par classe par commune
+        type: JsonExtractor
+        endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
+        format: json
+        params:
+          select: commune,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+          group_by: commune
+          limit: -1
+          refine: rentree_scolaire:2023
+          timezone: UTC
+
+      moyenne_eleve_region:
+        API: Data.Gouv.Education
+        description: moyenne d'eleve par classe par region academique
+        type: JsonExtractor
+        endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
+        format: json
+        params:
+          select: region_academique,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+          group_by: region_academique
+          limit: -1
+          refine: rentree_scolaire:2023
+          timezone: UTC
+
+      moyenne_eleve_departement:
+        API: Data.Gouv.Education
+        description: moyenne d'eleve par classe par departement
+        type: JsonExtractor
+        endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
+        format: json
+        params:
+          select: departement,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+          group_by: departement
+          limit: -1
+          refine: rentree_scolaire:2023
+          timezone: UTC
+
+  
+  services:
+
+      services:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE
+        format: json
+        params:
+          maxResult: 10000
+          TIME_PERIOD: 2023
+          GEO: ["COM","REG","DEP"]
+          FACILITY_TYPE: ["A122", "A128", "A203", "A206", "A208","A304","A501","A503", "A504"]
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+        

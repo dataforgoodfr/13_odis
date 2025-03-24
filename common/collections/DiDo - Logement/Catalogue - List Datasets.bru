@@ -1,0 +1,16 @@
+meta {
+  name: Catalogue - List Datasets
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1/datasets?page=1&pageSize=100
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  pageSize: 100
+}
