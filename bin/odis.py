@@ -5,6 +5,9 @@ import os
 from pprint import PrettyPrinter
 import json
 from importlib import import_module
+from dotenv import load_dotenv
+
+load_dotenv()
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -153,6 +156,7 @@ def load(domain:str = None, sources:list[str] = None, **params):
         source = DOMAINS[domain][source_name]
         
         source_format = source['format']
+        params = source['params'] or []
         # little trick to build the loader class name from format
         loader_name = f"{str.capitalize(source_format)}DataLoader"
         
@@ -162,7 +166,7 @@ def load(domain:str = None, sources:list[str] = None, **params):
 
             # Instantiate the loader and load files from local data folder
             data_loader = data_loader_class()
-            data_loader.load(domain, source_name)
+            data_loader.load(domain, source_name, params)
         
         except Exception as e:
             logger.exception(f"Issue in loading data : {e}")
