@@ -119,6 +119,8 @@ class JsonDataLoader(DataLoader):
             # insert Data
             insert_query = f"INSERT INTO bronze.{table_name} (data) VALUES (%s)"
             for record in payload:
+                # Uncomment if needed ; very verbose :)
+                # logger.debug(f"Inserting record: {record}")
                 db.execute(insert_query, (Json(record),))
             db.commit()
 
