@@ -2,14 +2,15 @@
 import argparse
 import sys
 import os
-from pprint import PrettyPrinter
+import datetime
 import json
+import jmespath
 from importlib import import_module
+from pprint import PrettyPrinter
 from dotenv import load_dotenv
-
 load_dotenv()
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))    
 
 from common.config import load_config
 from common.utils.logging_odis import logger
@@ -104,30 +105,30 @@ def explain(apis:list[str] = None, domain:str = None, sources:list[str] = None, 
 def extract(domain:str = None, sources:list[str] = None, **params):
 
     # Set the source list : if none was given in input, take all for given domain
-    sources_list = sources if sources else SOURCES_INDEX[domain]
-
-    # start_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    sources_list = sources if sources else SOURCES_INDEX.get(domain)
+    if not sources_list:
+        logger.info(f"No domain found in cdatasources.yaml for : {domain}, skipping...")
+        return
     
     for source_name in sources_list:
         
-        # initialize process log
-        processlog = DataProcessLog(domain, source_name, 'extract')
-        
-        print(f"Extracting source: {domain}/{source_name}")
+        source_namespace = f"{domain}.{source_name}"
+        logger.info(f"Extracting source: {source_namespace}")
 
-        source = DOMAINS[domain][source_name]
-        
-        source_type = source['type']
+        source = jmespath.search(source_namespace, DOMAINS)
+        source_type = source.get('type') if source else None
         if not source_type:
             logger.info(f"Source type not specified for {source_name}, skipping...")
             continue
         
+        # initialize process log
+        process_log = DataProcessLog(domain, source_name, 'extract', source_config = source)
+        
         # Import the Extractor class specified in the source config
-        source_type = source.get('type')
         extractor_class = get_connector_class(source_type, 'source_extractors')
             
         try:
-            # Instantiate the Extractor and execute download
+            # Instantiate the Extractor
             extractor = extractor_class(CONFIG,domain)
 
             # All extractors 'download' must yield iterable results
@@ -135,14 +136,13 @@ def extract(domain:str = None, sources:list[str] = None, **params):
     
             # iterate through the extraction generator
             for _, page_number, is_last, filepath in extract_generator:
-                processlog.add_pagelog(page_number, filepath = filepath, is_last = is_last)
+                process_log.update_pagelog(page_number, filepath = filepath, is_last = is_last, extracted = True)
 
             # save the process log locally
-            fh.file_dump(domain, f"{source_name}_extract_log", payload = processlog.to_dict())
+            fh.file_dump(domain, f"{source_name}_extract_log", payload = process_log.to_dict())
             
         except Exception as e:
             logger.exception(f"Error extracting data from {source_name}: {str(e)}")
-
 
 def load(domain:str = None, sources:list[str] = None, **params):
     
@@ -151,23 +151,52 @@ def load(domain:str = None, sources:list[str] = None, **params):
 
     for source_name in sources_list:
 
-        print(f"Loading source: {domain}/{source_name}")
+        source_namespace = f"{domain}.{source_name}"
+        logger.info(f"Loading source: {source_namespace}")
 
-        source = DOMAINS[domain][source_name]
-        
-        source_format = source['format']
-        params = source['params'] or []
+        source = jmespath.search(source_namespace, DOMAINS)
+        source_format = source.get('format') if source else None
+        if not source_format:
+            logger.info(f"Source format not specified for {source_name}, skipping...")
+            continue
+
         # little trick to build the loader class name from format
         loader_name = f"{str.capitalize(source_format)}DataLoader"
-        
-        try: 
-            # Import the Loader module
-            data_loader_class = get_connector_class(loader_name, 'data_loaders')
 
-            # Instantiate the loader and load files from local data folder
-            data_loader = data_loader_class()
-            data_loader.load(domain, source_name, params)
-        
+        try:
+            # read data extraction log provided by extractor
+            data_index_name = f"{source_name}_extract_log"
+            data_index = fh.json_load(domain = domain, source_name = data_index_name)
+
+            # Load and update a new ProcessLog object from the extract log
+            process_log = DataProcessLog.from_dict(data_index)
+            process_log.last_runtime = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
+            process_log.operation = 'load'
+
+            # Import the Loader module
+            loader_class = get_connector_class(loader_name, 'data_loaders')
+            
+            # Instantiate the loader
+            loader = loader_class()
+            
+            # (Re)-initializing the database bronze table
+            table_name = f"{domain}_{source_name}"
+            init_success = loader.init_jsontable(table_name)
+
+            if init_success:
+                # instantiate page-by-page load generator
+                load_generator = loader.load_pagelogs(process_log)
+
+                # iterate through generator and log progress
+                for pageno, load_success in load_generator:                 
+                    process_log.update_pagelog(pageno, bronze_loaded = load_success)
+            
+            else:
+                logger.info(f"Could not initialize table {table_name}. Exiting.")
+            
+            # save the process log locally
+            fh.file_dump(domain, f"{source_name}_load_log", payload = process_log.to_dict())
+            
         except Exception as e:
             logger.exception(f"Issue in loading data : {e}")
 

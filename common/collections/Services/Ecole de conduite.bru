@@ -1,0 +1,18 @@
+meta {
+  name: Ecole de conduite
+  type: http
+  seq: 7
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_BPE?GEO=COM&TIME_PERIOD=2023&FACILITY_TYPE=A304&maxResult=10000
+  body: none
+  auth: none
+}
+
+params:query {
+  GEO: COM
+  TIME_PERIOD: 2023
+  FACILITY_TYPE: A304
+  maxResult: 10000
+}
