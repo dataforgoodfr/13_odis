@@ -27,7 +27,7 @@ class FileExtractor(AbstractSourceExtractor):
             metadata_handler=FileHandler(file_name=f"{model.name}_extract_log.json"),
         )
 
-    def download(self) -> Generator[ExtractionResult]:
+    def download(self) -> Generator[ExtractionResult, None, None]:
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
@@ -54,7 +54,7 @@ class JsonExtractor(FileExtractor):
 class MelodiExtractor(FileExtractor):
     """Extractor for getting JSON data from an API"""
 
-    def download(self) -> Generator[ExtractionResult]:
+    def download(self) -> Generator[ExtractionResult, None, None]:
 
         is_last = False
         url = self.url
