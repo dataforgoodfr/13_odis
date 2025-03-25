@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 import orjson
+import pandas as pd
 from bson import ObjectId
 
 from common.data_source_model import DomainModel
@@ -26,6 +27,10 @@ class bJSONEncoder(json.JSONEncoder):
 class FileHandler(IDataHandler):
     """
     a handler to save data to a file
+
+    TODO:
+    - better interfacing to allow for different file formats (csv, json, etc)
+    - better handling of metadata files
     """
 
     base_path: str
@@ -120,11 +125,10 @@ class FileHandler(IDataHandler):
         self,
         filedump: FileDumpInfo,
     ) -> dict:
-        """Opinionated utility method to load JSON files.
+        """Parses a JSON file and returns the decoded data
 
         Args :
-            storage_info (StorageInfo) : the storage info of the file to load
-            base_path (str) : the base path where the file is stored
+            filedump (FileDumpInfo) : the info where the file is stored
 
         Return decoded JSON data into a python dict"""
 
@@ -147,3 +151,42 @@ class FileHandler(IDataHandler):
             logger.exception(f"Error reading file {filepath}: {str(e)}")
 
         return payload
+
+    def csv_load(
+        self,
+        filedump: FileDumpInfo,
+        header: int = 0,
+        skipfooter: int = 0,
+        separator: str = ";",
+    ) -> pd.DataFrame:
+        """Parses a CSV file and returns the data as an iterator of `dict`
+
+        TODO:
+        - better handling of CSV parameters (delimiter, etc)
+        - benchmark usage of pandas vs csv module
+
+        Args:
+            filedump (FileDumpInfo) : the info where the file is stored
+
+        Returns:
+            Iterator[dict]: the data from the CSV file
+        """
+
+        filepath = Path(filedump.storage_info.location) / Path(
+            filedump.storage_info.file_name
+        )
+
+        try:
+            logger.debug(f"loading CSV file : {filepath}")
+            return pd.read_csv(
+                filepath,
+                header=header,
+                skipfooter=skipfooter,
+                sep=separator,
+                engine="python",  # Required for skipfooter parameter
+            )
+
+        except Exception as e:
+            logger.exception(f"Error reading file {filepath}: {str(e)}")
+
+        raise StopIteration

@@ -1,5 +1,6 @@
 from typing import Any, Protocol
 
+from pandas import DataFrame
 from pydantic import BaseModel, NonNegativeInt
 
 from common.data_source_model import DomainModel
@@ -36,10 +37,16 @@ class IDataHandler(Protocol):
     """base interface to define a handler in charge of handling extracted data.
 
     A handler may be a file writer, a database writer, a data processor, etc.
+
+    TODO:
+        - improve interfacing to allow for different file formats (csv, json, etc)
+        - better handling of metadata files
     """
 
     def file_dump(
         self, model: DomainModel, *args, data: Any, **kwargs
     ) -> StorageInfo: ...
 
-    def json_load(self, model: DomainModel, *args, **kwargs) -> dict: ...
+    def json_load(self, filedump: FileDumpInfo, *args, **kwargs) -> dict: ...
+
+    def csv_load(self, filedump: FileDumpInfo, *args, **kwargs) -> DataFrame: ...

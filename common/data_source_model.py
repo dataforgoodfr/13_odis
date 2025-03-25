@@ -153,100 +153,6 @@ class DataSourceModel(ConfigurationModel):
                     raise ValueError(f"API '{model.API}' not found in APIs section")
 
         return self
-<<<<<<< HEAD
-<<<<<<< HEAD
-    
-
-@dataclass
-class PageLog():
-    """model for easily updating and logging information about the processing of a given page"""
-    
-    pageno: int
-    filepath: Optional[str] = None # to be enhanced ; needs to be a valid path
-    is_last: Optional[bool] = False
-    extracted: Optional[bool] = False
-    bronze_loaded: Optional[bool] = False
-
-@dataclass
-class DataProcessLog():
-    """model for exchanging processing reports between extractors and loaders"""
-
-    domain: str
-    source: str
-    operation: str
-    last_run_time: str = field(default_factory = lambda: datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S"))
-    exctracted_pages: int = 0
-    loaded_pages: int = 0
-    successfully_completed: bool = False
-    source_config: dict = None
-    pages: dict[PageLog] = field(default_factory = dict)
-
-    @classmethod
-    def from_dict(cls, dict_data):
-        
-        processed_dict_data = dict_data
-
-        # Pop out dict-type pagelogs to reinsert PageLog types
-        pagelogs = {}
-        pages_dict = processed_dict_data.pop('pages')
-        for pageno, pagelog_dict in pages_dict.items():
-            pagelog = PageLog( **pagelog_dict )
-            pagelogs[pageno] = pagelog
-        
-        processed_dict_data['pages'] = pagelogs
-
-        return cls( **processed_dict_data )
-    
-    def to_dict(self):
-        
-        raw_dict = self.__dict__
-        serialized_pagelogs = {}
-        for pageno, pagelog in self.pages.items():
-            serialized_pagelogs[pageno] = pagelog.__dict__
-
-        # replace the PageLog list by serializable list(dict)
-        raw_dict.pop('pages')
-        serialized_dict = raw_dict
-        serialized_dict['pages'] = serialized_pagelogs
-
-        return serialized_dict
-
-    def update_pagelog(self, pageno: int, **pagelog_params):
-        """Creates or Updates a PageLog with the information of how its last processing (extract or load) went"""
-        
-        pagelog = self.pages.get(str(pageno))
-
-<<<<<<< HEAD
-        if pagelog is None:
-            # if pagenumber was not found, create a new PageLog
-            pagelog = PageLog(pageno, **pagelog_params )
-            
-        else:
-            # Update PageLog in place
-            for key, value in pagelog_params.items():
-                setattr(pagelog, key, value)
-        
-        # Add page log to pages
-        self.pages[pageno] = pagelog
-
-        # If relevant, increment the extracted pages count
-        if self.operation == 'extract' and pagelog.extracted:
-            self.exctracted_pages += 1
-
-        # If relevant, increment the loaded pages count
-        if self.operation == 'load' and pagelog.bronze_loaded:
-            self.loaded_pages += 1
-
-        # If this page was the last, then infer process is successful and complete
-        self.successfully_completed = pagelog.is_last
-
-        
-    
-=======
-    
-=======
-=======
->>>>>>> d813691 (merged with main branch)
 
     @model_validator(mode="after")
     def merge_model_headers(self) -> Self:
@@ -344,15 +250,6 @@ class DataProcessLog():
             for d in self.domains.values()
             for model in d.values()
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 9fb78f0 (test & refacto explain_source)
-<<<<<<< HEAD
->>>>>>> 14d9d61 (test & refacto explain_source)
-=======
-=======
-=======
->>>>>>> d813691 (merged with main branch)
 
     def get_domain_name(self, model: DomainModel) -> str:
         """provides the domain name for a given model
@@ -395,17 +292,17 @@ class DataProcessLog():
                 return api
 
         raise ValueError(f"API '{model.API}' not found in APIs section")
-<<<<<<< HEAD
->>>>>>> 42ef62f (refacto: tmp waiting for tests)
->>>>>>> d8c4deb (refacto: tmp waiting for tests)
-=======
 
 
 @dataclass
 class PageLog:
+    """model for easily updating and logging information about the processing of a given page"""
 
     pageno: int
-    filepath: Optional[str]  # to be enhanced ; needs to be a valid path
+    filepath: Optional[str] = None  # to be enhanced ; needs to be a valid path
+    is_last: Optional[bool] = False
+    extracted: Optional[bool] = False
+    bronze_loaded: Optional[bool] = False
 
 
 @dataclass
@@ -418,34 +315,34 @@ class DataProcessLog:
     last_run_time: str = field(
         default_factory=lambda: datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
     )
-    last_page: int = 0
+    exctracted_pages: int = 0
+    loaded_pages: int = 0
     successfully_completed: bool = False
-    pages: list[PageLog] = field(default_factory=list)
+    source_config: dict = None
+    pages: dict[PageLog] = field(default_factory=dict)
 
     @classmethod
-    def from_dict(dict_data):
+    def from_dict(cls, dict_data):
 
-        pagelogs = []
-        for page in dict_data.get("pages"):
-            page_obj = PageLog(pageno=page["pageno"], filepath=page["filepath"])
-            pagelogs.append(page_obj)
+        processed_dict_data = dict_data
 
-        return DataProcessLog(
-            domain=dict_data.get("domain"),
-            source=dict_data.get("source"),
-            operation=dict_data.get("operation"),
-            last_run_time=dict_data.get("last_run_time"),
-            last_page=dict_data.get("last_page"),
-            successfully_completed=dict_data.get("successfully_completed"),
-            pages=pagelogs,
-        )
+        # Pop out dict-type pagelogs to reinsert PageLog types
+        pagelogs = {}
+        pages_dict = processed_dict_data.pop("pages")
+        for pageno, pagelog_dict in pages_dict.items():
+            pagelog = PageLog(**pagelog_dict)
+            pagelogs[pageno] = pagelog
+
+        processed_dict_data["pages"] = pagelogs
+
+        return cls(**processed_dict_data)
 
     def to_dict(self):
 
         raw_dict = self.__dict__
-        serialized_pagelogs = []
-        for pagelog in self.pages:
-            serialized_pagelogs.append(pagelog.__dict__)
+        serialized_pagelogs = {}
+        for pageno, pagelog in self.pages.items():
+            serialized_pagelogs[pageno] = pagelog.__dict__
 
         # replace the PageLog list by serializable list(dict)
         raw_dict.pop("pages")
@@ -454,10 +351,30 @@ class DataProcessLog:
 
         return serialized_dict
 
-    def add_pagelog(self, pageno: int, filepath: str = None, is_last: bool = False):
+    def update_pagelog(self, pageno: int, **pagelog_params):
+        """Creates or Updates a PageLog with the information of how its last processing (extract or load) went"""
 
-        pagelog = PageLog(pageno=pageno, filepath=filepath)
-        self.pages.append(pagelog)
-        self.last_page = pageno
-        self.successfully_completed = is_last
->>>>>>> d813691 (merged with main branch)
+        pagelog = self.pages.get(str(pageno))
+
+        if pagelog is None:
+            # if pagenumber was not found, create a new PageLog
+            pagelog = PageLog(pageno, **pagelog_params)
+
+        else:
+            # Update PageLog in place
+            for key, value in pagelog_params.items():
+                setattr(pagelog, key, value)
+
+        # Add page log to pages
+        self.pages[pageno] = pagelog
+
+        # If relevant, increment the extracted pages count
+        if self.operation == "extract" and pagelog.extracted:
+            self.exctracted_pages += 1
+
+        # If relevant, increment the loaded pages count
+        if self.operation == "load" and pagelog.bronze_loaded:
+            self.loaded_pages += 1
+
+        # If this page was the last, then infer process is successful and complete
+        self.successfully_completed = pagelog.is_last
