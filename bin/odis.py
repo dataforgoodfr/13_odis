@@ -7,6 +7,7 @@ import json
 import jmespath
 from importlib import import_module
 from pprint import PrettyPrinter
+from dotenv import load_dotenv
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))    
 
@@ -14,6 +15,8 @@ from common.config import load_config
 from common.utils.logging_odis import logger
 from common.utils.file_handler import FileHandler
 from common.data_source_model import DataProcessLog
+
+load_dotenv()
 
 pp = PrettyPrinter(indent=4)
 fh = FileHandler()
