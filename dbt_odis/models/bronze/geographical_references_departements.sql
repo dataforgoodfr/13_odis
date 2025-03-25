@@ -18,7 +18,7 @@ with departments as
         json_value(data, '$.intituleSansArticle') as intitule_sans_article,
         created_at as created_at
 
-    from {{ source('bronze', 'geographical_references_departments') }}  
+    from {{ source('bronze', 'geographical_references_departements') }}  
 )
 
 select * from departments

@@ -67,4 +67,62 @@ models:
       - name: intitule
         description: Nom de la région avec articles et tirets 
 
- 
+  - name: logements_appartement
+    columns:
+      - name: id
+        description: id
+
+  - name: logements_appartement_et_residences_principales
+    columns:
+      - name: id
+        description: id
+
+  - name: logements_maison
+    columns:
+      - name: id
+        description: id
+
+  - name: logements_maison_et_residences_principales
+    columns:
+      - name: id
+        description: id
+
+  - name: logements_pieces
+    columns:
+      - name: id
+        description: id
+
+  - name: services_services
+    columns:
+      - name: id
+        description: id
+
+  - name: presentation_page_elus_communes
+    columns:
+      - name: id
+        description: id
+
+  - name: presentation_page_epci
+    columns:
+      - name: id
+        description: id
+
+  - name: presentation_page_population_communes
+    columns:
+      - name: id
+        description: id
+        
+  - name: education_moyenne_eleve_commune
+    columns:
+      - name: id
+        description: id
+        
+  - name: education_moyenne_eleve_departement
+    columns:
+      - name: id
+        description: id
+        
+  - name: education_moyenne_eleve_region
+    columns:
+      - name: id
+        description: id
