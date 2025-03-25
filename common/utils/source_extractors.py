@@ -1,221 +1,116 @@
-from abc import ABC, abstractmethod
-import requests
-import urllib
-import jmespath
 import time
-import os
-import sys
+import urllib
+from typing import Generator
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import jmespath
+import requests
+
+from common.data_source_model import DataSourceModel, DomainModel
+from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
 from common.utils.logging_odis import logger
-from common.utils.file_handler import FileHandler
 
-fh = FileHandler()
-
-DEFAULT_FILE_FORMAT = "json"
+from .file_handler import FileHandler
 
 
-class SourceExtractor(ABC):
-    """Abstract class defining a datasource extractor.
-    Only the 'download' method is mandatory, which is responsible
-    for pulling the data and storing it in a local file.
-    """
+class FileExtractor(AbstractSourceExtractor):
+    """Generic extractor for a file dump from an API"""
 
-    api_confs: dict
-    source_models: dict
-    url: str
-    headers: dict
-    params: dict
-    format: str
-    throttle: int = 0
-    response_map: dict = {}
+    is_json: bool = False
+    handler: FileHandler  # typing
+    metadata_handler: FileHandler  # typing
 
-    @abstractmethod
-    def download(self, domain: str, source_config):
-        pass
+    def __init__(self, config: DataSourceModel, model: DomainModel):
+        super().__init__(
+            config,
+            model,
+            handler=FileHandler(),
+            metadata_handler=FileHandler(file_name=f"{model.name}_extract_log.json"),
+        )
 
-    def set_query_parameters(self, source_model_name: str):
-        """Set all parameteres for an API call from the source model configuration, given in datasources.yaml :
-
-        - builds and sets the complete URL to be queried
-        - sets the specified headers
-        - sets the query parameters, if specified in the source model's yaml block
-        - sets the expected output file format
-
-        Headers default to the API definition's 'default_headers', if any.
-
-        Return : None. Only sets the above as properties of the current Extractor object.
-        """
-
-        # Get the dict definitions of the source model and its related API
-        source_model = self.source_models[source_model_name]
-        api_name = source_model["API"]
-        api_conf = self.api_confs[api_name]
-
-        # Decompose base API URl
-        base_url = api_conf["base_url"]
-        base_split = urllib.parse.urlsplit(base_url)
-
-        # expand the URL endpoint path with the source config
-        if base_split.path == "/":
-            full_path = source_model['endpoint']
-        else:
-            full_path = f"{base_split.path}{source_model['endpoint']}"
-
-        # rebuild the full URL with complete path
-        self.url = urllib.parse.urljoin(f"https://{base_split.netloc}", full_path)
-        
-        # Set api throttle, defaults to 30 requests / minute
-        self.throttle = api_conf.get('throttle', 30)
-        
-        # Set headers with the order of preference :
-        # Specified in source model > specified in API defaults > None
-        default_headers = api_conf.get("default_headers")
-        self.headers = source_model.get("headers", default_headers)
-
-        # Set request parameters if any
-        self.params = source_model.get("params")
-
-        # Set expected output file format
-        self.format = source_model.get("format", DEFAULT_FILE_FORMAT)
-
-        # Set Response mapping guide, empty dict if not provided
-        self.response_map = source_model.get('response_map', {})
-
-
-class FileExtractor(SourceExtractor):
-    """Generic extractor for one-shot file downloads from an API"""
-
-    def __init__(self, config: dict, domain: str):
-
-        self.api_confs = config["APIs"]
-        self.source_models = config["domains"][domain]
-
-    def download(self, domain: str, source_model_name: str):
+    def download(self) -> Generator[ExtractionResult, None, None]:
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
 
-        # Set up the request : url, headers, query parameters
-        self.set_query_parameters(source_model_name)
-
         # Send request to API
-        response = requests.get(self.url, headers=self.headers, params=self.params)
+        response = requests.get(
+            self.url,
+            headers=self.model.headers.model_dump(mode="json"),
+            params=self.model.params,
+        )
         response.raise_for_status()
-        payload = response.content
-
-        filepath = fh.file_dump(domain, source_model_name, payload = payload, format = self.format)
-
-        page_number = 1
-        is_last = True
+        payload = response.json() if self.is_json else response.content
 
         # yield the request result
-        yield payload, page_number, is_last, filepath
+        yield ExtractionResult(payload=payload, is_last=True)
 
 
-class JsonExtractor(SourceExtractor):
+class JsonExtractor(FileExtractor):
     """Extractor for getting JSON data from an API"""
 
-    def __init__(self, config: dict, domain: str):
-
-        self.api_confs = config["APIs"]
-        self.source_models = config["domains"][domain]
-
-    def download(self, domain: str, source_model_name: str):
-        """Downloads data corresponding to the given source model.
-        The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
-        """
-        
-        # Set up the request : url, headers, query parameters
-        self.set_query_parameters(source_model_name)
-        
-        # if url has a query string, ignore the dict-defined parameters
-        url_querystr = urllib.parse.urlparse(self.url).query
-        passed_params = self.params if url_querystr=='' else None
-        logger.info(f"querying {self.url}")
-        logger.info(f"passing parameters: {passed_params}")
-
-        # Send request to API
-        response = requests.get(self.url, headers=self.headers, params=self.params)
-        response.raise_for_status()
-
-        payload = response.json()
-
-        filepath = fh.file_dump(domain, source_model_name, payload = payload, format = self.format)
-
-        page_number = 1
-        is_last = True
-
-        # yield the request result
-        yield payload, page_number, is_last, filepath
+    is_json = True
 
 
-class MelodiExtractor(SourceExtractor):
+class MelodiExtractor(FileExtractor):
     """Extractor for getting JSON data from an API"""
 
-    def __init__(self, config: dict, domain: str):
+    def download(self) -> Generator[ExtractionResult, None, None]:
 
-        self.api_confs = config["APIs"]
-        self.source_models = config["domains"][domain]
-
-    def download(self, domain: str, source_model_name: str):
-        # Set up the request : url, headers, query parameters
-        self.set_query_parameters(source_model_name)
-        
         is_last = False
-        page_number = 0
+        url = self.url
 
         while not is_last:
-            
-            page_number += 1
-
-            # Fetch next page's data
-            payload, next, is_last, filepath = self.download_page(domain, source_model_name, page_number)
 
             # yield the request result
-            yield payload, page_number, is_last, filepath
-            
-            # Update URL to be queried for next iteration
-            self.url = next
+            result = self.download_page(url)
 
-            # Throttle before next iteration
-            time.sleep(60 / self.throttle)
+            is_last = result.is_last
 
-    def download_page(self, domain: str, source_model_name: str, page_number: int = 1):
+            if not is_last and result.next_url:
+
+                time.sleep(60 / self.api_config.throttle)
+
+                url = result.next_url
+
+                logger.debug(f"Next page: {result.next_url}")
+
+            yield result
+
+    def download_page(self, url: str) -> ExtractionResult:
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
-        
+
         # if url has a query string, ignore the dict-defined parameters
-        url_querystr = urllib.parse.urlparse(self.url).query
-        passed_params = self.params if url_querystr=='' else None
-        logger.info(f"querying {self.url}")
-        logger.info(f"passing parameters: {passed_params}")
+        url_querystr = urllib.parse.urlparse(url).query
+        passed_params = self.model.params if url_querystr == "" else None
+        logger.info(f"querying '{url}'")
 
         # Send request to API
-        response = requests.get(self.url, headers=self.headers, params=passed_params)
+        response = requests.get(
+            url,
+            headers=self.model.headers.model_dump(mode="json"),
+            params=passed_params,
+        )
         response.raise_for_status()
 
         payload = response.json()
 
-        # Dump response file
-        filepath = fh.file_dump(domain, source_model_name, payload = payload, page_number = page_number)
-
         # Get next page URL
-        next_key = self.response_map.get('next')
-        next = jmespath.search( next_key, payload ) if next_key else None
+        next_key = self.model.response_map.get("next")
+        next_url = jmespath.search(next_key, payload) if next_key else None
 
-        # Determine whether this is the last page : 
+        # Determine whether this is the last page :
         # if explicitly given by the API response, get the explicit value
         # if not given in API response, BUT if no next page could be derived, then true
         # else: false
-        is_last = False
-        is_last_key = self.response_map.get('is_last')
-        is_last = jmespath.search( is_last_key, payload ) if is_last_key else (next is None)
+        is_last_key = self.model.response_map.get("is_last")
+        is_last = (
+            jmespath.search(is_last_key, payload) if is_last_key else (next_url is None)
+        )
 
-        logger.debug(f"Next Page URL : {next}")
-        logger.debug(f"Mapped key for is_last : {is_last_key}")
-        logger.debug(f"Is this page the last one ? {is_last}")
-
-        return payload, next, is_last, filepath
-        
+        return ExtractionResult(
+            payload=payload,
+            is_last=is_last,
+            next_url=next_url,
+        )
