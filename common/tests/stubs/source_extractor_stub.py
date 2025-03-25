@@ -11,7 +11,7 @@ class StubExtractor(AbstractSourceExtractor):
     def __init__(self, config, model, handler, metadata_handler):
         super().__init__(config, model, handler, metadata_handler)
 
-    def download(self) -> Generator[ExtractionResult]:
+    def download(self) -> Generator[ExtractionResult, None, None]:
 
         self.is_download = True
         yield ExtractionResult(
@@ -29,7 +29,7 @@ class StubIterationExtractor(AbstractSourceExtractor):
     def __init__(self, config, model, handler, metadata_handler):
         super().__init__(config, model, handler, metadata_handler)
 
-    def download(self) -> Generator[ExtractionResult]:
+    def download(self) -> Generator[ExtractionResult, None, None]:
 
         self.is_download = True
 

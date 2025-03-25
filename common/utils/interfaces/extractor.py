@@ -141,7 +141,7 @@ class AbstractSourceExtractor(ABC):
         )
 
     @abstractmethod
-    def download(self, *args, **kwargs) -> Generator[ExtractionResult]:
+    def download(self, *args, **kwargs) -> Generator[ExtractionResult, None, None]:
         """Method to be implemented by the concrete extractor class.
         It should return a generator that yields ExtractionResult objects.
 
