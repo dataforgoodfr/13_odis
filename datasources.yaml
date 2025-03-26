@@ -173,10 +173,13 @@ domains:
         type: FileExtractor
         endpoint: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
         format: csv
-        params:
+        extract_params:
           withColumnName: true
           withColumnDescription: true
           withColumnUnit: true
+        load_params:
+          header: 2
+          skipfooter: 0
 
       logements_total:
         API: INSEE.Melodi

@@ -36,7 +36,7 @@ class FileExtractor(AbstractSourceExtractor):
         response = requests.get(
             self.url,
             headers=self.model.headers.model_dump(mode="json"),
-            params=self.model.params,
+            params=self.model.extract_params,
         )
         response.raise_for_status()
         payload = response.json() if self.is_json else response.content
@@ -83,7 +83,7 @@ class MelodiExtractor(FileExtractor):
 
         # if url has a query string, ignore the dict-defined parameters
         url_querystr = urllib.parse.urlparse(url).query
-        passed_params = self.model.params if url_querystr == "" else None
+        passed_params = self.model.extract_params if url_querystr == "" else None
         logger.info(f"querying '{url}'")
 
         # Send request to API
