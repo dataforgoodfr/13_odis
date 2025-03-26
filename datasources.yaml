@@ -77,10 +77,9 @@ domains:
       API: Opendatasoft.URSAAF
       description : Effectifs salariés du secteur privé par grands secteurs
       type: JsonExtractor
-      endpoint: /catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/records
+      endpoint: /catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/json
       format: json
-      response_map:
-        data: results
+
     
     demandeur_emploi_regions:
       API: statistiques.francetravail.org

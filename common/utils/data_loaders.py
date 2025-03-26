@@ -117,7 +117,6 @@ class JsonDataLoader(DataLoader):
             # initiate database session
             db = DatabaseClient(autocommit=False)
             table_name = f"{domain}_{source_name}"
-            
             # insert Data
             insert_query = f"INSERT INTO bronze.{table_name} (data) VALUES (%s)"
             for record in payload:
