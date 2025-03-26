@@ -1,15 +1,15 @@
 import re
 import unicodedata
+from typing import Generator
 
 import jmespath
 import pandas as pd
 from psycopg2.extras import Json
-
-from typing import Generator
+from pydantic import validate_call
 
 from common.utils.database_client import DatabaseClient
-from common.utils.interfaces.data_loader import AbstractDataLoader
 from common.utils.interfaces.data_handler import PageLog
+from common.utils.interfaces.data_loader import AbstractDataLoader
 from common.utils.logging_odis import logger
 
 
@@ -22,13 +22,12 @@ class JsonDataLoader(AbstractDataLoader):
 
         for extract_page_log in pages:
 
-            raw_data = self.handler.json_load( extract_page_log )
+            raw_data = self.handler.json_load(extract_page_log)
 
             # get the datapath field in the model definition and get the actual data records
             datapath = jmespath.search(
-                "response_map.data",
-                self.model.model_dump(mode="json")
-                )
+                "response_map.data", self.model.model_dump(mode="json")
+            )
             logger.debug(f"Datapath: {datapath}")
             if datapath:
                 payload = jmespath.search(datapath, raw_data)
@@ -38,24 +37,26 @@ class JsonDataLoader(AbstractDataLoader):
                 )
                 payload = raw_data
 
-            logger.info(f"Inserting page {extract_page_log.page} into {self.model.table_name}")
+            logger.info(
+                f"Inserting page {extract_page_log.page} into {self.model.table_name}"
+            )
             load_success = self.load_to_db(payload)
 
             # yield a new page log, with the db load result info
             yield PageLog(
-                page = extract_page_log.page,
-                storage_info = extract_page_log.storage_info,
-                success = load_success,
-                is_last = extract_page_log.is_last
+                page=extract_page_log.page,
+                storage_info=extract_page_log.storage_info,
+                success=load_success,
+                is_last=extract_page_log.is_last,
             )
 
+    @validate_call
+    def load_to_db(self, payload: list[dict] | dict) -> bool:
+        """Load list(dict)-type data records into the database with table_name = 'domain_source'
 
-    def load_to_db(self, payload) -> bool:
-        """Load list(dict)-type data records into the database with table_name = 'domain_source'"""
-
-        # Validate data structure
-        if not isinstance(payload, (list, dict)):
-            raise ValueError("JSON data must be either a list or dictionary")
+        TODO:
+            - testing
+        """
 
         # Convert single object to list for consistent processing
         if isinstance(payload, dict):
@@ -68,7 +69,9 @@ class JsonDataLoader(AbstractDataLoader):
             db = DatabaseClient(autocommit=False)
 
             # insert Data
-            insert_query = f"INSERT INTO bronze.{self.model.table_name} (data) VALUES (%s)"
+            insert_query = (
+                f"INSERT INTO bronze.{self.model.table_name} (data) VALUES (%s)"
+            )
             for record in payload:
                 # Uncomment if needed ; very verbose :)
                 # logger.debug(f"Inserting record: {record}")
@@ -123,7 +126,7 @@ class CsvDataLoader(AbstractDataLoader):
             # data_index = self.handler.json_load(domain=domain, source_name=data_index_name)
             # csv_file_path = data_index["pages"][0]["filepath"]
             metadata_info = self.load_metadata()
-            for item in metadata_info.file_dumps:
+            for item in metadata_info.pages:
 
                 # Read CSV with specific parameters from config
                 results = self.handler.csv_load(

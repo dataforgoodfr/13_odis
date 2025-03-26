@@ -9,7 +9,7 @@ from bson import ObjectId
 from common.data_source_model import DomainModel
 from common.utils.logging_odis import logger
 
-from .interfaces.data_handler import PageLog, IDataHandler, StorageInfo
+from .interfaces.data_handler import IDataHandler, PageLog, StorageInfo
 
 DEFAULT_BASE_PATH = "data/imports"
 DEFAULT_FILE_FORMAT = "json"
@@ -57,15 +57,18 @@ class FileHandler(IDataHandler):
         return Path(f"{self.base_path}/{model.API}")
 
     def file_name(self, model: DomainModel, suffix: str = None) -> str:
-        """Generate the file name for the given model and page number
+        """Generate the file name for the given model and suffix
 
         If a file name was provided at initialization, it will be used instead of the generated one
 
         When a file name is generated, the name pattern is the following:
-        `{model.name}_{current_index}.{model.format}` where `current_index` is an internal counter that is incremented each time a file name is generated
+        - if a suffix is provided, it is appended to the model name
+        - otherwise, an index is appended to the model name
 
         Args:
             model (DomainModel): the model that generated the data
+            suffix (str, optional): a suffix to append to the file name. Defaults
+                to None, in which case an index is appended to the model name
         """
 
         if self._file_name:
@@ -83,13 +86,17 @@ class FileHandler(IDataHandler):
 
         return name
 
-    def file_dump(self, model: DomainModel, data: Any, suffix: str = None) -> StorageInfo:
+    def file_dump(
+        self, model: DomainModel, data: Any, suffix: str = None
+    ) -> StorageInfo:
         """
         saves the data to a file and returns the storage info
 
         Args:
             model (DomainModel): the model that generated the data
             data (Any): the data to save
+            suffix (str, optional): a suffix to append to the file name. Defaults
+                to None.
 
         Returns:
             StorageInfo: the storage info, including the location of the file
@@ -99,7 +106,7 @@ class FileHandler(IDataHandler):
         data_dir = self._data_dir(model)
         data_dir.mkdir(parents=True, exist_ok=True)
 
-        file_name = self.file_name(model, suffix) if suffix else self.file_name(model)
+        file_name = self.file_name(model, suffix)  # suffix is optional
         # Generate filename from source name
         filepath = data_dir / file_name
 

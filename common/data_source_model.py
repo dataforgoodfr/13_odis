@@ -1,5 +1,3 @@
-import datetime
-from dataclasses import dataclass, field
 from typing import Annotated, Literal, Optional, Self
 
 from pydantic import (
@@ -124,7 +122,7 @@ class DomainModel(BaseModel):
     def table_name(self) -> str:
         """
         generate the DB table name storing data for this model,
-        It is generated as the last part of the `name` (split by '.')
+        It is generated replacing the '.' in the model name by '_'
 
         Example:
         ```python
@@ -133,7 +131,7 @@ class DomainModel(BaseModel):
         ```
         """
         if self.name:
-            return self.name.replace(".","_")
+            return self.name.replace(".", "_")
         return None
 
 

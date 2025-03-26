@@ -191,7 +191,8 @@ def test_DomainModel():
     assert model.description == model_dict["description"]
     assert model.type == model_dict["type"]
     assert model.endpoint == model_dict["endpoint"]
-    assert model.params is None
+    assert model.load_params is None
+    assert model.extract_params is None
 
 
 def test_DomainModel_bad_endpoint():
@@ -288,24 +289,41 @@ def test_DataSourceModel_domain_api_is_not_referenced():
     assert "api2" in str(e.value)
 
 
-def test_DomainModel_params_is_arbitrary_dict():
+def test_DomainModel_load_params_is_arbitrary_dict():
     # given
 
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
         "endpoint": "/geo/regions",
-        "params": {"key": "value", "key2": 1.2},
+        "load_params": {"key": "value", "key2": 1.2},
     }
 
     # when
     model = DomainModel(**model_dict)
 
     # then
-    assert model.params == model_dict["params"]
+    assert model.load_params == model_dict["load_params"]
 
 
-def test_DomainModel_params_default_value():
+def test_DomainModel_extract_params_is_arbitrary_dict():
+    # given
+
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "endpoint": "/geo/regions",
+        "extract_params": {"key": "value", "key2": 1.2},
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    assert model.extract_params == model_dict["extract_params"]
+
+
+def test_DomainModel_extract_params_default_value():
     # given
 
     model_dict = {
@@ -318,7 +336,23 @@ def test_DomainModel_params_default_value():
     model = DomainModel(**model_dict)
 
     # then
-    assert model.params is None
+    assert model.extract_params is None
+
+
+def test_DomainModel_load_params_default_value():
+    # given
+
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "endpoint": "/geo/regions",
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    assert model.load_params is None
 
 
 def test_DomainModel_response_map_is_arbitrary_dict():
@@ -776,4 +810,4 @@ def test_table_name_is_derived_from_model_name():
     m = DataSourceModel(**model_dict)
 
     # then
-    assert m.get_models()["level1.mod1_lvl1"].table_name == "mod1_lvl1"
+    assert m.get_models()["level1.mod1_lvl1"].table_name == "level1_mod1_lvl1"
