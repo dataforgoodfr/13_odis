@@ -5,10 +5,10 @@ import jmespath
 import pandas as pd
 from psycopg2.extras import Json
 
-from common.data_source_model import DataProcessLog
 from common.utils.database_client import DatabaseClient
 from common.utils.interfaces.data_loader import AbstractDataLoader
 from common.utils.logging_odis import logger
+from common.data_source_model import DataProcessLog
 
 
 class JsonDataLoader(AbstractDataLoader):
@@ -160,9 +160,9 @@ class CsvDataLoader(AbstractDataLoader):
 
         domain_name = self.config.get_domain_name(self.model)
         # Extract CSV-specific parameters
-        header = self.model.params.get("header", None)
-        skipfooter = self.model.params.get("skipfooter", None)
-        separator = self.model.params.get("separator", ",")
+        header = self.model.load_params.get("header", None)
+        skipfooter = self.model.load_params.get("skipfooter", None)
+        separator = self.model.load_params.get("separator", ",")
 
         db = DatabaseClient(autocommit=False)
 

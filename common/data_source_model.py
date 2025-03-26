@@ -58,7 +58,8 @@ class DomainModel(BaseModel):
         endpoint="/regions",
         description="Regions in France",
         headers=HeaderModel(accept="application/json"),
-        params={"key": "value"},
+        extract_params={"key": "value"},
+        load_params={"key": "value"},
         response_map={"next": "paging.next"},
         format="json",
     )
@@ -75,10 +76,16 @@ class DomainModel(BaseModel):
         description="headers to be sent with the request",
     )
 
-    params: Optional[dict] = Field(
+    extract_params: Optional[dict] = Field(
         default=None,
         examples=[{"key": "value", "key2": 1.2}],
         description="arbitrary query parameters passed to the API",
+    )
+
+    load_params: Optional[dict] = Field(
+        default=None,
+        examples=[{"key": "value", "key2": 1.2}],
+        description="Parameters to be passed to the Loader",
     )
 
     response_map: Optional[dict] = Field(
