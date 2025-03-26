@@ -9,7 +9,7 @@ from bson import ObjectId
 from common.data_source_model import DomainModel
 from common.utils.logging_odis import logger
 
-from .interfaces.data_handler import FileDumpInfo, IDataHandler, StorageInfo
+from .interfaces.data_handler import PageLog, IDataHandler, StorageInfo
 
 DEFAULT_BASE_PATH = "data/imports"
 DEFAULT_FILE_FORMAT = "json"
@@ -56,7 +56,7 @@ class FileHandler(IDataHandler):
         """Generate the directory Path where the data will be stored"""
         return Path(f"{self.base_path}/{model.API}")
 
-    def file_name(self, model: DomainModel) -> str:
+    def file_name(self, model: DomainModel, suffix: str = None) -> str:
         """Generate the file name for the given model and page number
 
         If a file name was provided at initialization, it will be used instead of the generated one
@@ -71,12 +71,19 @@ class FileHandler(IDataHandler):
         if self._file_name:
             return self._file_name
 
+        name = ""
         # increment the index to avoid overwriting
         self._index += 1
 
-        return f"{model.name}_{self._index}.{model.format}"
+        if suffix:
+            name = f"{model.name}_{suffix}.{model.format}"
 
-    def file_dump(self, model: DomainModel, data: Any) -> StorageInfo:
+        else:
+            name = f"{model.name}_{self._index}.{model.format}"
+
+        return name
+
+    def file_dump(self, model: DomainModel, data: Any, suffix: str = None) -> StorageInfo:
         """
         saves the data to a file and returns the storage info
 
@@ -92,8 +99,9 @@ class FileHandler(IDataHandler):
         data_dir = self._data_dir(model)
         data_dir.mkdir(parents=True, exist_ok=True)
 
+        file_name = self.file_name(model, suffix) if suffix else self.file_name(model)
         # Generate filename from source name
-        filepath = data_dir / self.file_name(model)
+        filepath = data_dir / file_name
 
         # Write payload content to file
         # case where we store a metadata file, the data is a dict although the model may not be json
@@ -123,19 +131,19 @@ class FileHandler(IDataHandler):
 
     def json_load(
         self,
-        filedump: FileDumpInfo,
+        page_log: PageLog,
     ) -> dict:
         """Parses a JSON file and returns the decoded data
 
         Args :
-            filedump (FileDumpInfo) : the info where the file is stored
+            page_log (PageLog) : the info where the file is stored
 
         Return decoded JSON data into a python dict"""
 
         payload = {}
 
-        filepath = Path(filedump.storage_info.location) / Path(
-            filedump.storage_info.file_name
+        filepath = Path(page_log.storage_info.location) / Path(
+            page_log.storage_info.file_name
         )
         logger.debug(f"File path: {filepath}")
 
@@ -154,7 +162,7 @@ class FileHandler(IDataHandler):
 
     def csv_load(
         self,
-        filedump: FileDumpInfo,
+        page_log: PageLog,
         header: int = 0,
         skipfooter: int = 0,
         separator: str = ";",
@@ -166,14 +174,14 @@ class FileHandler(IDataHandler):
         - benchmark usage of pandas vs csv module
 
         Args:
-            filedump (FileDumpInfo) : the info where the file is stored
+            page_log (PageLog) : the info where the file is stored
 
         Returns:
             Iterator[dict]: the data from the CSV file
         """
 
-        filepath = Path(filedump.storage_info.location) / Path(
-            filedump.storage_info.file_name
+        filepath = Path(page_log.storage_info.location) / Path(
+            page_log.storage_info.file_name
         )
 
         try:
