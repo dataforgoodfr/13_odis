@@ -130,7 +130,7 @@ def test_extract_data(mocker):
     )
 
     # when
-    extract(config, config)
+    extract(config, config.get_models().values())
 
     # then
     # no exception raised but handler is not called

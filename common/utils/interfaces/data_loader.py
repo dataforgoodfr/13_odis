@@ -1,9 +1,9 @@
+import datetime
 from abc import ABC, abstractmethod
+from typing import Generator
 
 import orjson
-import datetime
-from pydantic import ValidationError, BaseModel, Field
-from typing import Generator, Optional
+from pydantic import ValidationError
 
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.database_client import DatabaseClient
@@ -25,7 +25,9 @@ class AbstractDataLoader(ABC):
         self.model = model
 
         self.handler = FileHandler()
-        self.metadata_handler = FileHandler(file_name=f"{model.name}_metadata_extract.json")
+        self.metadata_handler = FileHandler(
+            file_name=f"{model.name}_metadata_extract.json"
+        )
 
     def execute(self, overwrite_table: bool = True):
 
@@ -43,15 +45,16 @@ class AbstractDataLoader(ABC):
         metadata = self.load_metadata()
 
         # execute loader iterations and log results in metadata
+        result: PageLog  # typing hint for IDE
         for result in self.load_data(metadata.pages):
-            
+
             last_processed_page += 1
 
             if not result.success:
                 errors += 1
-          
+
             page_logs.append(result)
-        
+
         # if the loop completes, extraction is successful
         complete = True
 
@@ -62,24 +65,20 @@ class AbstractDataLoader(ABC):
             **{
                 "domain": self.config.get_domain_name(self.model),
                 "source": self.model.name,
-                "operation": 'load_data',
+                "operation": "load_data",
                 "last_run_time": start_time.isoformat(),
                 "last_processed_page": last_processed_page,
                 "complete": complete,
                 "errors": errors,
                 "model": self.model,
-                "pages": page_logs
+                "pages": page_logs,
             }
-        ).model_dump( 
-            mode = "json" 
-        ) 
+        ).model_dump(mode="json")
 
         # Dump the Load metadata into a new file
         meta_info = self.handler.file_dump(
-            self.model,
-            data = load_metadata,
-            suffix = "metadata_load"
-            )
+            self.model, data=load_metadata, suffix="metadata_load"
+        )
 
         logger.debug(
             f"Metadata written in: '{meta_info.location}/{meta_info.file_name}'"
