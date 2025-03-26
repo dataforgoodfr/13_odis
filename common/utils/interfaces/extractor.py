@@ -8,12 +8,13 @@ from pydantic import BaseModel, Field
 from common.utils.logging_odis import logger
 
 from ...data_source_model import APIModel, DataSourceModel, DomainModel
-from .data_handler import IDataHandler, MetadataInfo
+from .data_handler import IDataHandler, MetadataInfo, PageLog
 
 
 class ExtractionResult(BaseModel):
     """the result of an extraction operation"""
 
+    success: bool = Field(..., description="is the page successfully extracted")
     payload: Any = Field(..., description="the extracted data")
     is_last: bool = Field(..., description="is this the last page")
 
@@ -25,6 +26,21 @@ class ExtractionResult(BaseModel):
         examples=[
             "https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?maxResult=10000&TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=_T&page=2",
         ],
+    )
+
+    next_page: Optional[int] = Field(
+        None,
+        description="next page number, for use with pagenumber-style pagination"
+    )
+
+    next_token: Optional[str] = Field(
+        None,
+        description="next page token, for use with token-style pagination"
+    )
+
+    next_offset: Optional[int] = Field(
+        None,
+        description="next page offset, for use with offset-based pagination"
     )
 
 
@@ -93,48 +109,55 @@ class AbstractSourceExtractor(ABC):
 
         start_time = datetime.datetime.now(tz=datetime.timezone.utc)
         last_page_downloaded = 0
-
-        file_dumps = []
+        page_logs = []
+        errors = 0
         complete = False
 
-        try:
+        for result in self.download():
 
-            for result in self.download():
+            last_page_downloaded += 1
 
-                last_page_downloaded += 1
+            storage_info = self.handler.file_dump(self.model, data=result.payload)
 
-                storage_info = self.handler.file_dump(self.model, data=result.payload)
+            page_log_info = {
+                "page": last_page_downloaded,
+                "storage_info": storage_info,
+                "success": result.success,
+                "is_last": result.is_last
+            }
 
-                filedump_info = {
-                    "page": last_page_downloaded,
-                    "storage_info": storage_info.model_dump(mode="json"),
-                }
+            if not result.success:
+                errors += 1
 
-                file_dumps.append(filedump_info)
+            page_log = PageLog( **page_log_info )
+            page_logs.append(page_log)
+        
+        # if the loop completes, extraction is successful
+        complete = True
 
-            # if the loop completes, the extraction is successful
-            complete = True
-
-        except Exception as e:
-            logger.exception(f"Error downloading data: {str(e)}")
-
-        # dump the log of the full extract iteration
+        # Export metadata info
         # just go through pydantic to ensure the data is valid
         # and process eventual inner things
         extract_metadata = MetadataInfo(
             **{
                 "domain": self.config.get_domain_name(self.model),
                 "source": self.model.name,
+                "operation": 'extract',
                 "last_run_time": start_time.isoformat(),
-                "last_page_downloaded": last_page_downloaded,
-                "successfully_completed": complete,
-                "file_dumps": file_dumps,
+                "last_processed_page": last_page_downloaded,
+                "complete": complete,
+                "errors": errors,
+                "model": self.model,
+                "pages": page_logs
             }
-        ).model_dump(
-            mode="json"
-        )  # redump to ensure the data is valid
+        ).model_dump( 
+            mode = "json" 
+        ) 
 
-        meta_info = self.metadata_handler.file_dump(self.model, data=extract_metadata)
+        meta_info = self.metadata_handler.file_dump(
+            self.model,
+            data = extract_metadata
+            )
 
         logger.debug(
             f"Metadata written in: '{meta_info.location}/{meta_info.file_name}'"

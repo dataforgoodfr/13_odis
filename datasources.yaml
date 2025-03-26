@@ -70,7 +70,7 @@ domains:
       endpoint: /stmt/defmexp?li=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
-      params:
+      extract_params:
         separator: ;
         header: 3
         skipfooter: 3
@@ -80,7 +80,7 @@ domains:
       endpoint: /stmt/defmexp?lj=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
-      params:
+      extract_params:
         separator: ;
         header: 3
         skipfooter: 3
@@ -90,7 +90,7 @@ domains:
       endpoint: /stmt/defmexp?lk=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
-      params:
+      extract_params:
         separator: ;
         header: 3
         skipfooter: 3
@@ -103,7 +103,7 @@ domains:
       type: MelodiExtractor
       endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
       format: json
-      params:
+      extract_params:
         limit: 100
       response_map:
         data: results
@@ -114,7 +114,7 @@ domains:
       type: JsonExtractor
       endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
       format: json
-      params:
+      extract_params:
         limit: 100
       response_map:
         data: results
@@ -161,7 +161,7 @@ domains:
         type: MelodiExtractor
         endpoint: /datasets
         format: json
-        params:
+        extract_params:
           page: 1
           pageSize: all
         response_map:
@@ -187,7 +187,7 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
-        params:
+        extract_params:
           maxResult: 10000
           TIME_PERIOD: 2021
           GEO: ["COM", "DEP", "REG"]
@@ -211,7 +211,7 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
-        params:
+        extract_params:
           maxResult: 10000
           TIME_PERIOD: 2021
           GEO: ["COM", "DEP", "REG"]
@@ -235,7 +235,7 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
-        params:
+        extract_params:
           maxResult: 10000
           TIME_PERIOD: 2021
           GEO: ["COM", "DEP", "REG"]
@@ -259,7 +259,7 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
-        params:
+        extract_params:
           maxResult: 10000
           TIME_PERIOD: 2021
           GEO: ["COM", "DEP", "REG"]
@@ -283,7 +283,7 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
-        params:
+        extract_params:
           maxResult: 10000
           TIME_PERIOD: 2021
           GEO: ["COM", "DEP", "REG"]
@@ -307,7 +307,7 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
-        params:
+        extract_params:
           maxResult: 10000
           TIME_PERIOD: 2021
           GEO: ["COM", "DEP", "REG"]
@@ -333,7 +333,7 @@ domains:
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
-        params:
+        extract_params:
           select: commune,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
           group_by: commune
           limit: -1
@@ -346,7 +346,7 @@ domains:
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
-        params:
+        extract_params:
           select: region_academique,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
           group_by: region_academique
           limit: -1
@@ -359,7 +359,7 @@ domains:
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
-        params:
+        extract_params:
           select: departement,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
           group_by: departement
           limit: -1
@@ -375,7 +375,7 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_BPE
         format: json
-        params:
+        extract_params:
           maxResult: 10000
           TIME_PERIOD: 2023
           GEO: ["COM","REG","DEP"]
