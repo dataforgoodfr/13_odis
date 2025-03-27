@@ -55,14 +55,14 @@ Le fichier “datasources.yaml” répertorie toutes nos sources de données et 
 - Les “Domaines” de donnée qui regroupent les jeux de données en thématiques : géographie, logement, emploi etc
 - Au sein de chaque Domaine, des “Sources” qui représentent les informations sur les jeux de données précis à récupérer
 
-Le script "odis.py” est le principal script en ligne de commande pour récupérer des jeux de données en choisissant un Domaine, et un ou plusieurs Sources. Par défaut, si on ne précise pas de Source, les données sont extraites pour toutes les Sources définies pour le Domaine choisi.
+Le script “extract.py” permet de récupérer des jeux de données en ligne de commande, en choisissant un Domaine, et un ou plusieurs Sources. Par défaut, si on ne précise pas de Source, les données sont extraites pour toutes les Sources définies pour le Domaine choisi.
 
 ```bash
 # Extraire tous les datasets source du domaine "geographical_references"
-poetry run python bin/odis.py extract --domain geographical_references
+poetry run bin/odis.py extract --domain geographical_references
 
 # Extraire seulement les datasets "regions" et "departements du domaine "geographical_references"
-poetry run python bin/odis.py extract --domain geographical_references --sources regions departements
+poetry run python bin/extract.py --sources geographical_references.regions geographical_references.departements
 ```
 
 Pour comprendre en détail comment ça fonctionne : 
@@ -73,31 +73,31 @@ Pour comprendre en détail comment ça fonctionne :
 
 ## Sonder les sources disponibles
 
-La commande “explain” permet de voir facilement comment les API, Domaines et Sources sont définis dans la configuration. Si l’option “explain” est passée, le script n’extrait aucune donnée mais montre seulement les infos sur les configurations demandées.
+L’option “explain” permet de voir facilement comment les API, Domaines et Sources sont définis dans la configuration. Si l’option “explain” est passée, le script n’extrait aucune donnée mais montre seulement les infos sur les configurations demandées.
 
 ```bash
 # Voir la liste des API, domaines et sources disponibles
-poetry run python bin/odis.py explain
+poetry run bin/odis.py explain
 
 # Voir les définitions de tous les datasets source du domaine "geographical_references"
-poetry run python bin/odis.py explain --domain geographical_references 
+poetry run bin/odis.py explain --domain geographical_references 
 
 # Voir les définitions détaillées de l'API DiDo
-poetry run python bin/odis.py explain --api DiDo
+poetry run bin/odis.py explain --api DiDo
 
 # Voir les définitions détaillées de plusieurs API INSEE
-poetry run python bin/odis.py explain --api INSEE.Melodi INSEE.Metadonneees
+poetry run bin/odis.py explain --api INSEE.Melodi INSEE.Metadonneees
 
 # Voir les définitions détaillées d'une source de données et de son API
-poetry run python bin/odis.py explain --api DiDo --domain logement --source dido_catalogue 
+poetry run bin/odis.py explain --api DiDo --source logement.dido_catalogue 
 ```
 
 ## Chargement des données brutes
 
-La commande "load" permet de charger un fichier local dans la base de données.
+La fonction load permet de charger un fichier local dans la base de données.
 
 ```bash
-poetry run python bin/odis.py load --domain geographical_references --source regions
+poetry run python bin/odis.py load -s logement.dido_catalogue
 ```
 
 ## Télécharger la méthodologie et les modèles de données cibles
@@ -113,7 +113,7 @@ poetry run python ./common/utils/download_target_data.py
 
 ### Installation de dbt
 
-```bash
+```yaml
 pip install dbt-core
 # Adapter pour PostgreSQL
 pip install dbt-postgres
@@ -123,25 +123,18 @@ dbt --version
 
 ### Installation des dépendances
 
-```bash
+```yaml
 dbt deps
 ```
 
-### Se placer sur le dossier DBT pour commencer à travailler
+### **Se placer sur le dossier DBT pour commencer à travailler**
+
 (pour reconnaître votre dbt_project.yml)
 
-```bash
+```yaml
 cd dbt_odis
 ```
 
 Toutes les commandes DBT intégrées directement dans la CI ici : 
 
-- [Commandes DBT](./DBT.md)
-
-
-
-
-
-
-
-
+- [Commandes DBT](./docs/DBT.md)
