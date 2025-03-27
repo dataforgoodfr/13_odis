@@ -12,7 +12,7 @@ from pydantic import validate_call
 
 from common.utils.exceptions import InvalidCSV
 from common.utils.interfaces.data_handler import PageLog
-from common.utils.interfaces.data_loader import AbstractDataLoader
+from common.utils.interfaces.loader import AbstractDataLoader
 from common.utils.logging_odis import logger
 
 
