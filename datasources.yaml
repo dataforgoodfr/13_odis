@@ -162,11 +162,11 @@ domains:
     epci:
       API: Opendatasoft
       description: Groupement de communes
-      type: OpenDataSoftExtractor
+      type: JsonExtractor
       endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/exports/json
       format: json
-      extract_params:
-        limit: 100
+      # extract_params:
+      #   limit: 100
       response_map:
         data: results
 
