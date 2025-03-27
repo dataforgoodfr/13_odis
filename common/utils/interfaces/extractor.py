@@ -17,6 +17,16 @@ class ExtractionResult(BaseModel):
     success: bool = Field(..., description="is the page successfully extracted")
     payload: Any = Field(..., description="the extracted data")
     is_last: bool = Field(..., description="is this the last page")
+    
+    count: Optional[int] = Field(
+        0,
+        description="number of records extracted from the page"
+    )
+
+    total_count: Optional[int] = Field(
+        0,
+        description="Total number of records to extract, if specified in the response"
+    )
 
     # TODO:
     # - improve typing here
