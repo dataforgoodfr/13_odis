@@ -18,11 +18,13 @@ La configuration déclarative (datasources.yaml) est expliquée ici : [Config d�
 
 ## Extractors
 
-Les Extractors sont des classes Python, définies dans le fichier `common/utils/source_extractors.py`. Chaque Extractor déclare une méthode `extract` servant à requêter des API, et récupérer ce qui sort pour le stocker dans un format adéquat (JSON ou CSV par exemple), ou bien le passer à une autre fonction Python qui continuerait la chaîne d’ELT.
+Les Extractors sont des classes Python, définies dans le fichier `common/utils/source_extractors.py`. 
+
+Tout Extractor hérite de la classe abstraite `AbstractSourceExtractor` , définie dans `common/utils/interfaces/extractor.py`.
+
+Chaque Extractor doit définir une méthode `download` servant à requêter des API, et récupérer ce qui sort pour le stocker dans un format adéquat (JSON ou CSV par exemple), ou bien le passer à une autre fonction Python qui continuerait la chaîne d’ELT.
 
 Un Extractor peut être assez générique, pour être réutilisé dans divers cas : `FileExtractor` par exemple, qui récupère un fichier entier depuis n’importe quelle API http sans authentification ni pagination. Ou au contraire très spécifique et adapté à un cas particulier : récupérer une API avec des contraintes très particulières d’authentification, de format, de pagination par exemple.
-
-Les Extractors sont dérivés d’une classe abstraite `SourceExtractor` qui définit certaines propriétés et méthodes communes, qui sont donc héritées et utilisable par tout Extracteur. En particulier, la fonction `set_query_parameters` qui permet d’interpréter la configuration déclarative et prépare les différents paramètres pour envoyer une requête à une API.
 
 ## Gestion de la pagination
 
@@ -45,12 +47,8 @@ logements_total:
 
 Si on définit une valeur pour les champs `next` et `is_last` , ils sont récupérés dans la réponse de l’API pour permettre de continuer la pagination.
 
-<aside>
-💡
-
 Si on ne définit pas les champs `next` ou `is_last` , l’extractor marche, il va juste se comporter comme s’il n’y avait qu’une seule page.
 
-</aside>
 
 ## Gestion du throttling
 
@@ -73,12 +71,15 @@ Si aucun des Extractors existants dans `common/utils/source_extractors.py` ne co
 
 Pour créer un nouvel Extractor, il faut respecter les contraintes suivantes :
 
-1. Tout Extractor doit hériter de `SourceExtractor`
-2. Tout Extractor doit définir une méthode `extract` , qui retourne un **générateur** python, c’est à dire que la fonction ne renvoie pas un “return”, mais un “yield”
-3. Le générateur de la méthode `extract` doit yield la signature suivante : 
-    1. `payload` : le contenu de la réponse de l’API (json, csv ou autre)
-    2. `page_number` (int) : le numéro de la page qu’on vient de récupérer
-    3. `is_last` (bool) : est-ce que la page récupérée était la dernière
-    4. `filepath` (str) : le path vers le fichier dumpé en local, s’il existe
+1. Tout Extractor doit hériter de `common.utils.interfaces.extractor.AbstractSourceExtractor`
+2. Tout Extractor doit définir une méthode `download` , qui retourne un **générateur** python, c’est à dire que la fonction ne renvoie pas un “return”, mais un “yield”
+3. Le générateur de la méthode `download` doit yield un objet `ExtractionResult`. Cet objet est défini dans l’interface `common.utils.interfaces.extractor` et comprend les informations suivantes :
+    1. `payload` (Any) : le contenu de la réponse de l’API (json, csv ou autre)
+    2.  `success` (bool) : est-ce que la requête a réussi ou non
+    3. `is_last` (bool) : est-ce que la page traitée était la dernière ou non
+
+Il revient à la méthode `download` de chaque Extractor de gérer la pagination ou non ; en particulier le champ `is_last` indique à l’Extractor que l’itération de requêtes doit s’arrêter, il doit donc être correctement utilisé et renseigné par chaque Extracteur selon la logique de l’API qui est interrogée.
+
+Par défaut, si on ne gère pas la pagination, `is_last` doit être retourné à `true` pour éviter de boucler indéfiniment ; le comportement par défaut est alors de ne récupérer qu’une seule “page” (une itération) et d’arrêter.
 
 Good luck 🙂

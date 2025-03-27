@@ -178,8 +178,8 @@ domains:
           withColumnDescription: true
           withColumnUnit: true
         load_params:
-          header: 2
-          skipfooter: 0
+          header: 2 # index de la première ligne utile du csv
+          skipfooter: 0 # combien de lignes inutiles à skipper en fin de document
 
       logements_total:
         API: INSEE.Melodi
