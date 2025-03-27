@@ -17,14 +17,11 @@ class FileExtractor(AbstractSourceExtractor):
 
     is_json: bool = False
     handler: FileHandler  # typing
-    metadata_handler: FileHandler  # typing
 
     def __init__(self, config: DataSourceModel, model: DomainModel):
         super().__init__(
             config,
-            model,
-            handler=FileHandler(),
-            metadata_handler=FileHandler(file_name=f"{model.name}_metadata_extract.json"),
+            model
         )
 
     def download(self) -> Generator[ExtractionResult, None, None]:

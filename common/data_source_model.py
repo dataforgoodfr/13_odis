@@ -134,6 +134,22 @@ class DomainModel(BaseModel):
             return self.name.replace(".", "_")
         return None
 
+    @computed_field
+    @property
+    def domain_name(self) -> str:
+        """
+        gets the domain name for the model
+
+        Example:
+        ```python
+        DomainModel(name="logement.dido")
+        # table_name would be "logement"
+        ```
+        """
+        if self.name:
+            return self.name.split(".")[0]
+        return None
+
 
 class ConfigurationModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
