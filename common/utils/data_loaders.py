@@ -138,8 +138,8 @@ class CsvDataLoader(AbstractDataLoader):
         Load CSV data into the database
 
         TODO:
-            - improve DomainModel to include CSV-specific parameters (header, skipfooter, separator)
-            - refacto and testing
+            - improve error catching behaviour
+            - improve output load metadata : save it as json, not csv
         """
         db = DatabaseClient()
 
