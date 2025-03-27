@@ -53,7 +53,16 @@ APIs:
     apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
     throttle: 100
     #default_headers:
-      #accept: application/json 
+      #accept: application/json
+
+  URSSAF:
+    name : Urssaf
+    description: API des données ouverte de l'URSSAF
+    base_url: https://open.urssaf.fr/api/explore/v2.1
+    apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/#tag/Dataset/operation/getRecords
+    throttle : 100
+    default_headers:
+      accept: application/json
 
   statistiques.francetravail.org:
     name: statistiques francetravail.org
@@ -64,6 +73,14 @@ APIs:
 domains:
 
   emploi:
+    eff_secteur_prive_gds_secteurs:
+      API: URSSAF
+      description : Effectifs salariés du secteur privé par grands secteurs
+      type: JsonExtractor
+      endpoint: /catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/json
+      format: json
+
+    
     demandeur_emploi_regions:
       API: statistiques.francetravail.org
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par régions
@@ -74,6 +91,7 @@ domains:
         separator: ;
         header: 3
         skipfooter: 3
+
     demandeur_emploi_departements:
       API: statistiques.francetravail.org
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par départements
@@ -84,6 +102,7 @@ domains:
         separator: ;
         header: 3
         skipfooter: 3
+
     demandeur_emploi_communes:
       API: statistiques.francetravail.org
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par communes de plus de 5000 hab

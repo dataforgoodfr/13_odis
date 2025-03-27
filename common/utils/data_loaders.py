@@ -92,7 +92,6 @@ class JsonDataLoader(AbstractDataLoader):
         try:
             # initiate database session
             db = DatabaseClient(autocommit=False)
-
             # insert Data
             insert_query = (
                 f"INSERT INTO bronze.{self.model.table_name} (data) VALUES (%s)"
