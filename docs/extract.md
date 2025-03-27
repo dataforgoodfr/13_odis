@@ -14,7 +14,7 @@ Les spécificités de chacune se situent souvent dans la structure de leurs cham
 
 Pour rendre l’extraction de ces diverses sources facilement extensible (ie permettre de rapidement rajouter des nouvelles sources d’extraction sans trop de code) tout ne restant assez flexible pour s’adapter aux spécificités de chacune, nous avons adopté une approche basée sur des configurations déclaratives, et des objets Extracteurs.
 
-La configuration déclarative (datasources.yaml) est expliquée ici : [Config déclarative des sources](./docs/configurations.md)
+La configuration déclarative (datasources.yaml) est expliquée ici : [Config déclarative des sources](./configurations.md)
 
 ## Extractors
 
