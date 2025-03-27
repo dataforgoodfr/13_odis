@@ -15,6 +15,31 @@ from common.utils.logging_odis import logger
 
 class JsonDataLoader(AbstractDataLoader):
 
+    def create_or_overwrite_table(self):
+        """Creates the target Bronze table.
+        If exists, drops table to recreate"""
+
+        # domain_name = self.config.get_domain_name(self.model)
+
+        # initiate database session
+        db = DatabaseClient(autocommit=False)
+
+        # create bronze table drop if it already exists
+        # table_name = f"{domain_name}_{self.model.table_name}"
+
+        logger.info(f"Creating table bronze.{self.model.table_name}")
+
+        db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
+        db.execute(
+            f"""
+            CREATE TABLE bronze.{self.model.table_name} (
+                id SERIAL PRIMARY KEY,
+                data JSONB,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+        """
+        )
+        db.commit()
+
     def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """Method to load pages from json files, indexed in a DataProcessLog object.
         Yields an iterable result with page number (int) and load success information (bool) for each page
@@ -92,7 +117,23 @@ class JsonDataLoader(AbstractDataLoader):
 
 class CsvDataLoader(AbstractDataLoader):
 
-    def load_data(self):
+    def create_or_overwrite_table(self):
+        """Creates the target Bronze table.
+        If exists, drops table to recreate"""
+
+        # domain_name = self.config.get_domain_name(self.model)
+
+        # initiate database session
+        db = DatabaseClient(autocommit=False)
+
+        # create bronze table drop if it already exists
+        # table_name = f"{domain_name}_{self.model.table_name}"
+
+        logger.info(f"Dropping table bronze.{self.model.table_name}")
+        db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
+        db.commit()
+
+    def load_data(self, pages:list[PageLog]) -> Generator[PageLog, None, None]:
         """
         Load CSV data into the database
 
@@ -100,41 +141,29 @@ class CsvDataLoader(AbstractDataLoader):
             - improve DomainModel to include CSV-specific parameters (header, skipfooter, separator)
             - refacto and testing
         """
-
-        domain_name = self.config.get_domain_name(self.model)
-        # Extract CSV-specific parameters
-        header = self.model.load_params.get("header", None)
-        skipfooter = self.model.load_params.get("skipfooter", None)
-        separator = self.model.load_params.get("separator", ",")
-
-        db = DatabaseClient(autocommit=False)
-
-        if not header or not skipfooter:
-            logger.error(
-                f"The source '{self.model.name}' needs to have params 'header' and 'skipfooter' configured"
-            )
-            exit()
-
-        # Create bronze table, drop if it already exists
-        table_name = f"{domain_name}_{self.model.table_name}"
-        db.execute(f"DROP TABLE IF EXISTS bronze.{table_name}")
-
-        try:
+        db = DatabaseClient()
 
             # Read data extraction log provided by extractor
             # data_index_name = f"{source_name}_extract_log"
             # data_index = self.handler.json_load(domain=domain, source_name=data_index_name)
             # csv_file_path = data_index["pages"][0]["filepath"]
-            metadata_info = self.load_metadata()
-            for item in metadata_info.pages:
+
+        load_success = False
+
+        for extract_page_log in pages:
+
+            try:
 
                 # Read CSV with specific parameters from config
-                results = self.handler.csv_load(
-                    item,
-                    header=header,
-                    skipfooter=skipfooter,
-                    separator=separator,
-                )
+                if self.model.load_params:
+                    results = self.handler.csv_load(
+                        extract_page_log,
+                        **self.model.load_params
+                    )
+                else:
+                    results = self.handler.csv_load(
+                        extract_page_log
+                    )
 
                 results.columns = [
                     self._sanitize_column_name(col) for col in results.columns
@@ -144,7 +173,7 @@ class CsvDataLoader(AbstractDataLoader):
 
                 db.execute(
                     f"""
-                    CREATE TABLE bronze.{table_name} (
+                    CREATE TABLE bronze.{self.model.table_name} (
                         id SERIAL PRIMARY KEY,
                         {columns_str},
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -160,7 +189,7 @@ class CsvDataLoader(AbstractDataLoader):
 
                     db.execute(
                         f"""
-                        INSERT INTO bronze.{table_name} ({column_names}, created_at)
+                        INSERT INTO bronze.{self.model.table_name} ({column_names}, created_at)
                         VALUES ({placeholders}, CURRENT_TIMESTAMP)
                     """,
                         values,
@@ -171,12 +200,21 @@ class CsvDataLoader(AbstractDataLoader):
                     f"Successfully loaded {len(results)} rows for '{self.model.name}'"
                 )
 
-        except Exception as e:
-            db.rollback()
-            logger.error(f"Error loading CSV data for '{self.model.name}': {str(e)}")
-            raise
+                load_success = True
 
-        finally:
+            except Exception as e:
+                # db.rollback()
+                logger.exception(f"Error loading CSV data for '{self.model.name}': {str(e)}")
+                # raise
+
+            # yield a new page log, with the db load result info
+            yield PageLog(
+                page=extract_page_log.page,
+                storage_info=extract_page_log.storage_info,
+                success=load_success,
+                is_last=extract_page_log.is_last,
+            )
+
             db.close()
 
     def _sanitize_column_name(self, column_name: str) -> str:

@@ -42,7 +42,7 @@ class FileExtractor(AbstractSourceExtractor):
         payload = response.json() if self.is_json else response.content
 
         # yield the request result
-        yield ExtractionResult(payload=payload, is_last=True)
+        yield ExtractionResult(payload=payload, success=True, is_last=True)
 
 
 class JsonExtractor(FileExtractor):

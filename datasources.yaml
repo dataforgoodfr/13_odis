@@ -70,7 +70,7 @@ domains:
       endpoint: /stmt/defmexp?li=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
-      extract_params:
+      load_params:
         separator: ;
         header: 3
         skipfooter: 3
@@ -80,7 +80,7 @@ domains:
       endpoint: /stmt/defmexp?lj=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
-      extract_params:
+      load_params:
         separator: ;
         header: 3
         skipfooter: 3
@@ -90,7 +90,7 @@ domains:
       endpoint: /stmt/defmexp?lk=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
-      extract_params:
+      load_params:
         separator: ;
         header: 3
         skipfooter: 3

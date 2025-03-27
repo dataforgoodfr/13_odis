@@ -117,27 +117,6 @@ class AbstractDataLoader(ABC):
 
         raise
 
+    @abstractmethod
     def create_or_overwrite_table(self):
-        """Creates the target Bronze table.
-        If exists, drops table to recreate"""
-
-        # domain_name = self.config.get_domain_name(self.model)
-
-        # initiate database session
-        db = DatabaseClient(autocommit=False)
-
-        # create bronze table drop if it already exists
-        # table_name = f"{domain_name}_{self.model.table_name}"
-
-        logger.info(f"Creating table bronze.{self.model.table_name}")
-
-        db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
-        db.execute(
-            f"""
-            CREATE TABLE bronze.{self.model.table_name} (
-                id SERIAL PRIMARY KEY,
-                data JSONB,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
-        """
-        )
-        db.commit()
+        pass
