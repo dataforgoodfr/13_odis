@@ -4,7 +4,7 @@ from dotenv import dotenv_values
 
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.database_client import DatabaseClient
-from common.utils.interfaces.data_loader import AbstractDataLoader
+from common.utils.interfaces.loader import AbstractDataLoader
 
 
 def create_loader(config: DataSourceModel, model: DomainModel) -> AbstractDataLoader:
