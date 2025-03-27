@@ -8,7 +8,8 @@ from pydantic import BaseModel, Field
 from common.utils.logging_odis import logger
 
 from ...data_source_model import APIModel, DataSourceModel, DomainModel
-from .data_handler import IDataHandler, MetadataInfo, PageLog
+from .data_handler import MetadataInfo, PageLog
+from common.utils.file_handler import FileHandler
 
 
 class ExtractionResult(BaseModel):
@@ -62,17 +63,14 @@ class AbstractSourceExtractor(ABC):
 
     config: DataSourceModel
     url: str  # TODO: add type hint (HTTPUrl)
-    handler: IDataHandler = None
-    metadata_handler: IDataHandler = None
+    handler: FileHandler
     model: DomainModel
     api_config: APIModel
 
     def __init__(
         self,
         config: DataSourceModel,
-        model: DomainModel,
-        handler: IDataHandler,
-        metadata_handler: IDataHandler,
+        model: DomainModel
     ):
         """
         - populates the extractor with the configuration, the model and the handler
@@ -81,14 +79,12 @@ class AbstractSourceExtractor(ABC):
         Args:
             config (DataSourceModel): the configuration of the data source
             model (DomainModel): the model of the data source
-            handler (IDataHandler): the handler used to store the data
-            metadata_handler (IDataHandler): the handler used to store the metadata
+            handler (FileHandler): the handler used to store the data
         """
 
         self.config = config
-        self.handler = handler
-        self.metadata_handler = metadata_handler
         self.model = model
+        self.handler = FileHandler()
 
         # Decompose base API URl
         api = self.config.get_api(model)
@@ -146,6 +142,25 @@ class AbstractSourceExtractor(ABC):
         # if the loop completes, extraction is successful
         complete = True
 
+        self.dump_metadata(
+            "extract",
+            start_time = start_time,
+            last_processed_page = last_page_downloaded,
+            complete = complete,
+            errors = errors,
+            pages = page_logs
+        )
+
+
+    def dump_metadata(self, 
+                      operation: str = "extract", 
+                      start_time:datetime = None,
+                      last_processed_page: int = None,
+                      complete: bool = None,
+                      errors: int = None,
+                      pages: list[PageLog] = None
+                      ):
+
         # Export metadata info
         # just go through pydantic to ensure the data is valid
         # and process eventual inner things
@@ -153,21 +168,23 @@ class AbstractSourceExtractor(ABC):
             **{
                 "domain": self.config.get_domain_name(self.model),
                 "source": self.model.name,
-                "operation": 'extract',
+                "operation": operation,
                 "last_run_time": start_time.isoformat(),
-                "last_processed_page": last_page_downloaded,
+                "last_processed_page": last_processed_page,
                 "complete": complete,
                 "errors": errors,
                 "model": self.model,
-                "pages": page_logs
+                "pages": pages
             }
         ).model_dump( 
             mode = "json" 
         ) 
 
-        meta_info = self.metadata_handler.file_dump(
+        meta_info = self.handler.file_dump(
             self.model,
-            data = extract_metadata
+            data = extract_metadata,
+            suffix = f"metadata_{operation}",
+            format = "json"
             )
 
         logger.debug(

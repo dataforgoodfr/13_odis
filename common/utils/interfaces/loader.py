@@ -5,9 +5,8 @@ from typing import Generator
 import orjson
 from pydantic import ValidationError
 
-from common.data_source_model import DataSourceModel, DomainModel
-from common.utils.file_handler import FileHandler
-from common.utils.interfaces.data_handler import MetadataInfo, PageLog
+from common.data_source_model import FILE_FORMAT, DataSourceModel, DomainModel
+from common.utils.interfaces.data_handler import IDataHandler, MetadataInfo, PageLog
 from common.utils.interfaces.db_client import IDBClient
 from common.utils.logging_odis import logger
 
@@ -17,22 +16,19 @@ class AbstractDataLoader(ABC):
 
     config: DataSourceModel
     model: DomainModel
-    handler: FileHandler
-    metadata_handler: FileHandler
+    handler: IDataHandler
     db_client: IDBClient
 
     def __init__(
-        self, config: DataSourceModel, model: DomainModel, db_client: IDBClient
+        self,
+        config: DataSourceModel,
+        model: DomainModel,
+        db_client: IDBClient,
+        handler: IDataHandler = None,
     ):
-
         self.config = config
         self.model = model
-        self.db_client = db_client
-
-        self.handler = FileHandler()
-        self.metadata_handler = FileHandler(
-            file_name=f"{model.name}_metadata_extract.json"
-        )
+        self.handler = handler
 
     @abstractmethod
     def load_data(self) -> Generator[PageLog, None, None]:
@@ -55,11 +51,11 @@ class AbstractDataLoader(ABC):
         complete = False
 
         # load actual data from metadata
-        metadata = self.load_metadata()
+        extract_metadata = self.load_metadata("extract", format="json")
 
         # execute loader iterations and log results in metadata
         result: PageLog  # typing hint for IDE
-        for result in self.load_data(metadata.pages):
+        for result in self.load_data(extract_metadata.pages):
 
             last_processed_page += 1
 
@@ -71,40 +67,65 @@ class AbstractDataLoader(ABC):
         # if the loop completes, extraction is successful
         complete = True
 
+        self.dump_metadata(
+            "load",
+            start_time=start_time,
+            last_processed_page=last_processed_page,
+            complete=complete,
+            errors=errors,
+            pages=page_logs,
+        )
+
+    def dump_metadata(
+        self,
+        operation: str = "extract",
+        start_time: datetime = None,
+        last_processed_page: int = None,
+        complete: bool = None,
+        errors: int = None,
+        pages: list[PageLog] = None,
+    ):
+
         # Export metadata info
         # just go through pydantic to ensure the data is valid
         # and process eventual inner things
-        load_metadata = MetadataInfo(
+        extract_metadata = MetadataInfo(
             **{
                 "domain": self.config.get_domain_name(self.model),
                 "source": self.model.name,
-                "operation": "load_data",
+                "operation": operation,
                 "last_run_time": start_time.isoformat(),
                 "last_processed_page": last_processed_page,
                 "complete": complete,
                 "errors": errors,
                 "model": self.model,
-                "pages": page_logs,
+                "pages": pages,
             }
         ).model_dump(mode="json")
 
-        # Dump the Load metadata into a new file
         meta_info = self.handler.file_dump(
-            self.model, data=load_metadata, suffix="metadata_load"
+            self.model,
+            data=extract_metadata,
+            suffix=f"metadata_{operation}",
+            format="json",
         )
 
         logger.debug(
             f"Metadata written in: '{meta_info.location}/{meta_info.file_name}'"
         )
 
-    def load_metadata(self) -> MetadataInfo:
+    def load_metadata(self, metadata_type, format: FILE_FORMAT = None) -> MetadataInfo:
         """
         TODO: metadata could be stored in a different location, or in a DB
         """
 
-        metadata_filepath = self.metadata_handler._data_dir(
-            self.model
-        ) / self.metadata_handler.file_name(self.model)
+        # If format not specified, apply the Model's file format
+        if format is None:
+            format = self.model.format
+
+        metadata_filepath = self.handler._data_dir(self.model) / self.handler.file_name(
+            self.model, suffix=f"metadata_{metadata_type}", format=format
+        )
 
         try:
 
