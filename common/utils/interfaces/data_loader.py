@@ -6,7 +6,6 @@ import orjson
 from pydantic import ValidationError
 
 from common.data_source_model import DataSourceModel, DomainModel
-from common.utils.database_client import DatabaseClient
 from common.utils.file_handler import FileHandler
 from common.utils.interfaces.data_handler import MetadataInfo, PageLog
 from common.utils.logging_odis import logger
@@ -28,6 +27,14 @@ class AbstractDataLoader(ABC):
         self.metadata_handler = FileHandler(
             file_name=f"{model.name}_metadata_extract.json"
         )
+
+    @abstractmethod
+    def load_data(self) -> Generator[PageLog, None, None]:
+        pass
+
+    @abstractmethod
+    def create_or_overwrite_table(self):
+        pass
 
     def execute(self, overwrite_table: bool = True):
 
@@ -84,10 +91,6 @@ class AbstractDataLoader(ABC):
             f"Metadata written in: '{meta_info.location}/{meta_info.file_name}'"
         )
 
-    @abstractmethod
-    def load_data(self) -> Generator[PageLog, None, None]:
-        pass
-
     def load_metadata(self) -> MetadataInfo:
         """
         TODO: metadata could be stored in a different location, or in a DB
@@ -117,6 +120,3 @@ class AbstractDataLoader(ABC):
 
         raise
 
-    @abstractmethod
-    def create_or_overwrite_table(self):
-        pass
