@@ -194,3 +194,93 @@ class NotebookExtractor(AbstractSourceExtractor):
             )
 
             # last cell output
+
+
+class OpenDataSoftExtractor(FileExtractor):
+
+    def download(self) -> Generator[ExtractionResult, None, None]:
+
+        is_last = False
+        url = self.url
+
+        pageno = 1
+        offset = 0
+        total_count = 0
+        aggregated_count = 0
+
+        while not is_last:
+
+            # yield the request result
+            result = self.download_page(url, offset)
+
+            is_last = result.is_last
+            total_count = result.total_count
+            page_records_count = result.count
+            # Accumulate number of records
+            aggregated_count += page_records_count
+
+            logger.debug(f"Extracted {page_records_count} from page {pageno}")
+            logger.debug(f"Extracted {aggregated_count} out of {total_count} so far.")
+
+            if not is_last:
+
+                time.sleep(60 / self.api_config.throttle)
+
+                offset = aggregated_count + 1
+
+                logger.debug(f"Next offset: {offset}")
+
+            yield result
+
+    def download_page(self, url, offset) -> ExtractionResult:
+
+        passed_params = self.model.extract_params
+        passed_params["offset"] = offset
+
+        logger.info(f"querying '{url}'")
+
+        success = False
+        payload = None
+        count = 0
+        total_count = 0
+
+        try:
+            # Send request to API
+            response = requests.get(
+                url,
+                headers=self.model.headers.model_dump(mode="json"),
+                params=passed_params,
+            )
+            response.raise_for_status()
+
+            raw_data = response.json()
+
+            # get payload
+            datapath = self.model.response_map.get("data")
+            payload = jmespath.search(datapath, raw_data)
+
+            # get records count
+            count = len(payload)
+
+            # get total count
+            total_count_key = "total_count"
+            total_count = jmespath.search(total_count_key, raw_data)
+
+            # If offset + count goes is greater thatn total_count,
+            # means this is the last call to be made
+            is_last = offset + count > total_count
+
+            # If all went well, success = true
+            success = True
+
+        except Exception as e:
+            error = str(e)
+            logger.exception(f"Error while extracting page {url}: {error}")
+
+        return ExtractionResult(
+            success=success,
+            payload=payload,
+            is_last=is_last,
+            count=count,
+            total_count=total_count,
+        )
