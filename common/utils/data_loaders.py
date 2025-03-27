@@ -9,7 +9,7 @@ from pydantic import validate_call
 
 from common.utils.database_client import DatabaseClient
 from common.utils.interfaces.data_handler import PageLog
-from common.utils.interfaces.data_loader import AbstractDataLoader
+from common.utils.interfaces.loader import AbstractDataLoader
 from common.utils.logging_odis import logger
 
 

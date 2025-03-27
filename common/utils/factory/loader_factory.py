@@ -1,7 +1,7 @@
 from importlib import import_module
 
 from common.data_source_model import DataSourceModel, DomainModel
-from common.utils.interfaces.data_loader import AbstractDataLoader
+from common.utils.interfaces.loader import AbstractDataLoader
 
 
 def create_loader(config: DataSourceModel, model: DomainModel) -> AbstractDataLoader:
