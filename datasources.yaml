@@ -47,13 +47,11 @@ APIs:
       accept: application/json
 
   Opendatasoft:
-    name: Opendatasoft #erreur 500 avec l'utilisation de header et pas d'erreur sans header
+    name: Opendatasoft
     description: API de données ouverte
     base_url: https://public.opendatasoft.com/api/explore/v2.1
-    apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
-    throttle: 100
-    #default_headers:
-      #accept: application/json 
+    apidoc: https://public.opendatasoft.com/api/explore/v2.1/console
+    throttle: 300
 
   statistiques.francetravail.org:
     name: statistiques francetravail.org
@@ -100,7 +98,7 @@ domains:
     elus_communes:
       API: Opendatasoft
       description: Elus des différentes communes 
-      type: MelodiExtractor
+      type: OpenDataSoftExtractor
       endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
       format: json
       extract_params:
@@ -111,8 +109,8 @@ domains:
     epci:
       API: Opendatasoft
       description: Groupement de communes
-      type: JsonExtractor
-      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
+      type: OpenDataSoftExtractor
+      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/exports/json
       format: json
       extract_params:
         limit: 100
