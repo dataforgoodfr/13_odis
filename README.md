@@ -94,7 +94,7 @@ poetry run bin/odis.py explain --api DiDo --source logement.dido_catalogue
 
 ## Chargement des données brutes
 
-Le script [load.py](http://load.py) permet de charger un fichier local dans la base de données.
+La fonction load permet de charger un fichier local dans la base de données.
 
 ```bash
 poetry run python bin/odis.py load -s logement.dido_catalogue
