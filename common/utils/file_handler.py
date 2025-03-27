@@ -6,7 +6,7 @@ import orjson
 import pandas as pd
 from bson import ObjectId
 
-from common.data_source_model import DomainModel
+from common.data_source_model import FILE_FORMAT, DomainModel
 from common.utils.exceptions import InvalidCSV, InvalidJson
 from common.utils.logging_odis import logger
 
@@ -55,9 +55,11 @@ class FileHandler(IDataHandler):
 
     def _data_dir(self, model: DomainModel) -> Path:
         """Generate the directory Path where the data will be stored"""
-        return Path(f"{self.base_path}/{model.API}")
+        return Path(f"{self.base_path}/{model.domain_name}")
 
-    def file_name(self, model: DomainModel, suffix: str = None) -> str:
+    def file_name(
+        self, model: DomainModel, suffix: str = None, format: FILE_FORMAT = None
+    ) -> str:
         """Generate the file name for the given model and suffix
 
         If a file name was provided at initialization, it will be used instead of the generated one
@@ -72,23 +74,28 @@ class FileHandler(IDataHandler):
                 to None, in which case an index is appended to the model name
         """
 
-        if self._file_name:
-            return self._file_name
+        # If format not specified, apply the Model's file format
+        if format is None:
+            format = model.format
 
         name = ""
         # increment the index to avoid overwriting
         self._index += 1
 
         if suffix:
-            name = f"{model.name}_{suffix}.{model.format}"
+            name = f"{model.name}_{suffix}.{format}"
 
         else:
-            name = f"{model.name}_{self._index}.{model.format}"
+            name = f"{model.name}_{self._index}.{format}"
 
         return name
 
     def file_dump(
-        self, model: DomainModel, data: Any, suffix: str = None
+        self,
+        model: DomainModel,
+        data: Any,
+        suffix: str = None,
+        format: FILE_FORMAT = None,
     ) -> StorageInfo:
         """
         saves the data to a file and returns the storage info
@@ -102,12 +109,17 @@ class FileHandler(IDataHandler):
         Returns:
             StorageInfo: the storage info, including the location of the file
         """
+        # If format not specified, apply the Model's file format
+        if format is None:
+            format = model.format
 
         # Create data directory if it doesn't exist
         data_dir = self._data_dir(model)
         data_dir.mkdir(parents=True, exist_ok=True)
 
-        file_name = self.file_name(model, suffix)  # suffix is optional
+        file_name = self.file_name(
+            model, suffix=suffix, format=format
+        )  # suffix is optional
         # Generate filename from source name
         filepath = data_dir / file_name
 

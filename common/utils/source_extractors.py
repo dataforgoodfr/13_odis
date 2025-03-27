@@ -8,6 +8,7 @@ import requests
 from nbconvert.preprocessors import ExecutePreprocessor
 
 from common.data_source_model import DataSourceModel, DomainModel
+from common.utils.interfaces.data_handler import IDataHandler
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
 from common.utils.logging_odis import logger
 
@@ -18,27 +19,15 @@ class FileExtractor(AbstractSourceExtractor):
     """Generic extractor for a file dump from an API"""
 
     is_json: bool = False
-    handler: FileHandler  # typing
-    metadata_handler: FileHandler  # typing
-    api_confs: dict
-    source_models: dict
-    url: str
-    headers: dict
-    params: dict
-    format: str
-    throttle: int = 0
-    response_map: dict = {}
-    filename: str
+    handler: IDataHandler
 
-    def __init__(self, config: DataSourceModel, model: DomainModel):
-        super().__init__(
-            config,
-            model,
-            handler=FileHandler(),
-            metadata_handler=FileHandler(
-                file_name=f"{model.name}_metadata_extract.json"
-            ),
-        )
+    def __init__(
+        self, config: DataSourceModel, model: DomainModel, handler: IDataHandler = None
+    ):
+        if not handler:
+            handler = FileHandler()
+
+        super().__init__(config, model, handler=handler)
 
     def download(self) -> Generator[ExtractionResult, None, None]:
         """Downloads data corresponding to the given source model.
