@@ -106,13 +106,19 @@ class DomainModel(BaseModel):
         """,
         examples=["NotebookExtractor", "JsonExtractor", "CSVExtractor"],
     )
-    description: Optional[str] = Field(
-        default=None,
+    description: str = Field(
+        ...,
         description="""
             a human-readable description of the data source
         """,
     )
-    format: Optional[FILE_FORMAT] = "json"
+    format: Optional[FILE_FORMAT] = Field(
+        default="json",
+        description="""
+            format of the data to be extracted,
+            if not provided, the default format is `json`
+        """,
+    )
     name: Optional[str] = Field(
         default=None,
         description="""
