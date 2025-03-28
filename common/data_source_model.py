@@ -68,7 +68,7 @@ class DomainModel(BaseModel):
     API: str
     type: str
     endpoint: EndPoint
-    description: Optional[str] = None
+    description: str
     headers: Optional[HeaderModel] = Field(
         default_factory=HeaderModel,
         description="headers to be sent with the request",

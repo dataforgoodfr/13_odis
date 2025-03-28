@@ -8,8 +8,8 @@ class StubExtractor(AbstractSourceExtractor):
 
     is_download: bool = False
 
-    def __init__(self, config, model, handler, metadata_handler):
-        super().__init__(config, model, handler, metadata_handler)
+    def __init__(self, config, model):
+        super().__init__(config, model)
 
     def download(self) -> Generator[ExtractionResult, None, None]:
 
@@ -24,8 +24,8 @@ class StubIterationExtractor(AbstractSourceExtractor):
     iteration_count: int = 0
     expected_iterations: int = 10
 
-    def __init__(self, config, model, handler, metadata_handler):
-        super().__init__(config, model, handler, metadata_handler)
+    def __init__(self, config, model):
+        super().__init__(config, model)
 
     def download(self) -> Generator[ExtractionResult, None, None]:
 
