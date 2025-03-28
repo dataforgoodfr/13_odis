@@ -1,11 +1,11 @@
 import time
 import urllib
 from typing import Generator
-import nbformat
-from nbconvert.preprocessors import ExecutePreprocessor
 
 import jmespath
+import nbformat
 import requests
+from nbconvert.preprocessors import ExecutePreprocessor
 
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
@@ -156,10 +156,10 @@ class NotebookExtractor(AbstractSourceExtractor):
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
-        
-        with open(f"./notebook/{self.model.filename}") as f:
+
+        with open(self.model.notebook_path) as f:
             nb_in = nbformat.read(f, nbformat.NO_CONVERT)
-        
+
         ep = ExecutePreprocessor(timeout=600)
         ep.preprocess(nb_in)
 

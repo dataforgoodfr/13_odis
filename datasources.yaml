@@ -406,7 +406,7 @@ domains:
         
   logement_social:
       all:
-        filename: logements_sociaux_2024.ipynb
+        notebook_path: "notebook/logements_sociaux_2024.ipynb"
         description: recuperation des indicateurs des logements sociaux via notebook
         type: NotebookExtractor
         format: json
