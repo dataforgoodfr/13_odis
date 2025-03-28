@@ -9,7 +9,7 @@ from bson import ObjectId
 from common.data_source_model import DomainModel
 from common.utils.logging_odis import logger
 
-from .interfaces.data_handler import FileDumpInfo, IDataHandler, StorageInfo
+from .interfaces.data_handler import IDataHandler, PageLog, StorageInfo
 
 DEFAULT_BASE_PATH = "data/imports"
 DEFAULT_FILE_FORMAT = "json"
@@ -56,33 +56,47 @@ class FileHandler(IDataHandler):
         """Generate the directory Path where the data will be stored"""
         return Path(f"{self.base_path}/{model.API}")
 
-    def file_name(self, model: DomainModel) -> str:
-        """Generate the file name for the given model and page number
+    def file_name(self, model: DomainModel, suffix: str = None) -> str:
+        """Generate the file name for the given model and suffix
 
         If a file name was provided at initialization, it will be used instead of the generated one
 
         When a file name is generated, the name pattern is the following:
-        `{model.name}_{current_index}.{model.format}` where `current_index` is an internal counter that is incremented each time a file name is generated
+        - if a suffix is provided, it is appended to the model name
+        - otherwise, an index is appended to the model name
 
         Args:
             model (DomainModel): the model that generated the data
+            suffix (str, optional): a suffix to append to the file name. Defaults
+                to None, in which case an index is appended to the model name
         """
 
         if self._file_name:
             return self._file_name
 
+        name = ""
         # increment the index to avoid overwriting
         self._index += 1
 
-        return f"{model.name}_{self._index}.{model.format}"
+        if suffix:
+            name = f"{model.name}_{suffix}.{model.format}"
 
-    def file_dump(self, model: DomainModel, data: Any) -> StorageInfo:
+        else:
+            name = f"{model.name}_{self._index}.{model.format}"
+
+        return name
+
+    def file_dump(
+        self, model: DomainModel, data: Any, suffix: str = None
+    ) -> StorageInfo:
         """
         saves the data to a file and returns the storage info
 
         Args:
             model (DomainModel): the model that generated the data
             data (Any): the data to save
+            suffix (str, optional): a suffix to append to the file name. Defaults
+                to None.
 
         Returns:
             StorageInfo: the storage info, including the location of the file
@@ -92,8 +106,9 @@ class FileHandler(IDataHandler):
         data_dir = self._data_dir(model)
         data_dir.mkdir(parents=True, exist_ok=True)
 
+        file_name = self.file_name(model, suffix)  # suffix is optional
         # Generate filename from source name
-        filepath = data_dir / self.file_name(model)
+        filepath = data_dir / file_name
 
         # Write payload content to file
         # case where we store a metadata file, the data is a dict although the model may not be json
@@ -123,19 +138,19 @@ class FileHandler(IDataHandler):
 
     def json_load(
         self,
-        filedump: FileDumpInfo,
+        page_log: PageLog,
     ) -> dict:
         """Parses a JSON file and returns the decoded data
 
         Args :
-            filedump (FileDumpInfo) : the info where the file is stored
+            page_log (PageLog) : the info where the file is stored
 
         Return decoded JSON data into a python dict"""
 
         payload = {}
 
-        filepath = Path(filedump.storage_info.location) / Path(
-            filedump.storage_info.file_name
+        filepath = Path(page_log.storage_info.location) / Path(
+            page_log.storage_info.file_name
         )
         logger.debug(f"File path: {filepath}")
 
@@ -154,7 +169,7 @@ class FileHandler(IDataHandler):
 
     def csv_load(
         self,
-        filedump: FileDumpInfo,
+        page_log: PageLog,
         header: int = 0,
         skipfooter: int = 0,
         separator: str = ";",
@@ -166,14 +181,14 @@ class FileHandler(IDataHandler):
         - benchmark usage of pandas vs csv module
 
         Args:
-            filedump (FileDumpInfo) : the info where the file is stored
+            page_log (PageLog) : the info where the file is stored
 
         Returns:
             Iterator[dict]: the data from the CSV file
         """
 
-        filepath = Path(filedump.storage_info.location) / Path(
-            filedump.storage_info.file_name
+        filepath = Path(page_log.storage_info.location) / Path(
+            page_log.storage_info.file_name
         )
 
         try:

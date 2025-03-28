@@ -1,34 +1,38 @@
 import re
 import unicodedata
+from typing import Generator
 
 import jmespath
 import pandas as pd
 from psycopg2.extras import Json
+from pydantic import validate_call
 
-from common.data_source_model import DataProcessLog
 from common.utils.database_client import DatabaseClient
+from common.utils.interfaces.data_handler import PageLog
 from common.utils.interfaces.data_loader import AbstractDataLoader
 from common.utils.logging_odis import logger
 
 
 class JsonDataLoader(AbstractDataLoader):
 
-    def load_data(self):
+    def create_or_overwrite_table(self):
+        """Creates the target Bronze table.
+        If exists, drops table to recreate"""
 
-        domain_name = self.config.get_domain_name(self.model)
+        # domain_name = self.config.get_domain_name(self.model)
 
         # initiate database session
         db = DatabaseClient(autocommit=False)
 
         # create bronze table drop if it already exists
-        table_name = f"{domain_name}_{self.model.table_name}"
+        # table_name = f"{domain_name}_{self.model.table_name}"
 
-        logger.info(f"Creating table bronze.{table_name}")
+        logger.info(f"Creating table bronze.{self.model.table_name}")
 
-        db.execute(f"DROP TABLE IF EXISTS bronze.{table_name}")
+        db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
         db.execute(
             f"""
-            CREATE TABLE bronze.{table_name} (
+            CREATE TABLE bronze.{self.model.table_name} (
                 id SERIAL PRIMARY KEY,
                 data JSONB,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
@@ -36,85 +40,48 @@ class JsonDataLoader(AbstractDataLoader):
         )
         db.commit()
 
-        # load actual data from metadata
-        metadata_info = self.load_metadata()
-        for item in metadata_info.file_dumps:
-
-            page_data = self.handler.json_load(item)
-
-            # Validate data structure
-            if not isinstance(page_data, (list, dict)):
-                raise ValueError("JSON data must be either a list or dictionary")
-
-            # Convert single object to list for consistent processing
-            if isinstance(page_data, dict):
-                page_data = [page_data]
-
-            try:
-                logger.info(f"Inserting page {item.page} into {table_name}")
-                # insert Data
-                insert_query = f"INSERT INTO bronze.{table_name} (data) VALUES (%s)"
-                for record in page_data:
-                    db.execute(insert_query, (Json(record),))
-                db.commit()
-
-                logger.info(f"Successfully Loaded: {domain_name}/{self.model.name}")
-
-            except Exception as e:
-                raise Exception(f"Database operation failed: {str(e)}") from e
-
-        # close db connection
-        db.close()
-
-    def load_pagelogs(self, process_log: DataProcessLog):
+    def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """Method to load pages from json files, indexed in a DataProcessLog object.
         Yields an iterable result with page number (int) and load success information (bool) for each page
         """
 
-        for pageno, pagelog in process_log.pages.items():
+        for extract_page_log in pages:
 
-            table_name = f"{process_log.domain}_{process_log.source}"
-            logger.info(f"Inserting page {pageno} into {table_name}")
+            raw_data = self.handler.json_load(extract_page_log)
 
-            load_success = self.load_from_file(
-                pagelog.filepath,
-                process_log.domain,
-                process_log.source,
-                process_log.source_config,
+            # get the datapath field in the model definition and get the actual data records
+            datapath = jmespath.search(
+                "response_map.data", self.model.model_dump(mode="json")
             )
+            logger.debug(f"Datapath: {datapath}")
+            if datapath:
+                payload = jmespath.search(datapath, raw_data)
+            else:
+                logger.info(
+                    f"did not find a datapath indication for {self.model.name}: Loading JSON data as-is."
+                )
+                payload = raw_data
 
-            yield pageno, load_success
-
-    def load_from_file(
-        self, filepath: str, domain: str, source_name: str, source_config: dict = None
-    ):
-        """Imports a JSON file and loads it to the database"""
-
-        raw_data = self.handler.json_load(filepath=filepath)
-
-        # get the datapath field and get the actual data records
-        datapath = jmespath.search("response_map.data", source_config)
-        logger.debug(f"Datapath: {datapath}")
-
-        if datapath:
-            payload = jmespath.search(datapath, raw_data)
-
-        else:
             logger.info(
-                f"did not find a datapath indication for {domain}_{source_name}: Loading JSON data as-is."
+                f"Inserting page {extract_page_log.page} into {self.model.table_name}"
             )
-            payload = raw_data
+            load_success = self.load_to_db(payload)
 
-        load_success = self.load(payload, domain, source_name)
+            # yield a new page log, with the db load result info
+            yield PageLog(
+                page=extract_page_log.page,
+                storage_info=extract_page_log.storage_info,
+                success=load_success,
+                is_last=extract_page_log.is_last,
+            )
 
-        return load_success
+    @validate_call
+    def load_to_db(self, payload: list[dict] | dict) -> bool:
+        """Load list(dict)-type data records into the database with table_name = 'domain_source'
 
-    def load(self, payload, domain: str, source_name: str):
-        """Load list(dict)-type data records into the database with table_name = 'domain_source'"""
-
-        # Validate data structure
-        if not isinstance(payload, (list, dict)):
-            raise ValueError("JSON data must be either a list or dictionary")
+        TODO:
+            - testing
+        """
 
         # Convert single object to list for consistent processing
         if isinstance(payload, dict):
@@ -125,10 +92,10 @@ class JsonDataLoader(AbstractDataLoader):
         try:
             # initiate database session
             db = DatabaseClient(autocommit=False)
-            table_name = f"{domain}_{source_name}"
-
             # insert Data
-            insert_query = f"INSERT INTO bronze.{table_name} (data) VALUES (%s)"
+            insert_query = (
+                f"INSERT INTO bronze.{self.model.table_name} (data) VALUES (%s)"
+            )
             for record in payload:
                 # Uncomment if needed ; very verbose :)
                 # logger.debug(f"Inserting record: {record}")
@@ -136,7 +103,7 @@ class JsonDataLoader(AbstractDataLoader):
             db.commit()
 
             load_success = True
-            logger.info(f"Successfully Loaded: {domain}/{source_name}")
+            logger.info(f"Successfully Loaded: {self.model.table_name}")
 
         except Exception as e:
             logger.exception(f"Database operation failed: {e}")
@@ -149,49 +116,53 @@ class JsonDataLoader(AbstractDataLoader):
 
 class CsvDataLoader(AbstractDataLoader):
 
-    def load_data(self):
+    def create_or_overwrite_table(self):
+        """Creates the target Bronze table.
+        If exists, drops table to recreate"""
+
+        # domain_name = self.config.get_domain_name(self.model)
+
+        # initiate database session
+        db = DatabaseClient(autocommit=False)
+
+        # create bronze table drop if it already exists
+        # table_name = f"{domain_name}_{self.model.table_name}"
+
+        logger.info(f"Dropping table bronze.{self.model.table_name}")
+        db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
+        db.commit()
+
+    def load_data(self, pages:list[PageLog]) -> Generator[PageLog, None, None]:
         """
         Load CSV data into the database
 
         TODO:
-            - improve DomainModel to include CSV-specific parameters (header, skipfooter, separator)
-            - refacto and testing
+            - improve error catching behaviour
+            - improve output load metadata : save it as json, not csv
         """
-
-        domain_name = self.config.get_domain_name(self.model)
-        # Extract CSV-specific parameters
-        header = self.model.params.get("header", None)
-        skipfooter = self.model.params.get("skipfooter", None)
-        separator = self.model.params.get("separator", ",")
-
-        db = DatabaseClient(autocommit=False)
-
-        if not header or not skipfooter:
-            logger.error(
-                f"The source '{self.model.name}' needs to have params 'header' and 'skipfooter' configured"
-            )
-            exit()
-
-        # Create bronze table, drop if it already exists
-        table_name = f"{domain_name}_{self.model.table_name}"
-        db.execute(f"DROP TABLE IF EXISTS bronze.{table_name}")
-
-        try:
+        db = DatabaseClient()
 
             # Read data extraction log provided by extractor
             # data_index_name = f"{source_name}_extract_log"
             # data_index = self.handler.json_load(domain=domain, source_name=data_index_name)
             # csv_file_path = data_index["pages"][0]["filepath"]
-            metadata_info = self.load_metadata()
-            for item in metadata_info.file_dumps:
+
+        load_success = False
+
+        for extract_page_log in pages:
+
+            try:
 
                 # Read CSV with specific parameters from config
-                results = self.handler.csv_load(
-                    item,
-                    header=header,
-                    skipfooter=skipfooter,
-                    separator=separator,
-                )
+                if self.model.load_params:
+                    results = self.handler.csv_load(
+                        extract_page_log,
+                        **self.model.load_params
+                    )
+                else:
+                    results = self.handler.csv_load(
+                        extract_page_log
+                    )
 
                 results.columns = [
                     self._sanitize_column_name(col) for col in results.columns
@@ -201,7 +172,7 @@ class CsvDataLoader(AbstractDataLoader):
 
                 db.execute(
                     f"""
-                    CREATE TABLE bronze.{table_name} (
+                    CREATE TABLE bronze.{self.model.table_name} (
                         id SERIAL PRIMARY KEY,
                         {columns_str},
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -217,7 +188,7 @@ class CsvDataLoader(AbstractDataLoader):
 
                     db.execute(
                         f"""
-                        INSERT INTO bronze.{table_name} ({column_names}, created_at)
+                        INSERT INTO bronze.{self.model.table_name} ({column_names}, created_at)
                         VALUES ({placeholders}, CURRENT_TIMESTAMP)
                     """,
                         values,
@@ -228,12 +199,21 @@ class CsvDataLoader(AbstractDataLoader):
                     f"Successfully loaded {len(results)} rows for '{self.model.name}'"
                 )
 
-        except Exception as e:
-            db.rollback()
-            logger.error(f"Error loading CSV data for '{self.model.name}': {str(e)}")
-            raise
+                load_success = True
 
-        finally:
+            except Exception as e:
+                # db.rollback()
+                logger.exception(f"Error loading CSV data for '{self.model.name}': {str(e)}")
+                # raise
+
+            # yield a new page log, with the db load result info
+            yield PageLog(
+                page=extract_page_log.page,
+                storage_info=extract_page_log.storage_info,
+                success=load_success,
+                is_last=extract_page_log.is_last,
+            )
+
             db.close()
 
     def _sanitize_column_name(self, column_name: str) -> str:

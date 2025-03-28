@@ -14,9 +14,7 @@ class StubExtractor(AbstractSourceExtractor):
     def download(self) -> Generator[ExtractionResult, None, None]:
 
         self.is_download = True
-        yield ExtractionResult(
-            payload={"test": "test"}, page_number=1, is_last=True, filepath="test"
-        )
+        yield ExtractionResult(payload={"test": "test"}, is_last=True, success=True)
 
 
 class StubIterationExtractor(AbstractSourceExtractor):
@@ -35,6 +33,4 @@ class StubIterationExtractor(AbstractSourceExtractor):
 
         for _i in range(1, self.expected_iterations):
             self.iteration_count += 1
-            yield ExtractionResult(
-                payload={"test": "test"}, page_number=1, is_last=True, filepath="test"
-            )
+            yield ExtractionResult(payload={"test": "test"}, is_last=True, success=True)

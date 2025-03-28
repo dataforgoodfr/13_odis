@@ -2,6 +2,7 @@ from typing import Any, Protocol
 
 from pandas import DataFrame
 from pydantic import BaseModel, NonNegativeInt
+from typing import Optional
 
 from common.data_source_model import DomainModel
 
@@ -13,13 +14,15 @@ class StorageInfo(BaseModel):
     format: str
     file_name: str
     encoding: str
+    
 
-
-class FileDumpInfo(BaseModel):
-    """Information about the file dump"""
+class PageLog(BaseModel):
+    """model for easily updating and logging information about the processing of a given page"""
 
     page: NonNegativeInt
-    storage_info: StorageInfo
+    storage_info: Optional[StorageInfo] = None
+    is_last: Optional[bool] = False
+    success: Optional[bool] = False
 
 
 class MetadataInfo(BaseModel):
@@ -27,10 +30,13 @@ class MetadataInfo(BaseModel):
 
     domain: str
     source: str
+    operation: str
     last_run_time: str
-    last_page_downloaded: NonNegativeInt
-    successfully_completed: bool
-    file_dumps: list[FileDumpInfo]
+    last_processed_page: NonNegativeInt
+    complete: bool
+    errors: int
+    model: DomainModel
+    pages: list[PageLog]
 
 
 class IDataHandler(Protocol):
@@ -47,6 +53,6 @@ class IDataHandler(Protocol):
         self, model: DomainModel, *args, data: Any, **kwargs
     ) -> StorageInfo: ...
 
-    def json_load(self, filedump: FileDumpInfo, *args, **kwargs) -> dict: ...
+    def json_load(self, page_log: PageLog, *args, **kwargs) -> dict: ...
 
-    def csv_load(self, filedump: FileDumpInfo, *args, **kwargs) -> DataFrame: ...
+    def csv_load(self, page_log: PageLog, *args, **kwargs) -> DataFrame: ...

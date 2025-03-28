@@ -113,7 +113,7 @@ def load(
         try:
 
             loader = create_loader(config, model)
-            loader.load_data()
+            loader.execute()
 
         except Exception as e:
 

@@ -35,7 +35,7 @@ class FileExtractor(AbstractSourceExtractor):
             config,
             model,
             handler=FileHandler(),
-            metadata_handler=FileHandler(file_name=f"{model.name}_extract_log.json"),
+            metadata_handler=FileHandler(file_name=f"{model.name}_metadata_extract.json"),
         )
 
     def download(self) -> Generator[ExtractionResult, None, None]:
@@ -47,13 +47,13 @@ class FileExtractor(AbstractSourceExtractor):
         response = requests.get(
             self.url,
             headers=self.model.headers.model_dump(mode="json"),
-            params=self.model.params,
+            params=self.model.extract_params,
         )
         response.raise_for_status()
         payload = response.json() if self.is_json else response.content
 
         # yield the request result
-        yield ExtractionResult(payload=payload, is_last=True)
+        yield ExtractionResult(payload=payload, success=True, is_last=True)
 
 
 class JsonExtractor(FileExtractor):
@@ -94,36 +94,50 @@ class MelodiExtractor(FileExtractor):
 
         # if url has a query string, ignore the dict-defined parameters
         url_querystr = urllib.parse.urlparse(url).query
-        passed_params = self.model.params if url_querystr == "" else None
+        passed_params = self.model.extract_params if url_querystr == "" else None
         logger.info(f"querying '{url}'")
 
-        # Send request to API
-        response = requests.get(
-            url,
-            headers=self.model.headers.model_dump(mode="json"),
-            params=passed_params,
-        )
-        response.raise_for_status()
+        success = False
+        payload = None
+        is_last = False
+        next_url = None
 
-        payload = response.json()
+        try:
+            # Send request to API
+            response = requests.get(
+                url,
+                headers=self.model.headers.model_dump(mode="json"),
+                params=passed_params,
+            )
+            response.raise_for_status()
 
-        # Get next page URL
-        next_key = self.model.response_map.get("next")
-        next_url = jmespath.search(next_key, payload) if next_key else None
+            payload = response.json()
 
-        # Determine whether this is the last page :
-        # if explicitly given by the API response, get the explicit value
-        # if not given in API response, BUT if no next page could be derived, then true
-        # else: false
-        is_last_key = self.model.response_map.get("is_last")
-        is_last = (
-            jmespath.search(is_last_key, payload) if is_last_key else (next_url is None)
-        )
+            # Get next page URL
+            next_key = self.model.response_map.get("next")
+            next_url = jmespath.search(next_key, payload) if next_key else None
+
+            # Determine whether this is the last page :
+            # if explicitly given by the API response, get the explicit value
+            # if not given in API response, BUT if no next page could be derived, then true
+            # else: false
+            is_last_key = self.model.response_map.get("is_last")
+            is_last = (
+                jmespath.search(is_last_key, payload) if is_last_key else (next_url is None)
+            )
+            
+            # If all went well, success = true
+            success = True
+        
+        except Exception as e:
+            error = str(e)
+            logger.exception(f"Error while extracting page {url}: {error}")
 
         return ExtractionResult(
+            success=success,
             payload=payload,
             is_last=is_last,
-            next_url=next_url,
+            next_url=next_url
         )
 
 
