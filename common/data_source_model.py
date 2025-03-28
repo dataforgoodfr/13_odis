@@ -4,6 +4,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    FilePath,
     HttpUrl,
     StringConstraints,
     computed_field,
@@ -65,15 +66,53 @@ class DomainModel(BaseModel):
 
     """
 
-    API: str = ""
-    type: str
-    endpoint: EndPoint = ""
-    description: Optional[str] = None
+    type: str = Field(
+        ...,
+        description="""
+            type of the extractor to be used,
+        """,
+        examples=["NotebookExtractor", "JsonExtractor", "CSVExtractor"],
+    )
+    description: Optional[str] = Field(
+        default=None,
+        description="""
+            a human-readable description of the data source
+        """,
+    )
+    format: Optional[FILE_FORMAT] = "json"
+    name: Optional[str] = Field(
+        default=None,
+        description="""
+            a human-readable name for the model
+        """,
+    )
+
+    #################################
+    # API related fields
+    #################################
+    API: Optional[str] = Field(
+        default=None,
+        description="""
+            API name as defined in the APIs section,
+            the API name is optional when the API is not used, 
+            which is the case when using the type `NotebookExtractor`
+        """,
+    )
+    endpoint: Optional[EndPoint] = Field(
+        default=None,
+        description="""
+            endpoint of the API to be called,
+            must start with a '/' and not end with one,
+            The endpoint is optional when the API is not used,
+            which is the case when using the type `NotebookExtractor`
+        """,
+        examples=["/regions", "/departements"],
+    )
+
     headers: Optional[HeaderModel] = Field(
         default_factory=HeaderModel,
         description="headers to be sent with the request",
     )
-    filename: str = ""
 
     extract_params: Optional[dict] = Field(
         default=None,
@@ -93,13 +132,19 @@ class DomainModel(BaseModel):
         description="mapping of response keys to domain-specific keys",
     )
 
-    format: Optional[FILE_FORMAT] = "json"
-
-    name: Optional[str] = Field(
+    #################################
+    # Notebook related fields
+    #################################
+    notebook_path: Optional[FilePath] = Field(
         default=None,
         description="""
-            a human-readable name for the model
+            path to the notebook to be used for the extraction,
+            the path is relative to the root of the repository,
+            it is used when the type is `NotebookExtractor`
+            the path must be a valid path and not a URL
+            the path is ignored (unused) when the API is used,
         """,
+        examples=["notebooks/regions.ipynb", "notebooks/departements.ipynb"],
     )
 
     def merge_headers(self, api_headers: HeaderModel) -> Self:
@@ -135,6 +180,35 @@ class DomainModel(BaseModel):
             return self.name.replace(".", "_")
         return None
 
+    @model_validator(mode="after")
+    def check_consistency(self) -> Self:
+        """
+        verify the consistency of the model:
+        - check that the API names are valid
+        - check that model `notebook_path` is provided when the type is `NotebookExtractor`
+        """
+
+        if self.type == "NotebookExtractor":
+            if self.notebook_path is None:
+                raise ValueError(
+                    "notebook_path must be provided when the type is 'NotebookExtractor'"
+                )
+            elif not self.notebook_path.is_file():
+                raise ValueError(
+                    "notebook_path must be a valid path to a notebook file"
+                )
+        else:
+            if self.API is None:
+                raise ValueError(
+                    "API must be provided when the type is not 'NotebookExtractor'"
+                )
+            elif self.endpoint is None:
+                raise ValueError(
+                    "endpoint must be provided when the type is not 'NotebookExtractor'"
+                )
+
+        return self
+
 
 class ConfigurationModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -143,20 +217,19 @@ class ConfigurationModel(BaseModel):
 class DataSourceModel(ConfigurationModel):
     """global model for the yaml file"""
 
-    APIs: dict[str, APIModel] = {}
+    APIs: dict[str, APIModel]
     domains: dict[str, dict[str, DomainModel]]
 
-    # when loading the domains, we need to check that the API is in the APIs dict
-    # this is done by the validator
     @model_validator(mode="after")
-    def check_domain_api(self) -> Self:
+    def check_consistency(self) -> Self:
         """
-        verify the domain API is in the APIs dict
+        verify the consistency of the datasource configuration:
+        - check that the API names are valid if the model is not a NotebookExtractor
         """
-        # for domain in self.domains.values():
-        #     for model in domain.values():
-        #         if model.API not in self.APIs:
-        #             raise ValueError(f"API '{model.API}' not found in APIs section")
+        for domain in self.domains.values():
+            for model in domain.values():
+                if model.type != "NotebookExtractor" and model.API not in self.APIs:
+                    raise ValueError(f"API '{model.API}' not found in APIs section")
 
         return self
 
@@ -164,9 +237,13 @@ class DataSourceModel(ConfigurationModel):
     def merge_model_headers(self) -> Self:
         """
         API default headers are merged with the domain headers
+        for each model in the domain section, except for the NotebookExtractor
+        the local headers have precedence over the API headers
         """
         for domain in self.domains.values():
             for model in domain.values():
+                if model.type == "NotebookExtractor":
+                    continue
                 api = self.APIs.get(model.API, None)
                 model.merge_headers(api.default_headers) if api is not None else None
 
