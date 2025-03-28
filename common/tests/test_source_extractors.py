@@ -37,7 +37,7 @@ def test_json_extractor_init():
     )
     model = list(config.get_models().values())[0]
 
-    extractor = StubExtractor(config, model, StubDataHandler(), StubDataHandler())
+    extractor = StubExtractor(config, model)
 
     # when
     # call the next() method to call the generator

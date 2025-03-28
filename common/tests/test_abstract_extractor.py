@@ -29,8 +29,8 @@ def test_execute_writes_data():
     model = conf.domains["level1"]["mod1_lvl1"]
 
     stub_handler = StubDataHandler()
-    stub_metadata_handler = StubDataHandler()  # TODO: add metadata handler
-    extractor = StubExtractor(conf, model, stub_handler, stub_metadata_handler)
+    # stub_metadata_handler = StubDataHandler()  # TODO: add metadata handler
+    extractor = StubExtractor(conf, model)
 
     # when
     extractor.execute()
@@ -63,14 +63,14 @@ def test_execute_writes_metadata():
     conf = DataSourceModel(**model_dict)
     model = conf.domains["level1"]["mod1_lvl1"]
 
-    stub_handler = StubDataHandler()
+    # stub_handler = StubDataHandler()
     stub_metadata_handler = StubDataHandler()  # TODO: add metadata handler
-    extractor = StubExtractor(conf, model, stub_handler, stub_metadata_handler)
+    extractor = StubExtractor(conf, model)
 
     # when
     extractor.execute()
 
-    # then
+    # # then
     assert stub_metadata_handler.is_handled
 
 
@@ -99,9 +99,9 @@ def test_execute_iterates_on_download():
     conf = DataSourceModel(**model_dict)
     model = conf.domains["level1"]["mod1_lvl1"]
 
-    stub_handler = StubDataHandler()
-    stub_metadata_handler = StubDataHandler()  # TODO: add metadata handler
-    extractor = StubIterationExtractor(conf, model, stub_handler, stub_metadata_handler)
+    # stub_handler = StubDataHandler()
+    # stub_metadata_handler = StubDataHandler()  # TODO: add metadata handler
+    extractor = StubIterationExtractor(conf, model)
 
     # when
     extractor.execute()
