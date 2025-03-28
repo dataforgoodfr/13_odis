@@ -69,6 +69,7 @@ class DomainModel(BaseModel):
     type: str
     endpoint: EndPoint
     description: str
+    
     headers: Optional[HeaderModel] = Field(
         default_factory=HeaderModel,
         description="headers to be sent with the request",
