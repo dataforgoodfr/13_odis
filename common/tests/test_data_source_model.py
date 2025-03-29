@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+
 import pytest
 from pydantic_core import ValidationError
 
@@ -72,6 +75,87 @@ def test_DomainModel_headers_are_merged_with_api_ones():
         model.headers.another_key == "another_value"
     )  # imported from the domain model
     assert model.headers.api_key == "api_value"  # imported from the API model
+
+
+def test_DomainModel_notebook_path_is_mandatory_for_NotebookExtractor():
+    # given
+    domain_type = "NotebookExtractor"
+    path = None
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            notebook_path=path,
+        )
+
+    # then
+    assert "notebook_path" in str(e.value)
+
+
+def test_DomainModel_notebook_path_must_be_valid_for_NotebookExtractor():
+    # given
+    domain_type = "NotebookExtractor"
+    path = "blah.ipynb"  # invalid path
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            notebook_path=path,
+        )
+
+    # then
+    assert "notebook_path" in str(e.value)
+
+
+def test_DomainModel_notebook_path_nominal():
+    # given
+    domain_type = "NotebookExtractor"
+
+    # when
+    # create a temporary file
+    # to simulate a notebook path
+    # and check that the path is valid
+    with tempfile.NamedTemporaryFile() as fp:
+        m = DomainModel(
+            type=domain_type,
+            notebook_path=Path(fp.name),
+        )
+
+    # then
+    assert m.notebook_path is not None
+
+
+def test_DomainModel_API_is_mandatory_when_not_a_notebook():
+    # given
+    domain_type = "JsonExtractor"
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            API=None,
+        )
+
+    # then
+    assert "API" in str(e.value)
+
+
+def test_DomainModel_endpoint_is_mandatory_when_not_a_notebook():
+    # given
+    domain_type = "JsonExtractor"
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            API="INSEE.Metadonnees",
+            endpoint=None,
+        )
+
+    # then
+    assert "endpoint" in str(e.value)
 
 
 def test_HeaderModel_accepts_extra_keys():
@@ -227,6 +311,33 @@ def test_DomainModel_bad_type():
 
     # then
     assert "endpoint" in str(e.value)
+
+
+def test_DataSourceModel_domain_api_is_optional():
+    # given
+    domain_type = "NotebookExtractor"
+
+    # when
+    # create a temporary file
+    # to simulate a notebook path
+    # and check that the path is valid
+    with tempfile.NamedTemporaryFile() as fp:
+        notebook_path = Path(fp.name)
+        m = DataSourceModel(
+            **{
+                "domains": {
+                    "level1": {
+                        "domain1": {
+                            "type": domain_type,
+                            "notebook_path": notebook_path,
+                        },
+                    }
+                },
+            }
+        )
+
+    # then
+    assert m is not None
 
 
 def test_DataSourceModel_domain_api_is_ok():
