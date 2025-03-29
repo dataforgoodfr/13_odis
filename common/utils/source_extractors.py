@@ -35,7 +35,9 @@ class FileExtractor(AbstractSourceExtractor):
             config,
             model,
             handler=FileHandler(),
-            metadata_handler=FileHandler(file_name=f"{model.name}_metadata_extract.json"),
+            metadata_handler=FileHandler(
+                file_name=f"{model.name}_metadata_extract.json"
+            ),
         )
 
     def download(self) -> Generator[ExtractionResult, None, None]:
@@ -123,21 +125,20 @@ class MelodiExtractor(FileExtractor):
             # else: false
             is_last_key = self.model.response_map.get("is_last")
             is_last = (
-                jmespath.search(is_last_key, payload) if is_last_key else (next_url is None)
+                jmespath.search(is_last_key, payload)
+                if is_last_key
+                else (next_url is None)
             )
-            
+
             # If all went well, success = true
             success = True
-        
+
         except Exception as e:
             error = str(e)
             logger.exception(f"Error while extracting page {url}: {error}")
 
         return ExtractionResult(
-            success=success,
-            payload=payload,
-            is_last=is_last,
-            next_url=next_url
+            success=success, payload=payload, is_last=is_last, next_url=next_url
         )
 
 
@@ -189,6 +190,7 @@ class NotebookExtractor(AbstractSourceExtractor):
             yield ExtractionResult(
                 payload=payload,
                 is_last=True,
+                success=True,
             )
 
             # last cell output
