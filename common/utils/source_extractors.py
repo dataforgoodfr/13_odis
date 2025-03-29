@@ -152,19 +152,43 @@ class NotebookExtractor(AbstractSourceExtractor):
             metadata_handler=FileHandler(file_name=f"{model.name}_extract_log.json"),
         )
 
-    def download(self):
-        """Downloads data corresponding to the given source model.
-        The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
+    def download(self) -> Generator[ExtractionResult, None, None]:
         """
+        execute the notebook and yield the result
+
+        Yields:
+            ExtractionResult: the result of the notebook execution
+                each cell output yielded as a separate ExtractionResult
+                the last cell output is marked as is_last=True
+                the next_url is None
+
+        Example:
+            >>> extractor = NotebookExtractor(config, model)
+            >>> for result in extractor.download():
+            ...     print(result.payload)
+        """
+
+        logger.info(f"Executing notebook '{self.model.notebook_path}'")
 
         with open(self.model.notebook_path) as f:
             nb_in = nbformat.read(f, nbformat.NO_CONVERT)
 
-        ep = ExecutePreprocessor(timeout=600)
-        ep.preprocess(nb_in)
+            ep = ExecutePreprocessor(timeout=600)
+            ep.preprocess(
+                nb_in,
+            )
 
-        return ExtractionResult(
-            payload="payload",
-            is_last=True,
-            next_url=None,
-        )
+            payload = []
+
+            for cell in nb_in.cells:
+                if cell.cell_type == "code" and "outputs" in cell:
+                    for out in cell.outputs:
+                        if out.output_type == "execute_result":
+                            payload.append(out.data.get("text/plain"))
+
+            yield ExtractionResult(
+                payload=payload,
+                is_last=True,
+            )
+
+            # last cell output

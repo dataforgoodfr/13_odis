@@ -217,7 +217,20 @@ class ConfigurationModel(BaseModel):
 class DataSourceModel(ConfigurationModel):
     """global model for the yaml file"""
 
-    APIs: dict[str, APIModel]
+    APIs: dict[str, APIModel] = Field(
+        default={},
+        description="""
+            This section is optional since the domains can be used without an API,
+        """,
+        examples=[
+            {
+                "base_url": "https://api1.com",
+                "name": "api1 name",
+                "apidoc": "https://api1.com/doc",
+                "description": "description of the API",
+            },
+        ],
+    )
     domains: dict[str, dict[str, DomainModel]]
 
     @model_validator(mode="after")

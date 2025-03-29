@@ -313,6 +313,33 @@ def test_DomainModel_bad_type():
     assert "endpoint" in str(e.value)
 
 
+def test_DataSourceModel_domain_api_is_optional():
+    # given
+    domain_type = "NotebookExtractor"
+
+    # when
+    # create a temporary file
+    # to simulate a notebook path
+    # and check that the path is valid
+    with tempfile.NamedTemporaryFile() as fp:
+        notebook_path = Path(fp.name)
+        m = DataSourceModel(
+            **{
+                "domains": {
+                    "level1": {
+                        "domain1": {
+                            "type": domain_type,
+                            "notebook_path": notebook_path,
+                        },
+                    }
+                },
+            }
+        )
+
+    # then
+    assert m is not None
+
+
 def test_DataSourceModel_domain_api_is_ok():
 
     # given-
