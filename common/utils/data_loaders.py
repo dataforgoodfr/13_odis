@@ -105,7 +105,8 @@ class JsonDataLoader(AbstractDataLoader):
     @validate_call
     def load_to_db(self, rows: list[dict]) -> bool:
         """
-        Load list(dict)-type data records into the database with table_name = 'domain_source'
+        Load list(dict) data records into the model table in the database
+
 
         Args:
             rows (list[dict]: list of data records to be loaded into the database
@@ -125,7 +126,9 @@ class JsonDataLoader(AbstractDataLoader):
                 f"INSERT INTO bronze.{self.model.table_name} (data) VALUES (%s)"
             )
 
-            db.executemany(insert_query, ([Json(d) for d in rows],))
+            # unpack the rows and convert them to JSON
+            # each row is a line in the table
+            db.executemany(insert_query, [(Json(row),) for row in rows])
 
             db.commit()
 

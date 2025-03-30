@@ -130,6 +130,82 @@ def test_load_data_nominal(pg_con: psycopg2.extensions.connection, pg_settings: 
     pg_con.commit()
 
 
+def test_load_data_array_of_json(
+    pg_con: psycopg2.extensions.connection, pg_settings: dict
+):
+    """the data is an array of JSON objects"""
+
+    # given
+    config = DataSourceModel(
+        **{
+            "APIs": {
+                "api1": {
+                    "name": "INSEE.Metadonnees",
+                    "base_url": "https://api.insee.fr/",
+                    "default_headers": {"accept": "application/xml"},  # default headers
+                },
+            },
+            "domains": {
+                "domain1": {
+                    "model1": {
+                        "API": "api1",  # OK, api1 is defined
+                        "type": "JsonExtractor",
+                        "endpoint": "/geo/regions",
+                    },
+                }
+            },
+        }
+    )
+
+    model = config.get_model("domain1.model1")
+    data_loader = JsonDataLoader(model=model, config=config, settings=pg_settings)
+    test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
+    pagelog = PageLog(
+        **{
+            "page": 1,
+            "success": True,
+            "is_last": True,
+            "storage_info": {
+                "location": test_data_dir,
+                "format": "json",
+                "file_name": "test_array_of_json.json",
+                "encoding": "utf-8",
+            },
+        }
+    )
+
+    # need to create the table before loading data
+    data_loader.create_or_overwrite_table()
+
+    # make sure the table is empty before loading data
+    # Clean up the test data
+    cur = pg_con.cursor()
+    cur.execute(f"DELETE FROM bronze.{model.table_name};")
+    pg_con.commit()
+
+    # when
+    result = next(data_loader.load_data([pagelog]))
+
+    # then
+    assert isinstance(result, PageLog)
+    assert result.success is True
+
+    sql = f"""
+        SELECT count(*)
+        FROM bronze.{model.table_name}
+        WHERE data IS NOT NULL;
+    """
+
+    cur.execute(sql)
+
+    assert cur.fetchone()[0] > 0  # Check if the table has data
+
+    # Tear down
+    # Clean up the test data
+    cur.execute(f"DELETE FROM bronze.{model.table_name};")
+    pg_con.commit()
+
+
 def test_load_data_raises_error_if_table_does_not_exist(
     pg_con: psycopg2.extensions.connection, pg_settings: dict
 ):
