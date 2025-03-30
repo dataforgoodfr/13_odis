@@ -4,10 +4,11 @@ import psycopg2
 
 from common.data_source_model import DataSourceModel
 from common.utils.data_loaders import JsonDataLoader
+from common.utils.database_client import DatabaseClient
 from common.utils.interfaces.data_handler import PageLog
 
 
-def test_create_or_overwrite_table(
+def test_create_or_overwrite_json_table(
     pg_con: psycopg2.extensions.connection, pg_settings: dict
 ):
 
@@ -23,7 +24,7 @@ def test_create_or_overwrite_table(
             },
             "domains": {
                 "domain1": {
-                    "model1": {
+                    "model_json": {
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
@@ -33,8 +34,15 @@ def test_create_or_overwrite_table(
         }
     )
 
-    model = config.get_model("domain1.model1")
-    data_loader = JsonDataLoader(model=model, config=config, settings=pg_settings)
+    model = config.get_model("domain1.model_json")
+    data_loader = JsonDataLoader(
+        model=model,
+        config=config,
+        db_client=DatabaseClient(
+            settings=pg_settings,
+            autocommit=False,
+        ),
+    )
 
     # when
     data_loader.create_or_overwrite_table()
@@ -56,7 +64,9 @@ def test_create_or_overwrite_table(
     assert cur.fetchone()[0]  # Check if the table exists
 
 
-def test_load_data_nominal(pg_con: psycopg2.extensions.connection, pg_settings: dict):
+def test_load_json_data_nominal(
+    pg_con: psycopg2.extensions.connection, pg_settings: dict
+):
     """when everything is ok, the data is loaded in the database"""
 
     # given
@@ -71,7 +81,7 @@ def test_load_data_nominal(pg_con: psycopg2.extensions.connection, pg_settings: 
             },
             "domains": {
                 "domain1": {
-                    "model1": {
+                    "model_json": {
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
@@ -81,8 +91,17 @@ def test_load_data_nominal(pg_con: psycopg2.extensions.connection, pg_settings: 
         }
     )
 
-    model = config.get_model("domain1.model1")
-    data_loader = JsonDataLoader(model=model, config=config, settings=pg_settings)
+    model = config.get_model("domain1.model_json")
+
+    data_loader = JsonDataLoader(
+        model=model,
+        config=config,
+        db_client=DatabaseClient(
+            settings=pg_settings,
+            autocommit=False,
+        ),
+    )
+
     test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
     pagelog = PageLog(
         **{
@@ -147,7 +166,7 @@ def test_load_data_array_of_json(
             },
             "domains": {
                 "domain1": {
-                    "model1": {
+                    "model_json": {
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
@@ -157,8 +176,15 @@ def test_load_data_array_of_json(
         }
     )
 
-    model = config.get_model("domain1.model1")
-    data_loader = JsonDataLoader(model=model, config=config, settings=pg_settings)
+    model = config.get_model("domain1.model_json")
+    data_loader = JsonDataLoader(
+        model=model,
+        config=config,
+        db_client=DatabaseClient(
+            settings=pg_settings,
+            autocommit=False,
+        ),
+    )
     test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
     pagelog = PageLog(
         **{
@@ -222,7 +248,7 @@ def test_load_data_raises_error_if_table_does_not_exist(
             },
             "domains": {
                 "domain1": {
-                    "model1": {
+                    "model_json": {
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
@@ -232,8 +258,15 @@ def test_load_data_raises_error_if_table_does_not_exist(
         }
     )
 
-    model = config.get_model("domain1.model1")
-    data_loader = JsonDataLoader(model=model, config=config, settings=pg_settings)
+    model = config.get_model("domain1.model_json")
+    data_loader = JsonDataLoader(
+        model=model,
+        config=config,
+        db_client=DatabaseClient(
+            settings=pg_settings,
+            autocommit=False,
+        ),
+    )
     test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
     pagelog = PageLog(
         **{
@@ -277,7 +310,7 @@ def test_load_data_raises_error_when_data_is_corrupt(
             },
             "domains": {
                 "domain1": {
-                    "model1": {
+                    "model_json": {
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
@@ -287,8 +320,15 @@ def test_load_data_raises_error_when_data_is_corrupt(
         }
     )
 
-    model = config.get_model("domain1.model1")
-    data_loader = JsonDataLoader(model=model, config=config, settings=pg_settings)
+    model = config.get_model("domain1.model_json")
+    data_loader = JsonDataLoader(
+        model=model,
+        config=config,
+        db_client=DatabaseClient(
+            settings=pg_settings,
+            autocommit=False,
+        ),
+    )
     test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
     pagelog = PageLog(
         **{
