@@ -19,26 +19,35 @@ class JsonDataLoader(AbstractDataLoader):
         """Creates the target Bronze table.
         If exists, drops table to recreate"""
 
-        # domain_name = self.config.get_domain_name(self.model)
-
         # initiate database session
-        db = DatabaseClient(autocommit=False)
-
-        # create bronze table drop if it already exists
-        # table_name = f"{domain_name}_{self.model.table_name}"
+        db = DatabaseClient(autocommit=False, settings=self.settings)
 
         logger.info(f"Creating table bronze.{self.model.table_name}")
 
-        db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
-        db.execute(
-            f"""
-            CREATE TABLE bronze.{self.model.table_name} (
-                id SERIAL PRIMARY KEY,
-                data JSONB,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
-        """
-        )
-        db.commit()
+        try:
+
+            db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
+            db.execute(
+                f"""
+                CREATE TABLE bronze.{self.model.table_name} (
+                    id SERIAL PRIMARY KEY,
+                    data JSONB,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+            """
+            )
+            db.commit()
+
+            logger.info(f"Table bronze.{self.model.table_name} created successfully")
+
+            sql = """
+            select * from pg_tables where schemaname='bronze' ;
+            """
+
+            db.execute(sql)
+
+        finally:
+            # always close the db connection
+            db.close()
 
     def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """Method to load pages from json files, indexed in a DataProcessLog object.
@@ -47,25 +56,43 @@ class JsonDataLoader(AbstractDataLoader):
 
         for extract_page_log in pages:
 
-            raw_data = self.handler.json_load(extract_page_log)
+            try:
 
-            # get the datapath field in the model definition and get the actual data records
-            datapath = jmespath.search(
-                "response_map.data", self.model.model_dump(mode="json")
-            )
-            logger.debug(f"Datapath: {datapath}")
-            if datapath:
-                payload = jmespath.search(datapath, raw_data)
-            else:
-                logger.info(
-                    f"did not find a datapath indication for {self.model.name}: Loading JSON data as-is."
+                load_success = False
+
+                raw_data = self.handler.json_load(extract_page_log)
+
+                # get the datapath field in the model definition and get the actual data records
+                datapath = jmespath.search(
+                    "response_map.data", self.model.model_dump(mode="json")
                 )
-                payload = raw_data
 
-            logger.info(
-                f"Inserting page {extract_page_log.page} into {self.model.table_name}"
-            )
-            load_success = self.load_to_db(payload)
+                if datapath:
+                    payload = jmespath.search(datapath, raw_data)
+                else:
+                    logger.info(
+                        f"did not find a datapath indication for {self.model.name}: Loading JSON data as-is."
+                    )
+                    payload = raw_data
+
+                logger.info(
+                    f"Inserting page {extract_page_log.page} into {self.model.table_name}"
+                )
+
+                # Convert single object to list for consistent processing
+                if isinstance(payload, dict):
+                    payload = [payload]
+
+                load_success = self.load_to_db(payload)
+
+                logger.info(
+                    f"Page {extract_page_log.page} loaded successfully: {load_success}"
+                )
+
+            except Exception as e:
+                logger.exception(
+                    f"Error loading data for page {extract_page_log.page}: {str(e)}"
+                )
 
             # yield a new page log, with the db load result info
             yield PageLog(
@@ -76,42 +103,41 @@ class JsonDataLoader(AbstractDataLoader):
             )
 
     @validate_call
-    def load_to_db(self, payload: list[dict] | dict) -> bool:
-        """Load list(dict)-type data records into the database with table_name = 'domain_source'
-
-        TODO:
-            - testing
+    def load_to_db(self, rows: list[dict]) -> bool:
         """
+        Load list(dict)-type data records into the database with table_name = 'domain_source'
 
-        # Convert single object to list for consistent processing
-        if isinstance(payload, dict):
-            payload = [payload]
+        Args:
+            rows (list[dict]: list of data records to be loaded into the database
+        Returns:
+            bool: True if the data loading is successful, False otherwise
+        Raises:
+            Exception: if the data loading fails
 
-        load_success = False
+        """
 
         try:
             # initiate database session
-            db = DatabaseClient(autocommit=False)
+            db = DatabaseClient(autocommit=False, settings=self.settings)
+
             # insert Data
             insert_query = (
                 f"INSERT INTO bronze.{self.model.table_name} (data) VALUES (%s)"
             )
-            for record in payload:
-                # Uncomment if needed ; very verbose :)
-                # logger.debug(f"Inserting record: {record}")
-                db.execute(insert_query, (Json(record),))
+
+            db.executemany(insert_query, ([Json(d) for d in rows],))
+
             db.commit()
 
-            load_success = True
-            logger.info(f"Successfully Loaded: {self.model.table_name}")
+            logger.info(
+                f"Successfully Loaded {len(rows)} data into '{self.model.table_name}'"
+            )
 
-        except Exception as e:
-            logger.exception(f"Database operation failed: {e}")
+        finally:
+            # close db connection
+            db.close()
 
-        # close db connection
-        db.close()
-
-        return load_success
+        return True
 
 
 class CsvDataLoader(AbstractDataLoader):
@@ -123,7 +149,7 @@ class CsvDataLoader(AbstractDataLoader):
         # domain_name = self.config.get_domain_name(self.model)
 
         # initiate database session
-        db = DatabaseClient(autocommit=False)
+        db = DatabaseClient(autocommit=False, settings=self.settings)
 
         # create bronze table drop if it already exists
         # table_name = f"{domain_name}_{self.model.table_name}"
@@ -132,7 +158,7 @@ class CsvDataLoader(AbstractDataLoader):
         db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
         db.commit()
 
-    def load_data(self, pages:list[PageLog]) -> Generator[PageLog, None, None]:
+    def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """
         Load CSV data into the database
 
@@ -140,12 +166,7 @@ class CsvDataLoader(AbstractDataLoader):
             - improve error catching behaviour
             - improve output load metadata : save it as json, not csv
         """
-        db = DatabaseClient()
-
-            # Read data extraction log provided by extractor
-            # data_index_name = f"{source_name}_extract_log"
-            # data_index = self.handler.json_load(domain=domain, source_name=data_index_name)
-            # csv_file_path = data_index["pages"][0]["filepath"]
+        db = DatabaseClient(settings=self.settings)
 
         load_success = False
 
@@ -156,13 +177,10 @@ class CsvDataLoader(AbstractDataLoader):
                 # Read CSV with specific parameters from config
                 if self.model.load_params:
                     results = self.handler.csv_load(
-                        extract_page_log,
-                        **self.model.load_params
+                        extract_page_log, **self.model.load_params
                     )
                 else:
-                    results = self.handler.csv_load(
-                        extract_page_log
-                    )
+                    results = self.handler.csv_load(extract_page_log)
 
                 results.columns = [
                     self._sanitize_column_name(col) for col in results.columns
@@ -203,7 +221,9 @@ class CsvDataLoader(AbstractDataLoader):
 
             except Exception as e:
                 # db.rollback()
-                logger.exception(f"Error loading CSV data for '{self.model.name}': {str(e)}")
+                logger.exception(
+                    f"Error loading CSV data for '{self.model.name}': {str(e)}"
+                )
                 # raise
 
             # yield a new page log, with the db load result info

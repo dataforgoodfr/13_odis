@@ -18,10 +18,15 @@ class AbstractDataLoader(ABC):
     model: DomainModel
     handler: FileHandler
     metadata_handler: FileHandler
+    settings: dict
 
-    def __init__(self, config: DataSourceModel, model: DomainModel):
+    def __init__(
+        self, config: DataSourceModel, model: DomainModel, settings: dict = None
+    ):
+
         self.config = config
         self.model = model
+        self.settings = settings
 
         self.handler = FileHandler()
         self.metadata_handler = FileHandler(
@@ -119,4 +124,3 @@ class AbstractDataLoader(ABC):
             logger.exception(f"Error reading file {metadata_filepath}: {str(e)}")
 
         raise
-
