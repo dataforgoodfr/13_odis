@@ -7,6 +7,7 @@ import pandas as pd
 from bson import ObjectId
 
 from common.data_source_model import DomainModel
+from common.utils.exceptions import InvalidJson
 from common.utils.logging_odis import logger
 
 from .interfaces.data_handler import IDataHandler, PageLog, StorageInfo
@@ -145,19 +146,21 @@ class FileHandler(IDataHandler):
         Args :
             page_log (PageLog) : the info where the file is stored
 
-        Return decoded JSON data into a python dict"""
+        Return decoded JSON data into a python dict
 
-        payload = {}
+        Raises:
+            InvalidJson: if the file is not found or the JSON is invalid
+
+        """
 
         filepath = Path(page_log.storage_info.location) / Path(
             page_log.storage_info.file_name
         )
-        logger.debug(f"File path: {filepath}")
 
         try:
             logger.debug(f"loading JSON file : {filepath}")
             with open(filepath, "r") as f:
-                payload = orjson.loads(f.read())
+                return orjson.loads(f.read())
 
         except json.JSONDecodeError as e:
             logger.exception(f"Invalid JSON format in {filepath}: {str(e)}")
@@ -165,7 +168,7 @@ class FileHandler(IDataHandler):
         except Exception as e:
             logger.exception(f"Error reading file {filepath}: {str(e)}")
 
-        return payload
+        raise InvalidJson(f"Error reading file '{filepath}'")
 
     def csv_load(
         self,

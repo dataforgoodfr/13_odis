@@ -811,3 +811,66 @@ def test_table_name_is_derived_from_model_name():
 
     # then
     assert m.get_models()["level1.mod1_lvl1"].table_name == "level1_mod1_lvl1"
+
+
+def test_get_model_nominal():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.name == "level1.mod1_lvl1"
+
+
+def test_get_model_raises_ValueError():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+    with pytest.raises(ValueError) as e:
+        m.get_model("level1.mod1_lvl2")
+
+    # then
+    assert "level1.mod1_lvl2" in str(e.value)
