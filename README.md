@@ -59,7 +59,7 @@ Le script “extract.py” permet de récupérer des jeux de données en ligne d
 
 ```bash
 # Extraire tous les datasets source du domaine "geographical_references"
-poetry run bin/odis.py extract --domain geographical_references
+poetry run python bin/odis.py extract --domain geographical_references
 
 # Extraire seulement les datasets "regions" et "departements du domaine "geographical_references"
 poetry run python bin/extract.py --sources geographical_references.regions geographical_references.departements
