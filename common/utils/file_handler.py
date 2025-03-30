@@ -15,6 +15,14 @@ DEFAULT_BASE_PATH = "data/imports"
 DEFAULT_FILE_FORMAT = "json"
 
 
+class InvalidJson(Exception):
+    """Exception raised when the JSON file is invalid or not found"""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+
 class bJSONEncoder(json.JSONEncoder):
     """Utility class to encode JSON or bJSON data, for JSON file I/O"""
 
@@ -145,19 +153,21 @@ class FileHandler(IDataHandler):
         Args :
             page_log (PageLog) : the info where the file is stored
 
-        Return decoded JSON data into a python dict"""
+        Return decoded JSON data into a python dict
 
-        payload = {}
+        Raises:
+            InvalidJson: if the file is not found or the JSON is invalid
+
+        """
 
         filepath = Path(page_log.storage_info.location) / Path(
             page_log.storage_info.file_name
         )
-        logger.debug(f"File path: {filepath}")
 
         try:
             logger.debug(f"loading JSON file : {filepath}")
             with open(filepath, "r") as f:
-                payload = orjson.loads(f.read())
+                return orjson.loads(f.read())
 
         except json.JSONDecodeError as e:
             logger.exception(f"Invalid JSON format in {filepath}: {str(e)}")
@@ -165,7 +175,7 @@ class FileHandler(IDataHandler):
         except Exception as e:
             logger.exception(f"Error reading file {filepath}: {str(e)}")
 
-        return payload
+        raise InvalidJson(f"Error reading file '{filepath}'")
 
     def csv_load(
         self,
