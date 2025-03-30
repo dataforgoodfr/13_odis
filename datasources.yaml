@@ -343,6 +343,12 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
+        
+      logement_sociaux:
+        notebook_path: notebook/logements_sociaux_2024.ipynb
+        description: recuperation des indicateurs des logements sociaux via notebook
+        type: NotebookExtractor
+        format: csv
 
   education:
 
@@ -403,11 +409,4 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
-        
-  logement_social:
-      all:
-        notebook_path: "notebook/logements_sociaux_2024.ipynb"
-        description: recuperation des indicateurs des logements sociaux via notebook
-        type: NotebookExtractor
-        format: json
         
