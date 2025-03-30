@@ -256,6 +256,27 @@ class DataSourceModel(ConfigurationModel):
             for model in d.values()
         }
 
+    def get_model(self, model_name: str = None) -> DomainModel:
+        """provides the model for a given model name
+        Example:
+        ```python
+        # config is a DataSourceModel instance
+        # assuming the domains are "Metadonnees" and "Geographical" with models "INSEE" and "IGN"
+        config.get_model("Metadonnees.INSEE")
+        # output
+        # DomainModel(...)
+        # means that the model "INSEE" is in the "Metadonnees" domain
+        ```
+
+        """
+        if model_name:
+            for domain in self.domains.values():
+                for model in domain.values():
+                    if model.name == model_name:
+                        return model
+
+        raise ValueError(f"Model '{model_name}' not found in domains")
+
     def get_domain_name(self, model: DomainModel) -> str:
         """provides the domain name for a given model
 
