@@ -1,5 +1,7 @@
+import csv
 import re
 import unicodedata
+from pathlib import Path
 from typing import Generator
 
 import jmespath
@@ -7,7 +9,7 @@ import pandas as pd
 from psycopg2.extras import Json
 from pydantic import validate_call
 
-from common.utils.database_client import DatabaseClient
+from common.utils.exceptions import InvalidCSV
 from common.utils.interfaces.data_handler import PageLog
 from common.utils.interfaces.data_loader import AbstractDataLoader
 from common.utils.logging_odis import logger
@@ -20,14 +22,16 @@ class JsonDataLoader(AbstractDataLoader):
         If exists, drops table to recreate"""
 
         # initiate database session
-        db = DatabaseClient(autocommit=False, settings=self.settings)
-
         logger.info(f"Creating table bronze.{self.model.table_name}")
 
         try:
 
-            db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
-            db.execute(
+            self.db_client.connect()
+
+            self.db_client.execute(
+                f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
+            )
+            self.db_client.execute(
                 f"""
                 CREATE TABLE bronze.{self.model.table_name} (
                     id SERIAL PRIMARY KEY,
@@ -35,19 +39,13 @@ class JsonDataLoader(AbstractDataLoader):
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
             """
             )
-            db.commit()
+            self.db_client.commit()
 
             logger.info(f"Table bronze.{self.model.table_name} created successfully")
 
-            sql = """
-            select * from pg_tables where schemaname='bronze' ;
-            """
-
-            db.execute(sql)
-
         finally:
             # always close the db connection
-            db.close()
+            self.db_client.close()
 
     def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """Method to load pages from json files, indexed in a DataProcessLog object.
@@ -59,6 +57,8 @@ class JsonDataLoader(AbstractDataLoader):
             try:
 
                 load_success = False
+
+                self.db_client.connect()
 
                 raw_data = self.handler.json_load(extract_page_log)
 
@@ -93,6 +93,9 @@ class JsonDataLoader(AbstractDataLoader):
                 logger.exception(
                     f"Error loading data for page {extract_page_log.page}: {str(e)}"
                 )
+            finally:
+                # close db connection
+                self.db_client.close()
 
             # yield a new page log, with the db load result info
             yield PageLog(
@@ -107,75 +110,98 @@ class JsonDataLoader(AbstractDataLoader):
         """
         Load list(dict) data records into the model table in the database
 
-
         Args:
             rows (list[dict]: list of data records to be loaded into the database
         Returns:
             bool: True if the data loading is successful, False otherwise
-        Raises:
-            Exception: if the data loading fails
 
         """
 
-        try:
-            # initiate database session
-            db = DatabaseClient(autocommit=False, settings=self.settings)
+        # insert Data
+        insert_query = f"INSERT INTO bronze.{self.model.table_name} (data) VALUES (%s)"
 
-            # insert Data
-            insert_query = (
-                f"INSERT INTO bronze.{self.model.table_name} (data) VALUES (%s)"
-            )
+        # unpack the rows and convert them to JSON
+        # each row is a line in the table
+        self.db_client.executemany(insert_query, [(Json(row),) for row in rows])
+        self.db_client.commit()
 
-            # unpack the rows and convert them to JSON
-            # each row is a line in the table
-            db.executemany(insert_query, [(Json(row),) for row in rows])
-
-            db.commit()
-
-            logger.info(
-                f"Successfully Loaded {len(rows)} data into '{self.model.table_name}'"
-            )
-
-        finally:
-            # close db connection
-            db.close()
+        logger.info(
+            f"Successfully Loaded {len(rows)} data into '{self.model.table_name}'"
+        )
 
         return True
 
 
 class CsvDataLoader(AbstractDataLoader):
 
+    columns: list[str] = []
+
     def create_or_overwrite_table(self):
         """Creates the target Bronze table.
         If exists, drops table to recreate"""
 
-        # domain_name = self.config.get_domain_name(self.model)
-
         # initiate database session
-        db = DatabaseClient(autocommit=False, settings=self.settings)
+        logger.info(f"Creating table bronze.{self.model.table_name}")
 
-        # create bronze table drop if it already exists
-        # table_name = f"{domain_name}_{self.model.table_name}"
+        try:
 
-        logger.info(f"Dropping table bronze.{self.model.table_name}")
-        db.execute(f"DROP TABLE IF EXISTS bronze.{self.model.table_name}")
-        db.commit()
+            self.db_client.connect()
+
+            self.db_client.execute(
+                f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
+            )
+
+            # load actual data from metadata
+            metadata = self.load_metadata()
+
+            # take 1st page log
+            page_log = metadata.pages[0]
+
+            self.columns = [
+                self._sanitize_column_name(col) for col in self._snif_columns(page_log)
+            ]
+            columns_str = ", ".join([f"{col} TEXT" for col in self.columns])
+
+            self.db_client.execute(
+                f"""
+                CREATE TABLE bronze.{self.model.table_name} (
+                    id SERIAL PRIMARY KEY,
+                    {columns_str},
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            self.db_client.commit()
+
+            logger.info(f"Table bronze.{self.model.table_name} created successfully")
+
+        finally:
+            # always close the db connection
+            self.db_client.close()
 
     def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """
         Load CSV data into the database
 
-        TODO:
-            - improve error catching behaviour
-            - improve output load metadata : save it as json, not csv
+        Args:
+            pages (list[PageLog]): List of PageLog objects containing page information and storage details
         """
-        db = DatabaseClient(settings=self.settings)
 
         load_success = False
 
         for extract_page_log in pages:
 
             try:
+
+                # snif columns if not already done
+                if not self.columns:
+                    self.columns = [
+                        self._sanitize_column_name(col)
+                        for col in self._snif_columns(extract_page_log)
+                    ]
+
+                self.db_client.connect()
 
                 # Read CSV with specific parameters from config
                 if self.model.load_params:
@@ -185,29 +211,13 @@ class CsvDataLoader(AbstractDataLoader):
                 else:
                     results = self.handler.csv_load(extract_page_log)
 
-                results.columns = [
-                    self._sanitize_column_name(col) for col in results.columns
-                ]
-                columns = [f"{col} TEXT" for col in results.columns]
-                columns_str = ", ".join(columns)
-
-                db.execute(
-                    f"""
-                    CREATE TABLE bronze.{self.model.table_name} (
-                        id SERIAL PRIMARY KEY,
-                        {columns_str},
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                """
-                )
-
                 for _, row in results.iterrows():
                     # Convert any NaN values to None for database compatibility
                     values = [None if pd.isna(val) else str(val) for val in row]
                     placeholders = ", ".join(["%s"] * len(values))
-                    column_names = ", ".join([f'"{col}"' for col in results.columns])
+                    column_names = ", ".join([f'"{col}"' for col in self.columns])
 
-                    db.execute(
+                    self.db_client.execute(
                         f"""
                         INSERT INTO bronze.{self.model.table_name} ({column_names}, created_at)
                         VALUES ({placeholders}, CURRENT_TIMESTAMP)
@@ -215,7 +225,7 @@ class CsvDataLoader(AbstractDataLoader):
                         values,
                     )
 
-                db.commit()
+                self.db_client.commit()
                 logger.info(
                     f"Successfully loaded {len(results)} rows for '{self.model.name}'"
                 )
@@ -223,11 +233,14 @@ class CsvDataLoader(AbstractDataLoader):
                 load_success = True
 
             except Exception as e:
-                # db.rollback()
+
                 logger.exception(
                     f"Error loading CSV data for '{self.model.name}': {str(e)}"
                 )
-                # raise
+
+            finally:
+                # always close the db connection
+                self.db_client.close()
 
             # yield a new page log, with the db load result info
             yield PageLog(
@@ -237,14 +250,16 @@ class CsvDataLoader(AbstractDataLoader):
                 is_last=extract_page_log.is_last,
             )
 
-            db.close()
-
     def _sanitize_column_name(self, column_name: str) -> str:
         """
         Sanitize column names by:
         1. Replacing spaces with underscores
         2. Removing accents
         3. Ensuring the name is SQL-friendly
+        4. remove surrounding quotes
+        5. Ensuring the name starts with a letter
+        6. Converting to lowercase
+        7. Removing any non-alphanumeric characters except underscores
         """
         # Normalize unicode characters and remove accents
         normalized = (
@@ -256,8 +271,55 @@ class CsvDataLoader(AbstractDataLoader):
         sanitized = normalized.replace(" ", "_")
         # Remove any non-alphanumeric characters except underscores
         sanitized = re.sub(r"[^\w]", "", sanitized)
+        # Remove surrounding quotes
+        sanitized = sanitized.strip('"').strip("'")
+        # Remove any leading/trailing whitespace
+        sanitized = sanitized.strip()
+        # Remove any leading/trailing underscores
+        sanitized = sanitized.strip("_")
+
+        # Ensure the name is not empty
+        if not sanitized:
+            raise ValueError(f"Invalid column name: {column_name}")
         # Ensure the column name starts with a letter
         if not sanitized[0].isalpha():
             sanitized = f"col_{sanitized}"
 
         return sanitized.lower()
+
+    def _snif_columns(self, page_log: PageLog) -> list[str]:
+        """
+        Sniff the CSV file to determine the column names and types.
+        This method is used to create the table dynamically based on the CSV structure.
+
+        Example:
+        ```
+        # imagine the CSV file has the following content:
+        # "ANNEE";"DEPARTEMENT_CODE";"DEPARTEMENT_LIBELLE";"TYPE_LGT";"LOG_AUT";"LOG_COM";"SDP_AUT";"SDP_COM"
+        # "2023";"01";"Ain";"Tous Logements";4586;;409166;
+        # "2023";"01";"Ain";"Individuel pur";1273;;159228;
+
+        # The sniffed columns would be: ['ANNEE', 'DEPARTEMENT_CODE', 'DEPARTEMENT_LIBELLE',...]
+        ```
+        """
+
+        # load few data in the CSV file
+        filepath = Path(page_log.storage_info.location) / Path(
+            page_log.storage_info.file_name
+        )
+
+        with open(filepath, "r", encoding=page_log.storage_info.encoding) as f:
+
+            dialect = csv.Sniffer().sniff(f.read(1024))
+            f.seek(0)  # Reset file pointer to the beginning
+            # Read the first row to get the column names
+            csv_reader = csv.DictReader(f, dialect=dialect)
+            if csv_reader.fieldnames is None:
+                logger.error(f"No field names found in CSV file: {filepath}")
+                raise InvalidCSV(
+                    f"Invalid CSV file: No field names found in {filepath}"
+                )
+
+            logger.info(f"Sniffed columns: {csv_reader.fieldnames}")
+
+            return csv_reader.fieldnames

@@ -7,20 +7,13 @@ import pandas as pd
 from bson import ObjectId
 
 from common.data_source_model import DomainModel
+from common.utils.exceptions import InvalidJson
 from common.utils.logging_odis import logger
 
 from .interfaces.data_handler import IDataHandler, PageLog, StorageInfo
 
 DEFAULT_BASE_PATH = "data/imports"
 DEFAULT_FILE_FORMAT = "json"
-
-
-class InvalidJson(Exception):
-    """Exception raised when the JSON file is invalid or not found"""
-
-    def __init__(self, message: str):
-        super().__init__(message)
-        self.message = message
 
 
 class bJSONEncoder(json.JSONEncoder):
