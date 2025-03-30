@@ -85,10 +85,8 @@ Dans l’exemple ci-dessus, est déclaré le domaine “geographical_references�
 
 **Un bloc “source” définit obligatoirement les champs suivants :**
 
-- `API` : quelle API est à la source de ce dataset
 - `description` : description claire et concise pour aider à la compréhension
 - `type` : quel type d’Extracteur doit être utilisé pour récupérer ce dataset
-- `endpoint` : comment l’URL de l’API doit être complétée pour requêter ce jeu de données
 - `format` : quel est le format de fichier attendu : doit être `json`, `csv`, ou `xlsx`
 
 Dans l’exemple donné, pour récupérer le dataset “regions”, un Extracteur de classe “JsonExtractor” sera donc instancié, pour requêter l’API INSEE.Metadonnees sur l’URL complète suivante :
@@ -98,6 +96,9 @@ Dans l’exemple donné, pour récupérer le dataset “regions”, un Extracteu
 ## Champs facultatifs
 
 Un bloc “source” peut définir les champs optionnels suivants :
+- `API` : quelle API est à la source de ce dataset
+- `endpoint` : comment l’URL de l’API doit être complétée pour requêter ce jeu de données
+- `notebook_path` : le chemin relatif (depuis la racine du projet) du notebook
 
 ### Paramètres http pour la requête
 
