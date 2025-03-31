@@ -26,7 +26,7 @@ AcceptHeader = Annotated[
     )
 ]
 
-FILE_FORMAT = Literal["csv", "json", "xlsx"]
+FILE_FORMAT = Literal["csv", "json", "xlsx", "zip"]
 
 class HeaderModel(BaseModel):
     model_config = ConfigDict(extra="allow")  # allow extra headers
