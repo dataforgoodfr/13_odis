@@ -5,7 +5,10 @@ from common.utils.interfaces.data_handler import (
     MetadataInfo,
     PageLog,
     StorageInfo,
+    OPERATION_TYPE
 )
+
+from common.data_source_model import DomainModel
 
 
 class StubDataHandler(IDataHandler):
@@ -18,6 +21,34 @@ class StubDataHandler(IDataHandler):
         self.is_handled = True
         return StorageInfo(
             location="test", format="test", file_name="test", encoding="test"
+        )
+    
+    def dump_metadata(
+            self,
+            model: DomainModel,
+            operation: OPERATION_TYPE, 
+            start_time: datetime = None,
+            last_processed_page: int = None,
+            complete: bool = None,
+            errors: int = None,
+            pages: list[PageLog] = None
+            ):
+        
+        self.is_handled = True
+
+
+        return MetadataInfo(
+            **{
+                "domain": model.domain_name,
+                "source": model.name,
+                "operation": operation,
+                "last_run_time": start_time.isoformat(),
+                "last_processed_page": last_processed_page,
+                "complete": complete,
+                "errors": errors,
+                "model": model,
+                "pages": pages
+            }
         )
 
 
@@ -33,10 +64,14 @@ class StubPageLog(PageLog):
             encoding="utf-8",
         )
         is_last = False
-        extracted = True
-        loaded = False
+        success = True
 
-        super().__init__(self, page, storage_info, is_last, extracted, loaded)
+        super().__init__(self, 
+                        page, 
+                        storage_info = storage_info, 
+                        is_last = is_last, 
+                        success = success
+                        )
 
 
 class StubMetadataInfo(MetadataInfo):
@@ -84,8 +119,7 @@ class StubMetadataInfo(MetadataInfo):
                         "encoding": "utf-8",
                     },
                     "is_last": False,
-                    "extracted": True,
-                    "loaded": False,
+                    "success": True
                 }
             )
 

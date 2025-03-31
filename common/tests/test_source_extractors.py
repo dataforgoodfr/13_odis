@@ -30,6 +30,7 @@ def test_json_extractor_init():
                         "API": api_name,
                         "endpoint": "/source_model1",
                         "type": "JsonExtractor",  # type of extractor
+                        "description": "Valid test description"
                     },
                 },
             },
@@ -37,7 +38,8 @@ def test_json_extractor_init():
     )
     model = list(config.get_models().values())[0]
 
-    extractor = StubExtractor(config, model)
+    stub_handler = StubDataHandler()
+    extractor = StubExtractor(config, model, stub_handler)
 
     # when
     # call the next() method to call the generator

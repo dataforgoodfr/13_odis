@@ -10,6 +10,8 @@ from common.data_source_model import DomainModel
 from common.utils.logging_odis import logger
 
 
+OPERATION_TYPE = Literal["extract", "load", "harvest"]    
+
 class StorageInfo(BaseModel):
     """Information about the storage location"""
 
@@ -17,8 +19,6 @@ class StorageInfo(BaseModel):
     format: str
     file_name: str
     encoding: str
-
-OPERATION_TYPE = Literal["extract", "load", "harvest"]    
 
 class PageLog(BaseModel):
     """model for easily updating and logging information about the processing of a given page"""
@@ -70,7 +70,7 @@ class IDataHandler(Protocol):
                       complete: bool = None,
                       errors: int = None,
                       pages: list[PageLog] = None
-                      ):
+                      ) -> MetadataInfo:
         """Dumps the information about an operation run into a MetadataInfo object and into a file.
         Arguments :
             - model : DomainModel
@@ -99,13 +99,15 @@ class IDataHandler(Protocol):
                 "model": model,
                 "pages": pages
             }
-        ).model_dump( 
+        )
+        
+        meta_payload = operation_metadata.model_dump( 
             mode = "json" 
         ) 
 
         meta_dump_info = self.file_dump(
             model,
-            data = operation_metadata,
+            data = meta_payload,
             suffix = f"metadata_{operation}",
             format = "json"
             )
@@ -115,3 +117,4 @@ class IDataHandler(Protocol):
         )
 
         return operation_metadata
+
