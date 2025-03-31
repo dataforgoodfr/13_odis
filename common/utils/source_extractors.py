@@ -1,11 +1,12 @@
 import time
 import urllib
-from typing import Generator
+from typing import Generator, Optional
 
 import jmespath
 import nbformat
 import requests
 from nbconvert.preprocessors import ExecutePreprocessor
+from pydantic import Field
 
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.interfaces.data_handler import IDataHandler
@@ -24,6 +25,8 @@ class FileExtractor(AbstractSourceExtractor):
     def __init__(
         self, config: DataSourceModel, model: DomainModel, handler: IDataHandler = None
     ):
+
+        # default handler type to FileHandler
         if not handler:
             handler = FileHandler()
 
@@ -211,13 +214,11 @@ class OpenDataSoftExtractor(FileExtractor):
             logger.debug(f"Extracted {page_records_count} from page {pageno}")
             logger.debug(f"Extracted {aggregated_count} out of {total_count} so far.")
 
-            if not is_last:
+            time.sleep(60 / self.api_config.throttle)
 
-                time.sleep(60 / self.api_config.throttle)
+            offset = aggregated_count + 1
 
-                offset = aggregated_count + 1
-
-                logger.debug(f"Next offset: {offset}")
+            logger.debug(f"Next offset: {offset}")
 
             yield result
 

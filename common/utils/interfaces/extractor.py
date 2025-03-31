@@ -1,15 +1,15 @@
 import datetime
 import urllib
-from abc import ABC, abstractmethod
-from typing import Any, Generator, Optional
+from abc import ABC
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
 from common.utils.logging_odis import logger
 
 from ...data_source_model import APIModel, DataSourceModel, DomainModel
-from .data_handler import MetadataInfo, PageLog
-from common.utils.file_handler import FileHandler
+from .data_handler import PageLog, IDataHandler
+# from common.utils.file_handler import FileHandler
 
 
 class ExtractionResult(BaseModel):
@@ -63,14 +63,16 @@ class AbstractSourceExtractor(ABC):
 
     config: DataSourceModel
     url: str  # TODO: add type hint (HTTPUrl)
-    handler: FileHandler
+    handler: IDataHandler
+    # metadata_handler: IDataHandler
     model: DomainModel
     api_config: APIModel
 
     def __init__(
         self,
         config: DataSourceModel,
-        model: DomainModel
+        model: DomainModel,
+        handler: IDataHandler = None
     ):
         """
         - populates the extractor with the configuration, the model and the handler
@@ -84,7 +86,7 @@ class AbstractSourceExtractor(ABC):
 
         self.config = config
         self.model = model
-        self.handler = FileHandler()
+        self.handler = handler
 
         # Decompose base API URl
         api = self.config.get_api(model)
@@ -142,7 +144,9 @@ class AbstractSourceExtractor(ABC):
         # if the loop completes, extraction is successful
         complete = True
 
-        self.dump_metadata(
+        # dump the execution metadata
+        self.handler.dump_metadata(
+            self.model,
             "extract",
             start_time = start_time,
             last_processed_page = last_page_downloaded,
@@ -150,60 +154,3 @@ class AbstractSourceExtractor(ABC):
             errors = errors,
             pages = page_logs
         )
-
-
-    def dump_metadata(self, 
-                      operation: str = "extract", 
-                      start_time:datetime = None,
-                      last_processed_page: int = None,
-                      complete: bool = None,
-                      errors: int = None,
-                      pages: list[PageLog] = None
-                      ):
-
-        # Export metadata info
-        # just go through pydantic to ensure the data is valid
-        # and process eventual inner things
-        extract_metadata = MetadataInfo(
-            **{
-                "domain": self.config.get_domain_name(self.model),
-                "source": self.model.name,
-                "operation": operation,
-                "last_run_time": start_time.isoformat(),
-                "last_processed_page": last_processed_page,
-                "complete": complete,
-                "errors": errors,
-                "model": self.model,
-                "pages": pages
-            }
-        ).model_dump( 
-            mode = "json" 
-        ) 
-
-        meta_info = self.handler.file_dump(
-            self.model,
-            data = extract_metadata,
-            suffix = f"metadata_{operation}",
-            format = "json"
-            )
-
-        logger.debug(
-            f"Metadata written in: '{meta_info.location}/{meta_info.file_name}'"
-        )
-
-    @abstractmethod
-    def download(self, *args, **kwargs) -> Generator[ExtractionResult, None, None]:
-        """Method to be implemented by the concrete extractor class.
-        It should return a generator that yields ExtractionResult objects.
-
-        Example:
-        ```python
-
-        def download(self):
-            for page in range(1, 10):
-                data = self.get_page(page)
-                is_last = page == 9
-                yield ExtractionResult(payload=data, is_last=is_last)
-        ```
-        """
-        pass
