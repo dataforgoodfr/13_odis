@@ -20,6 +20,7 @@ EndPoint = Annotated[
     ),
 ]
 
+
 AcceptHeader = Annotated[
     str,
     StringConstraints(
@@ -28,6 +29,11 @@ AcceptHeader = Annotated[
 ]
 
 FILE_FORMAT = Literal["csv", "json", "xlsx", "zip"]
+
+Description = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1),  # must not be empty string
+]
 
 
 class HeaderModel(BaseModel):
@@ -71,7 +77,7 @@ class APIModel(BaseModel):
     name: str
     base_url: HttpUrl
     apidoc: Optional[HttpUrl] = None
-    description: Optional[str] = None
+    description: Optional[Description] = None
     default_headers: Optional[HeaderModel] = None
     throttle: Optional[int] = 60
 
@@ -106,7 +112,7 @@ class DomainModel(BaseModel):
         """,
         examples=["NotebookExtractor", "JsonExtractor", "CSVExtractor"],
     )
-    description: str = Field(
+    description: Description = Field(
         ...,
         description="""
             a human-readable description of the data source

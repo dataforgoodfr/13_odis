@@ -35,23 +35,18 @@ class FileHandler(IDataHandler):
     """
 
     base_path: str
-    _file_name: str
     _index: int = 0
 
     def __init__(
         self,
-        base_path: str = DEFAULT_BASE_PATH,
-        file_name: str = None,
+        base_path: str = DEFAULT_BASE_PATH
     ):
         """
         Args:
             base_path (str, optional): where to store the files, Defaults to 'data/imports'.
-            file_name (str, optional): the name of the file.
-                Defaults to None, in which case the file name is generated
         """
 
         self.base_path = base_path
-        self._file_name = file_name
 
     def _data_dir(self, model: DomainModel) -> Path:
         """Generate the directory Path where the data will be stored"""
@@ -61,8 +56,6 @@ class FileHandler(IDataHandler):
         self, model: DomainModel, suffix: str = None, format: FILE_FORMAT = None
     ) -> str:
         """Generate the file name for the given model and suffix
-
-        If a file name was provided at initialization, it will be used instead of the generated one
 
         When a file name is generated, the name pattern is the following:
         - if a suffix is provided, it is appended to the model name
