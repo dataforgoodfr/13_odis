@@ -27,6 +27,8 @@ services:
       - db
     volumes:
       - ./pgadmin/servers.json:/pgadmin4/servers.json
+    command: >
+      /bin/sh -c "envsubst < /pgadmin4/servers.json > /pgadmin4/servers.json && /entrypoint.sh"
 
 volumes:
   db_data:
