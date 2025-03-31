@@ -1,0 +1,34 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+    "name": "devcontainer-python",
+    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers-extra/features/poetry:2": {},
+        "ghcr.io/devcontainers/features/python:1": {
+            "version": "3.13"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "usernamehw.errorlens",
+                "ms-vscode.makefile-tools",
+                "redhat.vscode-yaml",
+                "EditorConfig.EditorConfig",
+                "ms-python.python",
+                "ms-toolsai.jupyter"
+            ]
+        }
+    },
+    "runArgs": [
+        "--network=host"
+    ],
+    "mounts": [
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind"
+    ],
+    "postCreateCommand": "/bin/sh .devcontainer/scripts/postCreate.sh",
+    "postStartCommand": "/bin/sh .devcontainer/scripts/postStart.sh"
+}
