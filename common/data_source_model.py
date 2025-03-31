@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Optional, Self
+from typing import Annotated, Literal, Optional, Self, Union, List
 
 from pydantic import (
     BaseModel,
@@ -19,17 +19,18 @@ EndPoint = Annotated[
     ),
 ]
 
+AcceptHeader = Annotated[
+    str,
+    StringConstraints(
+        pattern=r"^(application/json|application/xml|text/csv|\*/\*)(, (application/json|application/xml|text/csv|\*/\*))*$"
+    )
+]
+
 FILE_FORMAT = Literal["csv", "json", "xlsx"]
 
-
 class HeaderModel(BaseModel):
-
     model_config = ConfigDict(extra="allow")  # allow extra headers
-
-    accept: Literal["application/json", "application/xml", "text/csv"] = (
-        "application/json"
-    )
-
+    accept: AcceptHeader = "application/json"
 
 class APIModel(BaseModel):
     """the API section of the yaml file"""
@@ -110,7 +111,8 @@ class DomainModel(BaseModel):
         if self.headers:
             if api_headers:
                 d = api_headers.model_dump(mode="json")
-                d.update(self.headers.model_dump(mode="json"))
+                model_headers_dump = self.headers.model_dump(mode="json")
+                model_headers_dump.update(d)
                 self.headers = HeaderModel(**d)
         else:
             self.headers = api_headers

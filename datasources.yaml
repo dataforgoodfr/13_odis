@@ -18,7 +18,7 @@ APIs:
     apidoc: https://portail-api.insee.fr/catalog/api/a890b735-159c-4c91-90b7-35159c7c9126/doc?page=ee625968-272a-4637-a259-68272aa63766
     throttle: 30 # requetes / minutes
     default_headers:
-      accept: application/json
+      accept: application/json, */*
 
   Data.Gouv.Education:
     name: Data.Gouv.Education
@@ -79,7 +79,6 @@ domains:
       type: JsonExtractor
       endpoint: /catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/json
       format: json
-
     
     demandeur_emploi_regions:
       API: statistiques.francetravail.org
@@ -113,6 +112,14 @@ domains:
         separator: ;
         header: 3
         skipfooter: 3
+
+    deplacement_domicile_travail:
+      API: INSEE.Melodi
+      description: Mobilités progressionnelles, déplacements domicile - lieu de travail
+      endpoint: /file/DS_RP_NAVETTES_PRINC/DS_RP_NAVETTES_PRINC_CSV_FR
+      type: FileExtractor
+      format: zip
+      # need to unzip this file
 
   presentation_page:
 
