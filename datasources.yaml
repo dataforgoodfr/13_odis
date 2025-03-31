@@ -425,7 +425,7 @@ domains:
 
       services:
         API: INSEE.Melodi
-        description:
+        description: /!\ Merci d'ajouter une description valide ici /!\
         type: MelodiExtractor
         endpoint: /data/DS_BPE
         format: json

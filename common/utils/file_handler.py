@@ -72,6 +72,7 @@ class FileHandler(IDataHandler):
             model (DomainModel): the model that generated the data
             suffix (str, optional): a suffix to append to the file name. Defaults
                 to None, in which case an index is appended to the model name
+            format (str, optional): expected file format. Defaults to the model's file format
         """
 
         # If format not specified, apply the Model's file format

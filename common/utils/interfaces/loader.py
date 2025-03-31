@@ -6,7 +6,12 @@ import orjson
 from pydantic import ValidationError
 
 from common.data_source_model import FILE_FORMAT, DataSourceModel, DomainModel
-from common.utils.interfaces.data_handler import IDataHandler, MetadataInfo, PageLog
+from common.utils.interfaces.data_handler import (
+    OPERATION_TYPE,
+    IDataHandler,
+    MetadataInfo,
+    PageLog,
+)
 from common.utils.interfaces.db_client import IDBClient
 from common.utils.logging_odis import logger
 
@@ -26,8 +31,10 @@ class AbstractDataLoader(ABC):
         db_client: IDBClient,
         handler: IDataHandler = None,
     ):
+
         self.config = config
         self.model = model
+        self.db_client = db_client
         self.handler = handler
 
     @abstractmethod
@@ -50,10 +57,10 @@ class AbstractDataLoader(ABC):
         errors = 0
         complete = False
 
-        # load actual data from metadata
-        extract_metadata = self.load_metadata("extract", format="json")
+        # load the latest extract metadata
+        extract_metadata = self.load_metadata("extract")
 
-        # execute loader iterations and log results in metadata
+        # execute loader iterations and log results in new metadata
         result: PageLog  # typing hint for IDE
         for result in self.load_data(extract_metadata.pages):
 
@@ -115,8 +122,21 @@ class AbstractDataLoader(ABC):
         )
 
     def load_metadata(self, metadata_type, format: FILE_FORMAT = None) -> MetadataInfo:
+        self.handler.dump_metadata(
+            self.model,
+            operation="load",
+            start_time=start_time,
+            last_processed_page=last_processed_page,
+            complete=complete,
+            errors=errors,
+            pages=page_logs,
+        )
+
+    def load_metadata(self, operation: OPERATION_TYPE) -> MetadataInfo:
         """
-        TODO: metadata could be stored in a different location, or in a DB
+        TODO:
+            - metadata could be stored in a different location, on an Object storage bucket, or in a DB
+            - move this function to the DataHandler class
         """
 
         # If format not specified, apply the Model's file format
@@ -127,6 +147,11 @@ class AbstractDataLoader(ABC):
             self.model, suffix=f"metadata_{metadata_type}", format=format
         )
 
+        metadata_filepath = self.handler._data_dir(self.model) / self.handler.file_name(
+            self.model,
+            suffix=f"metadata_{operation}",  # always the same pattern
+            format="json",  # metadata are always json
+        )
         try:
 
             with open(metadata_filepath, "r") as f:
