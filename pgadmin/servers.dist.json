@@ -1,0 +1,14 @@
+{
+    "Servers": {
+      "PostgreSQL DB": {
+        "Name": "Local DB",
+        "Group": "Servers",
+        "Host": "${PGADMIN_DB_CONTAINER_HOST}",
+        "Port": "${PGADMIN_DB_PORT}",
+        "Username": "${PGADMIN_DB_USER}",
+        "SSLMode": "prefer",
+        "MaintenanceDB": "${PGADMIN_DEFAULT_DB_NAME}"
+      }
+    }
+  }
+  
