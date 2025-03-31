@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Optional, Self, Union, List
+from typing import Annotated, Literal, Optional, Self
 
 from pydantic import (
     BaseModel,
