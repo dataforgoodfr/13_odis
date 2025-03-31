@@ -93,16 +93,23 @@ Dans l’exemple donné, pour récupérer le dataset “regions”, un Extracteu
 
 `https://api.insee.fr/metadonnees/v1/geo/regions`
 
-## Champs facultatifs
+## Champs obligatoires selon le type d'extracteur
 
-Un bloc “source” peut définir les champs optionnels suivants :
+Si le type d'extracteur (`type`) est `NotebookExtractor`, alors les champs suivants doivent être renseignés:
+- `notebook_path` : le chemin relatif (depuis la racine du projet) du notebook
+
+Si le type d'extracteur (`type`) n'est PAS `NotebookExtractor`, alors les champs suivants doivent être renseignés:
+
 - `API` : quelle API est à la source de ce dataset
 - `endpoint` : comment l’URL de l’API doit être complétée pour requêter ce jeu de données
-- `notebook_path` : le chemin relatif (depuis la racine du projet) du notebook
+
+## Champs facultatifs 
+
+Un bloc “source” peut définir les champs optionnels suivants :
 
 ### Paramètres http pour la requête
 
-`extract_params` est un dictionnaire qui définit les paramètres http à passer dans la requête. Définir un champ `extract_params` est équivalent à mettre les paramètres dans le champ `endpoint` avec la syntaxe URL http classique.
+Dans le cas d'une API, `extract_params` est un dictionnaire qui définit les paramètres http à passer dans la requête. Définir un champ `extract_params` est équivalent à mettre les paramètres dans le champ `endpoint` avec la syntaxe URL http classique.
 
 Par exemple, ceci :
 
@@ -122,6 +129,35 @@ endpoint: /data/model?scope=FR&annual_data=2024
 
 Le Path a priorité sur le champ `extract_params` : Si une configuration définit à la fois une querystring dans le champ `endpoint` et un champ `extract_params`, le contenu de `extract_params` est ignoré dans la construction de la requête.
 
+### Headers spécifiques du Endpoint
+
+Le endpoint peut surcharger les `default_headers` de l'API, on peut donc avoir la configuration suivante:
+
+```yaml
+APIs:
+
+  INSEE.Metadonnees:
+    name: Metadonnees INSEE
+    description: INSEE - API des métadonnées
+    base_url: https://api.insee.fr/metadonnees/V1
+    apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
+    default_headers:
+        accept: application/json
+
+domains:
+
+  geographical_references:
+
+    regions:
+      API: INSEE.Metadonnees
+      type: FileExtractor
+      endpoint: /geo/my_csv_endpoint
+      format: csv
+      headers:
+        accept: text/csv
+```
+
+Dans le type de configuration ci-dessus, les headers du endpoint `/geo/my_csv_endpoint` seront donc: `accept: text/csv` et non ceux par défaut de l'API (`accept: application/json`)
 
 ### Mapping de la réponse
 
