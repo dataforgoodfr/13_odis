@@ -22,7 +22,7 @@ EndPoint = Annotated[
 AcceptHeader = Annotated[
     str,
     StringConstraints(
-        pattern=r"^((application\/json|application\/xml|text\/csv|\*\/\*)(,\s?)?){1,}$"
+        pattern=r"^((application\/json|application\/xml|text\/csv|application\/zip|application\/octet-stream|\*\/\*)(,\s?)?){1,}$"
     ),
 ]
 
