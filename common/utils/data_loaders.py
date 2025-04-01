@@ -204,12 +204,7 @@ class CsvDataLoader(AbstractDataLoader):
                 self.db_client.connect()
 
                 # Read CSV with specific parameters from config
-                if self.model.load_params:
-                    results = self.handler.csv_load(
-                        extract_page_log, **self.model.load_params
-                    )
-                else:
-                    results = self.handler.csv_load(extract_page_log)
+                results = self.handler.csv_load(extract_page_log, self.model)
 
                 for _, row in results.iterrows():
                     # Convert any NaN values to None for database compatibility
@@ -310,8 +305,17 @@ class CsvDataLoader(AbstractDataLoader):
 
         with open(filepath, "r", encoding=page_log.storage_info.encoding) as f:
 
-            dialect = csv.Sniffer().sniff(f.read(1024))
-            f.seek(0)  # Reset file pointer to the beginning
+            # take into account the separator if defined in the model
+            delimiters = None
+
+            if self.model.load_params and self.model.load_params.separator:
+                delimiters = self.model.load_params.separator
+
+            dialect = csv.Sniffer().sniff(f.read(1024), delimiters=delimiters)
+
+            # Reset file pointer to the beginning
+            f.seek(0)
+
             # Read the first row to get the column names
             csv_reader = csv.DictReader(f, dialect=dialect)
             if csv_reader.fieldnames is None:
