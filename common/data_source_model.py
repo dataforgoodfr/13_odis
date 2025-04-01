@@ -22,15 +22,17 @@ EndPoint = Annotated[
 AcceptHeader = Annotated[
     str,
     StringConstraints(
-        pattern=r"^(application/json|application/xml|text/csv|\*/\*)(, (application/json|application/xml|text/csv|\*/\*))*$"
-    )
+        pattern=r"^((application\/json|application\/xml|text\/csv|\*\/\*)(,\s?)?){1,}$"
+    ),
 ]
 
 FILE_FORMAT = Literal["csv", "json", "xlsx", "zip"]
 
+
 class HeaderModel(BaseModel):
     model_config = ConfigDict(extra="allow")  # allow extra headers
     accept: AcceptHeader = "application/json"
+
 
 class APIModel(BaseModel):
     """the API section of the yaml file"""
@@ -112,7 +114,7 @@ class DomainModel(BaseModel):
             if api_headers:
                 d = api_headers.model_dump(mode="json")
                 model_headers_dump = self.headers.model_dump(mode="json")
-                model_headers_dump.update(d)
+                d.update(model_headers_dump)
                 self.headers = HeaderModel(**d)
         else:
             self.headers = api_headers

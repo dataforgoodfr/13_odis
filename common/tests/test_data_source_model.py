@@ -874,3 +874,60 @@ def test_get_model_raises_ValueError():
 
     # then
     assert "level1.mod1_lvl2" in str(e.value)
+
+
+def test_AcceptHeader_simple():
+    # given
+
+    headers = {
+        "accept": "application/json",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_multiple():
+    # given
+
+    headers = {
+        "accept": "application/json, application/xml, */*",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_multiple_space_is_optional():
+    # given
+
+    headers = {
+        "accept": "application/json,application/xml, */*",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_incorrect():
+    # given
+
+    headers = {
+        "accept": "blah, application/xml, */*",
+    }
+
+    # when
+    with pytest.raises(ValidationError) as e:
+        HeaderModel(**headers)
+
+    # then
+    assert "accept" in str(e.value)
