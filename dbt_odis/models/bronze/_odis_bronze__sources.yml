@@ -19,6 +19,11 @@ sources:
       - name: emploi_eff_secteur_prive_gds_secteurs
         description: Source JSON loadée dans le champ data contenant les Effectifs salariés du secteur privé par grands secteurs
         loaded_at_field : created_at
-        freshness :
-        warn_after: {count: 1, period : year}
+        #freshness :
+        #  warn_after: {count: 1, period : year}
+
+      - name: logement_rpls_region
+        description: xlsx transformed into JSON loadée dans le champ data contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS)
+        loaded_at_field : created_at
+
       
