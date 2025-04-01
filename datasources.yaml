@@ -18,7 +18,7 @@ APIs:
     apidoc: https://portail-api.insee.fr/catalog/api/a890b735-159c-4c91-90b7-35159c7c9126/doc?page=ee625968-272a-4637-a259-68272aa63766
     throttle: 30 # requetes / minutes
     default_headers:
-      accept: application/json, */*
+      accept: application/json
 
   INSEE.statistiques:
     name: INSEE
@@ -125,6 +125,8 @@ domains:
       endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-COMMUNES_csv.zip
       type: FileExtractor
       format: zip
+      headers:
+        accept: application/zip, application/octet-stream
 
     etablissements_employeurs_secteur_prive:
       API: INSEE.Melodi
@@ -132,6 +134,8 @@ domains:
       endpoint: /file/DS_FLORES_ECONOMIC_SPHERE/DS_FLORES_ECONOMIC_SPHERE_2022_CSV_FR
       type: FileExtractor
       format: zip
+      headers:
+        accept: application/zip, application/octet-stream
 
     deplacement_domicile_travail:
       API: INSEE.Melodi
@@ -139,6 +143,8 @@ domains:
       endpoint: /file/DS_RP_NAVETTES_PRINC/DS_RP_NAVETTES_PRINC_CSV_FR
       type: FileExtractor
       format: zip
+      headers:
+        accept: application/zip, application/octet-stream
 
   presentation_page:
 

@@ -890,11 +890,25 @@ def test_AcceptHeader_simple():
     assert model.accept == headers["accept"]
 
 
+def test_AcceptHeader_zip():
+    # given
+
+    headers = {
+        "accept": "application/zip",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
 def test_AcceptHeader_multiple():
     # given
 
     headers = {
-        "accept": "application/json, application/xml, */*",
+        "accept": "application/zip, application/octet-stream, */*",
     }
 
     # when
