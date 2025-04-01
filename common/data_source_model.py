@@ -20,16 +20,19 @@ EndPoint = Annotated[
     ),
 ]
 
-FILE_FORMAT = Literal["csv", "json", "xlsx"]
+AcceptHeader = Annotated[
+    str,
+    StringConstraints(
+        pattern=r"^((application\/json|application\/xml|text\/csv|application\/zip|application\/octet-stream|\*\/\*)(,\s?)?){1,}$"
+    ),
+]
+
+FILE_FORMAT = Literal["csv", "json", "xlsx", "zip"]
 
 
 class HeaderModel(BaseModel):
-
     model_config = ConfigDict(extra="allow")  # allow extra headers
-
-    accept: Literal["application/json", "application/xml", "text/csv"] = (
-        "application/json"
-    )
+    accept: AcceptHeader = "application/json"
 
 
 class APIModel(BaseModel):
@@ -156,7 +159,8 @@ class DomainModel(BaseModel):
         if self.headers:
             if api_headers:
                 d = api_headers.model_dump(mode="json")
-                d.update(self.headers.model_dump(mode="json"))
+                model_headers_dump = self.headers.model_dump(mode="json")
+                d.update(model_headers_dump)
                 self.headers = HeaderModel(**d)
         else:
             self.headers = api_headers
