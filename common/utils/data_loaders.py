@@ -306,18 +306,24 @@ class CsvDataLoader(AbstractDataLoader):
         with open(filepath, "r", encoding=page_log.storage_info.encoding) as f:
 
             # take into account the separator if defined in the model
-            delimiters = None
+            delimiter = None
 
             if self.model.load_params and self.model.load_params.separator:
-                delimiters = self.model.load_params.separator
+                delimiter = self.model.load_params.separator
 
-            dialect = csv.Sniffer().sniff(f.read(1024), delimiters=delimiters)
+            dialect = csv.Sniffer().sniff(f.read(1024), delimiters=delimiter)
+
+            if delimiter is None:
+                # If no delimiter is provided, use the default dialect delimiter
+                # This is a fallback in case the model does not specify a separator
+                delimiter = dialect.delimiter
 
             # Reset file pointer to the beginning
             f.seek(0)
 
             # Read the first row to get the column names
-            csv_reader = csv.DictReader(f, dialect=dialect)
+            csv_reader = csv.DictReader(f, dialect=dialect, delimiter=delimiter)
+
             if csv_reader.fieldnames is None:
                 logger.error(f"No field names found in CSV file: {filepath}")
                 raise InvalidCSV(
