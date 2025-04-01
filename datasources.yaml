@@ -20,6 +20,12 @@ APIs:
     default_headers:
       accept: application/json
 
+  INSEE.statistiques:
+    name: INSEE
+    description: INSEE - statistiques
+    base_url: https://www.insee.fr/fr/statistiques
+    api_doc: https://www.insee.fr/fr/statistiques
+
   Data.Gouv.Education:
     name: Data.Gouv.Education
     description: Data.Gouv.Education - API de données
@@ -79,7 +85,6 @@ domains:
       type: JsonExtractor
       endpoint: /catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/json
       format: json
-
     
     demandeur_emploi_regions:
       API: statistiques.francetravail.org
@@ -113,6 +118,33 @@ domains:
         separator: ;
         header: 3
         skipfooter: 3
+
+    salaire_median:
+      API: INSEE.statistiques
+      description: Structure et distribution des revenus, inégalité des niveaux de vie en 2021
+      endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-COMMUNES_csv.zip
+      type: FileExtractor
+      format: zip
+      headers:
+        accept: application/zip, application/octet-stream
+
+    etablissements_employeurs_secteur_prive:
+      API: INSEE.Melodi
+      description: Nombre d'établissements actifs employeurs selon les sphères de l'économie au niveau communal et supracommunal pour la France hors Mayotte.
+      endpoint: /file/DS_FLORES_ECONOMIC_SPHERE/DS_FLORES_ECONOMIC_SPHERE_2022_CSV_FR
+      type: FileExtractor
+      format: zip
+      headers:
+        accept: application/zip, application/octet-stream
+
+    deplacement_domicile_travail:
+      API: INSEE.Melodi
+      description: Mobilités progressionnelles, déplacements domicile - lieu de travail
+      endpoint: /file/DS_RP_NAVETTES_PRINC/DS_RP_NAVETTES_PRINC_CSV_FR
+      type: FileExtractor
+      format: zip
+      headers:
+        accept: application/zip, application/octet-stream
 
   presentation_page:
 
