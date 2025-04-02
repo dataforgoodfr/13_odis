@@ -1,5 +1,5 @@
 {{ config(
-    alias = 'silver_com_dep_reg'
+    alias = 'gold_com_dep_reg'
     )
 }}
 
@@ -8,4 +8,4 @@ select
     region_code as CODREG,
     departement_code as CODDEP,
     nom as LIBGEO
-from {{ ref('geographical_references_communes') }} 
+from {{ ref('geographical_references') }} 

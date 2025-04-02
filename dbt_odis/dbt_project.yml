@@ -45,14 +45,16 @@ models:
 
     gold:
       +schema: gold
+      +materialized: table
 
-      fact:
-        +materialized: incremental
-        +incremental_strategy: merge
-        +on_schema_change: sync_all_columns
+
+      # fact:
+      #   +materialized: incremental
+      #   +incremental_strategy: merge
+      #   +on_schema_change: sync_all_columns
       
-      dimension:
-        +materialized: table
+      # dimension:
+      #   +materialized: table
   
   elementary:
     +schema: tec_odis  
