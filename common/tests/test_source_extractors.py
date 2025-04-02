@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 from common.data_source_model import DataSourceModel
 from common.utils.source_extractors import NotebookExtractor
 
@@ -30,7 +29,7 @@ def test_json_extractor_init():
                         "API": api_name,
                         "endpoint": "/source_model1",
                         "type": "JsonExtractor",  # type of extractor
-                        "description": "Valid test description"
+                        "description": "Valid test description",
                     },
                 },
             },
@@ -64,6 +63,7 @@ def test_NotebookExtractor_with_several_cells():
                         "type": "NotebookExtractor",
                         "notebook_path": f"{Path.cwd()}/common/tests/notebooks/test_notebook_cells.ipynb",
                         "format": "json",  # format of the result
+                        "description": "test",
                     },
                 },
             },

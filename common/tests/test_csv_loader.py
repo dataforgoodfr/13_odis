@@ -164,6 +164,7 @@ def test_load_data_raises_error_if_table_does_not_exist(
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
+                        "description": "test",
                     },
                 }
             },

@@ -1,15 +1,16 @@
 import os
 
+
 from common.data_source_model import DomainModel
+from common.utils.file_handler import FileHandler
 from common.utils.interfaces.data_handler import (
-    IDataHandler,
     MetadataInfo,
     OperationType,
     PageLog,
 )
 
 
-class FileHandlerForCSVStub(IDataHandler):
+class FileHandlerForCSVStub(FileHandler):
 
     test_data_dir: str
     file_name: str

@@ -10,25 +10,13 @@ import pandas as pd
 from psycopg2.extras import Json
 from pydantic import validate_call
 
-from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.exceptions import InvalidCSV
-from common.utils.file_handler import FileHandler
-from common.utils.interfaces.data_handler import IDataHandler, OperationType, PageLog
+from common.utils.interfaces.data_handler import OperationType, PageLog
 from common.utils.interfaces.loader import AbstractDataLoader
 from common.utils.logging_odis import logger
 
 
 class JsonDataLoader(AbstractDataLoader):
-
-    def __init__(
-        self, config: DataSourceModel, model: DomainModel, handler: IDataHandler = None
-    ):
-
-        # default handler type to FileHandler
-        if not handler:
-            handler = FileHandler()
-
-        super().__init__(config, model, handler=handler)
 
     def create_or_overwrite_table(self):
         """Creates the target Bronze table.
