@@ -28,6 +28,7 @@ def test_create_or_overwrite_json_table(
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
+                        "description": "test",
                     },
                 }
             },
@@ -85,6 +86,7 @@ def test_load_json_data_nominal(
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
+                        "description": "test",
                     },
                 }
             },
@@ -170,6 +172,7 @@ def test_load_data_array_of_json(
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
+                        "description": "test",
                     },
                 }
             },
@@ -252,6 +255,7 @@ def test_load_data_raises_error_if_table_does_not_exist(
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
+                        "description": "test",
                     },
                 }
             },
@@ -314,6 +318,7 @@ def test_load_data_raises_error_when_data_is_corrupt(
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
+                        "description": "test",
                     },
                 }
             },
