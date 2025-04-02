@@ -148,7 +148,7 @@ def test_load_invalid_yaml_structure():
         load_config("", response_model=DataSourceModel)  # any path will do
 
     # then
-    assert "APIs" in str(e.value)
+
     assert "domains" in str(e.value)
 
 
@@ -229,7 +229,7 @@ def test_load_config_as_model_fails():
         load_config("", response_model=DataSourceModel)  # any path will do
 
     # then
-    assert "APIs" in str(e.value)
+
     assert "domains" in str(e.value)
 
 

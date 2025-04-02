@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.file_handler import FileHandler
 from common.utils.interfaces.data_handler import MetadataInfo, PageLog
+from common.utils.interfaces.db_client import IDBClient
 from common.utils.logging_odis import logger
 
 
@@ -18,10 +19,15 @@ class AbstractDataLoader(ABC):
     model: DomainModel
     handler: FileHandler
     metadata_handler: FileHandler
+    db_client: IDBClient
 
-    def __init__(self, config: DataSourceModel, model: DomainModel):
+    def __init__(
+        self, config: DataSourceModel, model: DomainModel, db_client: IDBClient
+    ):
+
         self.config = config
         self.model = model
+        self.db_client = db_client
 
         self.handler = FileHandler()
         self.metadata_handler = FileHandler(
@@ -119,4 +125,3 @@ class AbstractDataLoader(ABC):
             logger.exception(f"Error reading file {metadata_filepath}: {str(e)}")
 
         raise
-
