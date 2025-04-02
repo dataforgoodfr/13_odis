@@ -275,7 +275,7 @@ def test_DomainModel():
     assert model.description == model_dict["description"]
     assert model.type == model_dict["type"]
     assert model.endpoint == model_dict["endpoint"]
-    assert model.load_params is None
+    assert model.load_params is not None  # default value
     assert model.extract_params is None
 
 
@@ -414,7 +414,15 @@ def test_DomainModel_load_params_is_arbitrary_dict():
     model = DomainModel(**model_dict)
 
     # then
-    assert model.load_params == model_dict["load_params"]
+    # check all keys are in the model
+    # and values are kept as-is
+    assert all(
+        [
+            k in model.load_params.model_dump(mode="json")
+            and v == model.load_params.model_dump(mode="json")[k]
+            for k, v in model_dict["load_params"].items()
+        ]
+    )
 
 
 def test_DomainModel_extract_params_is_arbitrary_dict():
@@ -463,7 +471,10 @@ def test_DomainModel_load_params_default_value():
     model = DomainModel(**model_dict)
 
     # then
-    assert model.load_params is None
+    assert model.load_params is not None
+    assert model.load_params.model_dump()["separator"] == ";"
+    assert model.load_params.model_dump()["header"] == 0
+    assert model.load_params.model_dump()["skipfooter"] == 0
 
 
 def test_DomainModel_response_map_is_arbitrary_dict():
@@ -1056,3 +1067,104 @@ def test_AcceptHeader_incorrect():
 
     # then
     assert "accept" in str(e.value)
+
+
+def test_DataLoadParameters_nominal():
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "load_params": {
+                        "param1": "value1",
+                        "param2": 2,
+                    },
+                },
+            }
+        },
+    }
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.load_params.model_dump()["param1"] == "value1"
+    assert model.load_params.model_dump()["param2"] == 2
+
+
+def test_DataLoadParameters_empty():
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.load_params.model_dump(mode="json") == {
+        "separator": ";",
+        "header": 0,
+        "skipfooter": 0,
+    }
+
+
+def test_DataLoadParameters_default_values():
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "load_params": {},
+                },
+            }
+        },
+    }
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.load_params.model_dump(mode="json") == {
+        "separator": ";",
+        "header": 0,
+        "skipfooter": 0,
+    }

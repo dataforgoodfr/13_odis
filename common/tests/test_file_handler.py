@@ -1,8 +1,13 @@
+import os
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
+import pytest
+
 from common.data_source_model import DataSourceModel
+from common.utils.exceptions import InvalidCSV
 from common.utils.file_handler import FileHandler
+from common.utils.interfaces.data_handler import PageLog, StorageInfo
 
 
 def test_file_name():
@@ -258,3 +263,145 @@ def test_handle_binary_data():
 
     # then
     assert Path(storage_info.file_name).suffix == ".json"
+
+
+def test_load_csv_coma_separated():
+    """ """
+
+    # given
+    file_handler = FileHandler()  # file name is provided
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "format": "csv",
+                    "load_params": {"separator": ","},  # comma as separator
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+    model = m.get_model("level1.mod1_lvl1")
+
+    test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
+    page_log = PageLog(
+        page=1,
+        storage_info=StorageInfo(
+            location=test_data_dir,
+            format="csv",
+            file_name="test_coma_sep.csv",
+            encoding="utf-8",
+        ),
+    )
+
+    # when
+    df = file_handler.csv_load(page_log, model)
+
+    # then
+    assert df.shape == (2, 2)
+    assert df.columns.tolist() == ["data_1", "data_2"]
+
+
+def test_load_csv_semicolon_separated():
+    """ """
+    # given
+    file_handler = FileHandler()  # file name is provided
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "format": "csv",  # csv format for the model
+                    "load_params": {"separator": ";"},  # semi-column as separator
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+    model = m.get_model("level1.mod1_lvl1")
+
+    test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
+    page_log = PageLog(
+        page=1,
+        storage_info=StorageInfo(
+            location=test_data_dir,
+            format="csv",
+            file_name="test_semicol_sep.csv",
+            encoding="utf-8",
+        ),
+    )
+
+    # when
+    df = file_handler.csv_load(page_log, model)
+
+    # then
+    assert df.shape == (2, 2)
+    assert df.columns.tolist() == ["data_1", "data_2"]
+
+
+def test_load_csv_raises_invalid_csv():
+    """ """
+    # given
+    file_handler = FileHandler()  # file name is provided
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "format": "csv",  # csv format for the model
+                    "load_params": {"separator": ";"},  # semi-column as separator
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+    model = m.get_model("level1.mod1_lvl1")
+
+    test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
+    page_log = PageLog(
+        page=1,
+        storage_info=StorageInfo(
+            location=test_data_dir,
+            format="csv",
+            file_name="blah",  # invalid file name
+            encoding="utf-8",
+        ),
+    )
+
+    # when
+    with pytest.raises(InvalidCSV) as e:
+        file_handler.csv_load(page_log, model)
+
+    # then
+    assert "blah" in str(e.value)
