@@ -54,6 +54,11 @@ Optionnellement, un bloc API peut déclarer toute information utile pour prendre
 
 # Définition des modèles Sources de données
 
+Les modèles sources permettent de définir :
+
+- Les informations nécessaires pour extraire la donnée des sources : quelle API, quel endpoint, comment extraire…
+- Les informations nécessaires pour charger les données extraites dans la base de données Bronze : quel format de données récupérer, comment le retraiter avant insertion si besoin
+
 Les jeux de données Source sont organisées par domaine, dans le bloc `domains` :
 
 ```yaml
@@ -80,30 +85,39 @@ Dans l’exemple ci-dessus, est déclaré le domaine “geographical_references�
 
 **Un bloc “source” définit obligatoirement les champs suivants :**
 
-- `API` : quelle API est à la source de ce dataset
 - `description` : description claire et concise pour aider à la compréhension
 - `type` : quel type d’Extracteur doit être utilisé pour récupérer ce dataset
-- `endpoint` : comment l’URL de l’API doit être complétée pour requêter ce jeu de données
+- `format` : quel est le format de fichier attendu : doit être `json`, `csv`, ou `xlsx`
 
 Dans l’exemple donné, pour récupérer le dataset “regions”, un Extracteur de classe “JsonExtractor” sera donc instancié, pour requêter l’API INSEE.Metadonnees sur l’URL complète suivante :
 
 `https://api.insee.fr/metadonnees/v1/geo/regions`
 
-## Champs facultatifs
+## Champs obligatoires selon le type d'extracteur
+
+Si le type d'extracteur (`type`) est `NotebookExtractor`, alors les champs suivants doivent être renseignés:
+- `notebook_path` : le chemin relatif (depuis la racine du projet) du notebook
+
+Si le type d'extracteur (`type`) n'est PAS `NotebookExtractor`, alors les champs suivants doivent être renseignés:
+
+- `API` : quelle API est à la source de ce dataset
+- `endpoint` : comment l’URL de l’API doit être complétée pour requêter ce jeu de données
+
+## Champs facultatifs 
 
 Un bloc “source” peut définir les champs optionnels suivants :
 
 ### Paramètres http pour la requête
 
-`params` est un dictionnaire qui définit les paramètres http à passer dans la requête. Définir un champ `params` est équivalent à mettre les paramètres dans le champ `endpoint` avec la syntaxe URL http classique.
+Dans le cas d'une API, `extract_params` est un dictionnaire qui définit les paramètres http à passer dans la requête. Définir un champ `extract_params` est équivalent à mettre les paramètres dans le champ `endpoint` avec la syntaxe URL http classique.
 
 Par exemple, ceci :
 
 ```yaml
 endpoint: /domain/model
-params:
-  scope: FR
-  annual_data: 2023
+extract_params:
+	scope: FR
+	annual_data: 2023
 
 ```
 
@@ -113,7 +127,37 @@ Est équivalent à ceci :
 endpoint: /data/model?scope=FR&annual_data=2024
 ```
 
-** Si des params sont définis dans ´endpoint´ ET dans ´params´, c'est ´endpoint´ qui l'emporte : les valeurs dans ´params´sont ignorés.**
+Le Path a priorité sur le champ `extract_params` : Si une configuration définit à la fois une querystring dans le champ `endpoint` et un champ `extract_params`, le contenu de `extract_params` est ignoré dans la construction de la requête.
+
+### Headers spécifiques du Endpoint
+
+Le endpoint peut surcharger les `default_headers` de l'API, on peut donc avoir la configuration suivante:
+
+```yaml
+APIs:
+
+  INSEE.Metadonnees:
+    name: Metadonnees INSEE
+    description: INSEE - API des métadonnées
+    base_url: https://api.insee.fr/metadonnees/V1
+    apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
+    default_headers:
+        accept: application/json
+
+domains:
+
+  geographical_references:
+
+    regions:
+      API: INSEE.Metadonnees
+      type: FileExtractor
+      endpoint: /geo/my_csv_endpoint
+      format: csv
+      headers:
+        accept: text/csv
+```
+
+Dans le type de configuration ci-dessus, les headers du endpoint `/geo/my_csv_endpoint` seront donc: `accept: text/csv` et non ceux par défaut de l'API (`accept: application/json`)
 
 ### Mapping de la réponse
 
@@ -145,6 +189,7 @@ Si dans une réponse JSON qui ressemble à ça :
     {
       [etc...]
     }
+  ]
   ],
   "paging": {
     "first": "https://api.insee.fr/melodi/data/DS_IPCH_A?page=1&maxResult=20&totalCount=true&startPeriod=2020-01-01&endPeriod=2021-01-01&idObservation=true&range=true&idTerritoire=true&includeHistory=true",
@@ -160,7 +205,7 @@ Je veux récupérer la valeur de “paging.next” pour paginer, je définis :
 
 ```yaml
 response_map:
-  next: paging.next
+	next: paging.next
 ```
 
 Cela permet de récupérer en utilisant la fonction python `jmespath.search`
@@ -170,3 +215,34 @@ Plus de détails sur la syntaxe JMESPath ici :
 - Quelques exemples pour vite comprendre : https://jmespath.org/examples.html
 - Playground pour tester facilement : https://jmespath.org/tutorial.html
 - Référence de la syntaxe : https://jmespath.org/specification.html#
+
+### Pré-traitement avant insertion en base
+
+Pour certains cas, notamment les fichiers récupéres sous format CSV, il peut être nécessaire de “nettoyer” les fichiers avant d’insérer en base.
+
+Le champ `load_params` est un dictionnaire clé-valeur facultatif, qui donne des paramètres de traitement qui doivent être appliqués par le Loader correspondant à `format` (ex: `JsonLoader` si le format est `json`, `CsvLoader` si le format est `csv` ), avant l’insertion en base.
+
+Pour `format` = `csv` : 
+
+Le `CsvLoader` peut avoir besoin des indications suivantes :
+
+- `header` : le numéro de la première ligne du CSV. Exemple : s’il y a 2 lignes inutiles en haut du csv et que le vrai tableau de données doit commencer à la troisième ligne, alors `header` = 2 (parce que ça commence à compter à 0 )
+- `skipfooter` : Même principe que `header` mais pour le bas du tableau = nombre de lignes inutiles qui doivent être ignorées tout à la fin du dataset
+
+Exemple sur les données départementales annuelles du ministère du logement: 
+
+```yaml
+annual_dept_data:
+    API: DiDo
+    description: Données Annuelles Départementales de l'API DiDo
+    type: FileExtractor
+    endpoint: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
+    format: csv
+    extract_params:
+      withColumnName: true
+      withColumnDescription: true
+      withColumnUnit: true
+    load_params:
+      header: 2 # index de la première ligne utile du csv
+      skipfooter: 0 # combien de lignes inutiles à skipper en fin de document
+```

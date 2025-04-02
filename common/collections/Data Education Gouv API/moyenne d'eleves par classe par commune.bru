@@ -1,0 +1,21 @@
+meta {
+  name: moyenne d'eleves par classe par commune
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ecoles-effectifs-nb_classes/exports/json?select=commune%2C%20SUM%28nombre_total_eleves%29%20%2F%20SUM%28nombre_total_classes%29%20AS%20moyenne_eleves_par_classe&group_by=commune&limit=-1&refine=rentree_scolaire%3A2023&timezone=UTC&use_labels=false&epsg=4326
+  body: none
+  auth: none
+}
+
+params:query {
+  select: commune, SUM(nombre_total_eleves) / SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+  group_by: commune
+  limit: -1
+  refine: rentree_scolaire:2023
+  timezone: UTC
+  use_labels: false
+  epsg: 4326
+}

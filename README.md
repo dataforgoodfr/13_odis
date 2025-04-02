@@ -59,10 +59,10 @@ Le script “extract.py” permet de récupérer des jeux de données en ligne d
 
 ```bash
 # Extraire tous les datasets source du domaine "geographical_references"
-poetry run python bin/extract.py --domain geographical_references
+poetry run bin/odis.py extract --domain geographical_references
 
 # Extraire seulement les datasets "regions" et "departements du domaine "geographical_references"
-poetry run python bin/extract.py --domain geographical_references --sources regions departements
+poetry run bin/extract.py --sources geographical_references.regions geographical_references.departements
 ```
 
 Pour comprendre en détail comment ça fonctionne : 
@@ -77,27 +77,27 @@ L’option “explain” permet de voir facilement comment les API, Domaines et 
 
 ```bash
 # Voir la liste des API, domaines et sources disponibles
-poetry run python bin/extract.py --explain
+poetry run bin/odis.py explain
 
 # Voir les définitions de tous les datasets source du domaine "geographical_references"
-poetry run python bin/extract.py --explain --domain geographical_references 
+poetry run bin/odis.py explain --domain geographical_references 
 
 # Voir les définitions détaillées de l'API DiDo
-poetry run python bin/extract.py --explain --api DiDo
+poetry run bin/odis.py explain --api DiDo
 
 # Voir les définitions détaillées de plusieurs API INSEE
-poetry run python bin/extract.py --explain --api INSEE.Melodi INSEE.Metadonneees
+poetry run bin/odis.py explain --api INSEE.Melodi INSEE.Metadonneees
 
 # Voir les définitions détaillées d'une source de données et de son API
-poetry run python bin/extract.py --explain --api DiDo --domain logement --source dido_catalogue 
+poetry run bin/odis.py explain --api DiDo --source logement.dido_catalogue 
 ```
 
 ## Chargement des données brutes
 
-Le script [load.py](http://load.py) permet de charger un fichier local dans la base de données.
+La fonction load permet de charger un fichier local dans la base de données.
 
 ```bash
-poetry run python bin/load.py --domain geographical_references
+poetry run python bin/odis.py load -s logement.dido_catalogue
 ```
 
 ## Télécharger la méthodologie et les modèles de données cibles
@@ -113,7 +113,7 @@ poetry run python ./common/utils/download_target_data.py
 
 ### Installation de dbt
 
-```bash
+```yaml
 pip install dbt-core
 # Adapter pour PostgreSQL
 pip install dbt-postgres
@@ -123,25 +123,18 @@ dbt --version
 
 ### Installation des dépendances
 
-```bash
+```yaml
 dbt deps
 ```
 
-### Se placer sur le dossier DBT pour commencer à travailler
+### **Se placer sur le dossier DBT pour commencer à travailler**
+
 (pour reconnaître votre dbt_project.yml)
 
-```bash
+```yaml
 cd dbt_odis
 ```
 
 Toutes les commandes DBT intégrées directement dans la CI ici : 
 
-- [Commandes DBT](./DBT.md)
-
-
-
-
-
-
-
-
+- [Commandes DBT](./docs/DBT.md)

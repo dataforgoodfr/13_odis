@@ -1,88 +1,82 @@
-from .stubs.source_extractor_stub import JSONStubExtractor
+from pathlib import Path
+
+
+from common.data_source_model import DataSourceModel
+from common.utils.source_extractors import NotebookExtractor
+
+from .stubs.data_handler import StubDataHandler
+from .stubs.source_extractor_stub import StubExtractor
 
 
 def test_json_extractor_init():
     """verify that the JsonExtractor class is correctly initialized"""
 
     # given
-
     domain_name = "domain1"
     api_name = "api1"
     source_model = "source_model1"
 
-    config = {
-        "APIs": {
-            api_name: {
-                "base_url": "https://api1.com",
-                "headers": {"Content-Type": "application/json"},
-            },
-        },
-        "domains": {
-            domain_name: {
-                source_model: {
-                    "api": api_name,
-                    "endpoint": "/source_model1",
-                    "type": "JsonExtractor",  # type of extractor
+    config = DataSourceModel(
+        **{
+            "APIs": {
+                api_name: {
+                    "base_url": "https://api1.com",
+                    "name": "api1 name",
                 },
             },
-        },
-    }
+            "domains": {
+                domain_name: {
+                    source_model: {
+                        "API": api_name,
+                        "endpoint": "/source_model1",
+                        "type": "JsonExtractor",  # type of extractor
+                    },
+                },
+            },
+        }
+    )
+    model = list(config.get_models().values())[0]
 
-    extractor = JSONStubExtractor(config, domain_name)
+    extractor = StubExtractor(config, model, StubDataHandler(), StubDataHandler())
 
     # when
-    extractor.download(domain_name, source_model)
+    # call the next() method to call the generator
+    next(extractor.download())
 
     # then
     assert extractor.is_download
 
-    # check self.api_confs
-    assert extractor.api_confs == config["APIs"]
 
-    # check self.source_models
-    assert extractor.source_models == config["domains"][domain_name]
-
-
-def test_set_query_parameters():
+def test_NotebookExtractor_with_several_cells():
+    """
+    each cell stdout is a json object
+    """
 
     # given
-    domain_name = "domain1"
-    api_name = "api1"
-    source_model = "source_model1"
-
-    config = {
-        "APIs": {
-            api_name: {
-                "base_url": "https://api1.com",
-                "default_headers": {"accept": "application/json"},
-            },
-        },
-        "domains": {
-            domain_name: {
-                source_model: {
-                    "API": api_name,
-                    "endpoint": "/source_model1",
-                    "type": "JsonExtractor",  # type of extractor
+    # the notebook should generate data in json format
+    config = DataSourceModel(
+        **{
+            "domains": {
+                "my_domain": {
+                    "my_notebook": {
+                        "type": "NotebookExtractor",
+                        "notebook_path": f"{Path.cwd()}/common/tests/notebooks/test_notebook_cells.ipynb",
+                        "format": "json",  # format of the result
+                    },
                 },
             },
-        },
-    }
+        }
+    )
+    model = list(config.get_models().values())[0]
 
-    extractor = JSONStubExtractor(config, domain_name)
+    extractor = NotebookExtractor(
+        config,
+        model,
+    )
 
     # when
-    extractor.set_query_parameters(source_model)
+    # call the next() method to call the generator
+    payload_1 = next(extractor.download()).payload
 
-    # then
-    assert extractor.url == "https://api1.com/source_model1"
-    assert extractor.headers == config["APIs"][api_name]["default_headers"]
-    assert extractor.params is None
-    assert extractor.format == "json"
-
-
-def test_set_query_parameters_with_params():
-    pass
-
-
-def test_set_query_parameters_with_format():
-    pass
+    # 2 cells in the notebook
+    assert len(payload_1) == 2

@@ -20,6 +20,20 @@ APIs:
     default_headers:
       accept: application/json
 
+  INSEE.statistiques:
+    name: INSEE
+    description: INSEE - statistiques
+    base_url: https://www.insee.fr/fr/statistiques
+    api_doc: https://www.insee.fr/fr/statistiques
+
+  Data.Gouv.Education:
+    name: Data.Gouv.Education
+    description: Data.Gouv.Education - API de données
+    base_url: https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets
+    apidoc: https://data.education.gouv.fr/api/explore/v2.1/console
+    default_headers:
+      accept: application/json
+
   GEO.api.gouv.fr:
     name: GEO api.gouv.fr
     description: API gouvernemental pour interreoger les référentiels géographiques
@@ -41,34 +55,131 @@ APIs:
   Opendatasoft:
     name: Opendatasoft #erreur 500 avec l'utilisation de header et pas d'erreur sans header
     description: API de données ouverte
-    base_url: https://public.opendatasoft.com
+    base_url: https://public.opendatasoft.com/api/explore/v2.1
     apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
     throttle: 100
     #default_headers:
-      #accept: application/json 
+      #accept: application/json
+
+  URSSAF:
+    name : Urssaf
+    description: API des données ouverte de l'URSSAF
+    base_url: https://open.urssaf.fr/api/explore/v2.1
+    apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/#tag/Dataset/operation/getRecords
+    throttle : 100
+    default_headers:
+      accept: application/json
+
+  statistiques.francetravail.org:
+    name: statistiques francetravail.org
+    description: Site regroupant des statistiques de france Travail
+    base_url: https://statistiques.francetravail.org
+    apidoc: https://www.francetravail.org/statistiques-analyses/
 
 domains:
 
-  presentation_page :
-
-    Elu_commune:
-      API: Opendatasoft
-      description: Elu des différentes communes 
+  emploi:
+    eff_secteur_prive_gds_secteurs:
+      API: URSSAF
+      description : Effectifs salariés du secteur privé par grands secteurs
       type: JsonExtractor
-      endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+      endpoint: /catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/json
+      format: json
+    
+    demandeur_emploi_regions:
+      API: statistiques.francetravail.org
+      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par régions
+      endpoint: /stmt/defmexp?li=0&mm=0&pp=202001-&ss=1
+      type: FileExtractor
+      format: csv
+      load_params:
+        separator: ;
+        header: 3
+        skipfooter: 3
 
-    EPCI:
+    demandeur_emploi_departements:
+      API: statistiques.francetravail.org
+      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par départements
+      endpoint: /stmt/defmexp?lj=0&mm=0&pp=202001-&ss=1
+      type: FileExtractor
+      format: csv
+      load_params:
+        separator: ;
+        header: 3
+        skipfooter: 3
+
+    demandeur_emploi_communes:
+      API: statistiques.francetravail.org
+      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par communes de plus de 5000 hab
+      endpoint: /stmt/defmexp?lk=0&mm=0&pp=202001-&ss=1
+      type: FileExtractor
+      format: csv
+      load_params:
+        separator: ;
+        header: 3
+        skipfooter: 3
+
+    salaire_median:
+      API: INSEE.statistiques
+      description: Structure et distribution des revenus, inégalité des niveaux de vie en 2021
+      endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-COMMUNES_csv.zip
+      type: FileExtractor
+      format: zip
+      headers:
+        accept: application/zip, application/octet-stream
+
+    etablissements_employeurs_secteur_prive:
+      API: INSEE.Melodi
+      description: Nombre d'établissements actifs employeurs selon les sphères de l'économie au niveau communal et supracommunal pour la France hors Mayotte.
+      endpoint: /file/DS_FLORES_ECONOMIC_SPHERE/DS_FLORES_ECONOMIC_SPHERE_2022_CSV_FR
+      type: FileExtractor
+      format: zip
+      headers:
+        accept: application/zip, application/octet-stream
+
+    deplacement_domicile_travail:
+      API: INSEE.Melodi
+      description: Mobilités progressionnelles, déplacements domicile - lieu de travail
+      endpoint: /file/DS_RP_NAVETTES_PRINC/DS_RP_NAVETTES_PRINC_CSV_FR
+      type: FileExtractor
+      format: zip
+      headers:
+        accept: application/zip, application/octet-stream
+
+  presentation_page:
+
+    elus_communes:
+      API: Opendatasoft
+      description: Elus des différentes communes 
+      type: MelodiExtractor
+      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
+      format: json
+      extract_params:
+        limit: 100
+      response_map:
+        data: results
+
+    epci:
       API: Opendatasoft
       description: Groupement de communes
       type: JsonExtractor
-      endpoint: /api/explore/v2.1/catalog/datasets/donnees-du-repertoire-national-des-elus/records?limit=100
+      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/records
+      format: json
+      extract_params:
+        limit: 100
+      response_map:
+        data: results
 
-    Population:
+    population_communes:
       API: INSEE.Melodi
       description: Population des communes
       type: MelodiExtractor
       endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&AGE=_T&SEX=F&SEX=M&maxResult=1000
-      format: JSON
+      format: json
+      response_map:
+        data: observations
+        next: paging.next
+        is_last: paging.isLast
 
   geographical_references:
 
@@ -77,18 +188,21 @@ domains:
       description: Référentiel géographique INSEE - niveau régional
       type: MelodiExtractor
       endpoint: /geo/regions
+      format: json
 
     departements:
       API: INSEE.Metadonnees
       description: Référentiel géographique INSEE - niveau départemental
       type: MelodiExtractor
       endpoint: /geo/departements
+      format: json
 
     communes:
       API: GEO.api.gouv.fr
       description: Référentiel géographique GEO - niveau commune
       type: JsonExtractor
       endpoint: /communes?fields=code,nom,population,departement,region,centre
+      format: json
 
   logement:
 
@@ -97,9 +211,12 @@ domains:
         description: Catalogue de tous les datasets dispo sur l'API DiDo (logement / développement durable)
         type: MelodiExtractor
         endpoint: /datasets
-        params:
+        format: json
+        extract_params:
           page: 1
           pageSize: all
+        response_map:
+          data: data
 
       annual_dept_data:
         API: DiDo
@@ -107,10 +224,13 @@ domains:
         type: FileExtractor
         endpoint: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
         format: csv
-        params:
+        extract_params:
           withColumnName: true
           withColumnDescription: true
           withColumnUnit: true
+        load_params:
+          header: 2 # index de la première ligne utile du csv
+          skipfooter: 0 # combien de lignes inutiles à skipper en fin de document
 
       logements_total:
         API: INSEE.Melodi
@@ -118,9 +238,10 @@ domains:
         type: MelodiExtractor
         endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
-        params:
+        extract_params:
           maxResult: 10000
           TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
           TOH: _T
@@ -134,3 +255,190 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
+          
+      logements_maison:
+        API: INSEE.Melodi
+        description: nombre de maison
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: _T
+          TDW: 1
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+
+      logements_appartement:
+        API: INSEE.Melodi
+        description: nombre d'appartement
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: _T
+          TDW: 2
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+
+      logements_maison_et_residences_principales:
+        API: INSEE.Melodi
+        description: nombre de maison residence principale
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: DW_MAIN
+          TDW: 1
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+
+      logements_appartement_et_residences_principales:
+        API: INSEE.Melodi
+        description: nombre d'appartement residence principale
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: DW_MAIN
+          TDW: 2
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+
+      logements_pieces:
+        API: INSEE.Melodi
+        description: nombre de piece par residence principales
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2021
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: DWELLINGS_ROOMS
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: _T
+          BUILD_END: _T
+          OCS: DW_MAIN
+          TDW: _T
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+        
+      logement_sociaux:
+        notebook_path: notebook/logements_sociaux_2024.ipynb
+        description: recuperation des indicateurs des logements sociaux via notebook
+        type: NotebookExtractor
+        format: csv
+
+  education:
+
+      moyenne_eleve_commune:
+        API: Data.Gouv.Education
+        description: moyenne d'eleve par classe par commune
+        type: JsonExtractor
+        endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
+        format: json
+        extract_params:
+          select: commune,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+          group_by: commune
+          limit: -1
+          refine: rentree_scolaire:2023
+          timezone: UTC
+
+      moyenne_eleve_region:
+        API: Data.Gouv.Education
+        description: moyenne d'eleve par classe par region academique
+        type: JsonExtractor
+        endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
+        format: json
+        extract_params:
+          select: region_academique,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+          group_by: region_academique
+          limit: -1
+          refine: rentree_scolaire:2023
+          timezone: UTC
+
+      moyenne_eleve_departement:
+        API: Data.Gouv.Education
+        description: moyenne d'eleve par classe par departement
+        type: JsonExtractor
+        endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
+        format: json
+        extract_params:
+          select: departement,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
+          group_by: departement
+          limit: -1
+          refine: rentree_scolaire:2023
+          timezone: UTC
+
+  
+  services:
+
+      services:
+        API: INSEE.Melodi
+        description:
+        type: MelodiExtractor
+        endpoint: /data/DS_BPE
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2023
+          GEO: ["COM","REG","DEP"]
+          FACILITY_TYPE: ["A122", "A128", "A203", "A206", "A208","A304","A501","A503", "A504"]
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+        

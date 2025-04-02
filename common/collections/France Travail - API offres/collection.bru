@@ -1,0 +1,11 @@
+auth {
+  mode: oauth2
+}
+
+auth:oauth2 {
+  grant_type: client_credentials
+  access_token_url: https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire
+  client_id: {{process.env.FT_OFFRES_CLIENT_ID}}
+  client_secret: {{process.env.FT_OFFRES_CLIENT_SECRET}}
+  scope: api_offresdemploiv2
+}
