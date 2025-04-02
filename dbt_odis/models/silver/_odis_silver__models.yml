@@ -2,55 +2,65 @@ version: 2
 
 models:
 
-  - name: com_dep_reg
-    columns:
-      - name: CODGEO
-        description: Code officiel français de la commune
-        tests:
-          - unique
-          - not_null
-      - name: CODREG
-        description: Code officiel français de la région rattachée à la commune
-      - name: CODDEP
-        description: Code officiel français du département rattaché à la commune
-      - name: LIBGEO
-        description: Nom des communes avec articles et tirets 
+  # - name: com_dep_reg
+  #   columns:
+  #     - name: CODGEO
+  #       description: Code officiel français de la commune
+  #       tests:
+  #         - unique
+  #         - not_null
+  #     - name: CODREG
+  #       description: Code officiel français de la région rattachée à la commune
+  #     - name: CODDEP
+  #       description: Code officiel français du département rattaché à la commune
+  #     - name: LIBGEO
+  #       description: Nom des communes avec articles et tirets 
 
-  - name: gps_dep_reg
-    columns:
-      - name: geo_point
-        description: Coordonnées géograhiques du point lié à la commune préfecture, en liste ['Lattitude','Longitude']
-      - name: service
-        description: Type de Préfecture Département ou Région
-        tests:
-          - accepted_values:
-              values: ['Préfecture','Préfecture de région']
-      - name: code_INSEE
-        description: Code officiel français de la commune
-        tests:
-          - not_null
-      - name: commune 
-        description: Nom des Préfectures avec articles et tirets 
-      - name: DEP
-        description: Code officiel français du département rattaché à la commune, vide pour les régions
-      - name: REG
-        description: Code officiel français de la région rattachée à la commune, vide pour les départements
+  # - name: gps_dep_reg
+  #   columns:
+  #     - name: geo_point
+  #       description: Coordonnées géograhiques du point lié à la commune préfecture, en liste ['Lattitude','Longitude']
+  #     - name: service
+  #       description: Type de Préfecture Département ou Région
+  #       tests:
+  #         - accepted_values:
+  #             values: ['Préfecture','Préfecture de région']
+  #     - name: code_INSEE
+  #       description: Code officiel français de la commune
+  #       tests:
+  #         - not_null
+  #     - name: commune 
+  #       description: Nom des Préfectures avec articles et tirets 
+  #     - name: DEP
+  #       description: Code officiel français du département rattaché à la commune, vide pour les régions
+  #     - name: REG
+  #       description: Code officiel français de la région rattachée à la commune, vide pour les départements
 
-  - name: typologie_territoires
-    columns:
-      - name: CodGeo
-        description: Code officiel français de la commune
-        tests:
-          - unique
-          - not_null
-      - name: libellé 
-        description: Nom des communes avec articles et tirets
-      - name: tranche_de_population
-        description: Tranche déterminée à partir du champ population
-      - name: population
-        description: Nombre d'habitants dans la commune  
+  # - name: typologie_territoires
+  #   columns:
+  #     - name: CodGeo
+  #       description: Code officiel français de la commune
+  #       tests:
+  #         - unique
+  #         - not_null
+  #     - name: libellé 
+  #       description: Nom des communes avec articles et tirets
+  #     - name: tranche_de_population
+  #       description: Tranche déterminée à partir du champ population
+  #     - name: population
+  #       description: Nombre d'habitants dans la commune  
 
   - name: logements_types_territoires
     columns:
-      - name: CODGEO
+      - name: geo
         description: codegéo
+
+  # - name: education_territoires
+  #   columns:
+  #     - name: CODGEO
+  #       description: codegéo
+
+  # - name: logements_types_territoires
+  #   columns:
+  #     - name: CODGEO
+  #       description: codegéo
