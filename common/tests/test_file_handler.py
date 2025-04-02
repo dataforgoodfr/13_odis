@@ -6,10 +6,9 @@ from unittest.mock import mock_open, patch
 import pytest
 
 from common.data_source_model import DataSourceModel
-from common.tests.stubs.data_handler import StubPageLog
 from common.utils.exceptions import InvalidCSV
 from common.utils.file_handler import FileHandler
-from common.utils.interfaces.data_handler import PageLog, StorageInfo
+from common.utils.interfaces.data_handler import OperationType, PageLog, StorageInfo
 
 
 def test_file_name():
@@ -113,7 +112,7 @@ def test_file_name_increment():
     assert file_name == f"{model_name}_2.json"
 
 
-def test_dump_metadata_with_csv_format():
+def test_dump_metadata_with_csv_format(stub_page_log):
 
     mock_open_func = mock_open()
 
@@ -141,16 +140,14 @@ def test_dump_metadata_with_csv_format():
 
     m = DataSourceModel(**model_dict)
     model = list(m.get_models("level1").values())[0]
-    pages = [
-        StubPageLog(),
-    ]
+    pages = [stub_page_log]
 
     # when
     with patch("builtins.open", mock_open_func):
         meta_info = file_handler.dump_metadata(
             model,
-            "extract",
-            start_time=datetime.datetime.now(tz=datetime.datetime.utc),
+            OperationType.EXTRACT,
+            start_time=datetime.datetime.now(tz=datetime.timezone.utc),
             last_processed_page=1,
             complete=True,
             errors=0,
@@ -158,7 +155,7 @@ def test_dump_metadata_with_csv_format():
         )
 
     # then
-    assert meta_info.operation == "extract"
+    assert meta_info.operation == OperationType.EXTRACT
 
 
 def test_handle_csv():
