@@ -6,7 +6,7 @@
 with apt_ as 
 (
     select 
-        value,
+        distinct value,
         geo
     from {{ ref('logements_appartement') }}  
 ),
@@ -14,7 +14,7 @@ with apt_ as
 apt_rp as 
 (
     select 
-        value,
+        distinct value,
         geo
     from {{ ref('logements_appartement_et_residences_principales') }} 
 ),
@@ -22,7 +22,7 @@ apt_rp as
 maison_ as 
 (
     select 
-        value,
+        distinct value,
         geo
     from {{ ref('logements_maison') }} 
 ),
@@ -30,7 +30,7 @@ maison_ as
 maison_rp as 
 (
     select 
-        value,
+        distinct value,
         geo
     from {{ ref('logements_maison_et_residences_principales') }} 
 ),
@@ -38,7 +38,7 @@ maison_rp as
 pieces as 
 (
     select 
-        value,
+        distinct value,
         geo
 
     from {{ ref('logements_pieces') }} 
@@ -47,7 +47,7 @@ pieces as
 total as 
 (
     select 
-        *
+        distinct *
     from {{ ref('logements_total') }} 
 )
 
