@@ -1,6 +1,7 @@
 import csv
 import re
 import unicodedata
+from io import StringIO
 from pathlib import Path
 from typing import Generator
 
@@ -204,12 +205,7 @@ class CsvDataLoader(AbstractDataLoader):
                 self.db_client.connect()
 
                 # Read CSV with specific parameters from config
-                if self.model.load_params:
-                    results = self.handler.csv_load(
-                        extract_page_log, **self.model.load_params
-                    )
-                else:
-                    results = self.handler.csv_load(extract_page_log)
+                results = self.handler.csv_load(extract_page_log, self.model)
 
                 for _, row in results.iterrows():
                     # Convert any NaN values to None for database compatibility
@@ -308,12 +304,39 @@ class CsvDataLoader(AbstractDataLoader):
             page_log.storage_info.file_name
         )
 
-        with open(filepath, "r", encoding=page_log.storage_info.encoding) as f:
+        with open(
+            filepath, "r", encoding=page_log.storage_info.encoding
+        ) as original_csv:
 
-            dialect = csv.Sniffer().sniff(f.read(1024))
-            f.seek(0)  # Reset file pointer to the beginning
-            # Read the first row to get the column names
-            csv_reader = csv.DictReader(f, dialect=dialect)
+            lines = original_csv.readlines()
+
+            total_len = len(lines)
+
+            lines = lines[
+                self.model.load_params.header : total_len
+                - self.model.load_params.skipfooter
+            ]
+
+            stream = StringIO("".join(lines))
+
+            # take into account the separator if defined in the model
+            delimiter = None
+
+            if self.model.load_params and self.model.load_params.separator:
+                delimiter = self.model.load_params.separator
+
+            dialect = csv.Sniffer().sniff(stream.getvalue(), delimiters=delimiter)
+
+            if delimiter is None:
+                # If no delimiter is provided, use the default dialect delimiter
+                # This is a fallback in case the model does not specify a separator
+                delimiter = dialect.delimiter
+
+            # Reset file pointer to the beginning
+            stream.seek(0)
+
+            csv_reader = csv.DictReader(stream, dialect=dialect, delimiter=delimiter)
+
             if csv_reader.fieldnames is None:
                 logger.error(f"No field names found in CSV file: {filepath}")
                 raise InvalidCSV(

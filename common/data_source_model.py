@@ -35,6 +35,36 @@ class HeaderModel(BaseModel):
     accept: AcceptHeader = "application/json"
 
 
+class DataLoadParameters(BaseModel):
+
+    model_config = ConfigDict(extra="allow")  # allow extra headers
+
+    separator: Optional[str] = Field(
+        default=";",
+        description="""
+            Optional separator for CSV files.
+            if not provided, the CSV loader will sniff the separator
+        """,
+    )
+
+    header: Optional[int] = Field(
+        default=0,
+        description="""
+            Used to specify the row number(s) to use as the column names,
+            and the start of the data.
+            see https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html
+        """,
+    )
+
+    skipfooter: Optional[int] = Field(
+        default=0,
+        description="""
+            Optional number of lines to skip at the end of the file.
+            if not provided, the CSV loader will not skip any lines
+        """,
+    )
+
+
 class APIModel(BaseModel):
     """the API section of the yaml file"""
 
@@ -123,10 +153,14 @@ class DomainModel(BaseModel):
         description="arbitrary query parameters passed to the API",
     )
 
-    load_params: Optional[dict] = Field(
-        default=None,
-        examples=[{"key": "value", "key2": 1.2}],
-        description="Parameters to be passed to the Loader",
+    load_params: Optional[DataLoadParameters] = Field(
+        default_factory=DataLoadParameters,
+        examples=[{"separator": ",", "header": 3}],
+        description="""
+            Parameters to be passed to the Loader when parsing the data,
+            such as the separator for CSV files,
+            the parameters are passed to the loader as keyword arguments,
+        """,
     )
 
     response_map: Optional[dict] = Field(
