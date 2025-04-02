@@ -49,3 +49,8 @@ models:
         description: Tranche déterminée à partir du champ population
       - name: population
         description: Nombre d'habitants dans la commune  
+
+  - name: logements_types_territoires
+    columns:
+      - name: CODGEO
+        description: codegéo

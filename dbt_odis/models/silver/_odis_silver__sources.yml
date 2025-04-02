@@ -16,6 +16,61 @@ sources:
         description: View contenant les informations de références des régions
         loaded_at_field: created_at
 
+      - name: vw_education_moyenne_eleve_commune
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_education_moyenne_eleve_departement
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_education_moyenne_eleve_region
+        description: View contenant
+        loaded_at_field: created_at
+        
+      - name: vw_logement_annuel_dept_data
+        description: View contenants
+        loaded_at_field: created_at
+
+      - name: vw_logements_appartement
+        description: View contenantments
+        loaded_at_field: created_at
+
+      - name: vw_logements_appartement_et_residences_principales
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_logements_maison
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_logements_maison_et_residences_principales
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_logements_pieces
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_logements_total
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_presentation_page_elus_communes
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_presentation_page_epci
+        description: View contenant
+        loaded_at_field: created_at
+        
+      - name: vw_presentation_page_population_communes
+        description: View contenant
+        loaded_at_field: created_at
+        
+      - name: vw_services_services
+        description: View contenant
+        loaded_at_field: created_at
 
 
       
