@@ -1,6 +1,6 @@
 import time
 import urllib
-from typing import Generator, Optional
+from typing import Generator
 
 import jmespath
 import nbformat

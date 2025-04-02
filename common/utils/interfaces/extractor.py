@@ -1,14 +1,15 @@
 import datetime
 import urllib
-from abc import ABC
-from typing import Any, Optional
+from abc import ABC, abstractmethod
+from typing import Any, Generator, Optional
 
 from pydantic import BaseModel, Field
 
 from common.utils.logging_odis import logger
 
 from ...data_source_model import APIModel, DataSourceModel, DomainModel
-from .data_handler import PageLog, IDataHandler
+from .data_handler import IDataHandler, OperationType, PageLog
+
 # from common.utils.file_handler import FileHandler
 
 
@@ -18,15 +19,14 @@ class ExtractionResult(BaseModel):
     success: bool = Field(..., description="is the page successfully extracted")
     payload: Any = Field(..., description="the extracted data")
     is_last: bool = Field(..., description="is this the last page")
-    
+
     count: Optional[int] = Field(
-        0,
-        description="number of records extracted from the page"
+        0, description="number of records extracted from the page"
     )
 
     total_count: Optional[int] = Field(
         0,
-        description="Total number of records to extract, if specified in the response"
+        description="Total number of records to extract, if specified in the response",
     )
 
     # TODO:
@@ -40,18 +40,15 @@ class ExtractionResult(BaseModel):
     )
 
     next_page: Optional[int] = Field(
-        None,
-        description="next page number, for use with pagenumber-style pagination"
+        None, description="next page number, for use with pagenumber-style pagination"
     )
 
     next_token: Optional[str] = Field(
-        None,
-        description="next page token, for use with token-style pagination"
+        None, description="next page token, for use with token-style pagination"
     )
 
     next_offset: Optional[int] = Field(
-        None,
-        description="next page offset, for use with offset-based pagination"
+        None, description="next page offset, for use with offset-based pagination"
     )
 
 
@@ -69,10 +66,7 @@ class AbstractSourceExtractor(ABC):
     api_config: APIModel
 
     def __init__(
-        self,
-        config: DataSourceModel,
-        model: DomainModel,
-        handler: IDataHandler = None
+        self, config: DataSourceModel, model: DomainModel, handler: IDataHandler = None
     ):
         """
         - populates the extractor with the configuration, the model and the handler
@@ -104,6 +98,13 @@ class AbstractSourceExtractor(ABC):
 
         self.api_config = self.config.get_api(model)
 
+    @abstractmethod
+    def download(self) -> Generator[ExtractionResult, None, None]:
+        """Method to be implemented by the child class to download data from the API.
+        The method should yield a ExtractionResult object for each page of data downloaded.
+        """
+        pass
+
     def execute(self) -> None:
         """Method to be called to start the extraction process.
         This method will download the data and store it in a local file; it will also
@@ -132,25 +133,25 @@ class AbstractSourceExtractor(ABC):
                 "page": last_page_downloaded,
                 "storage_info": storage_info,
                 "success": result.success,
-                "is_last": result.is_last
+                "is_last": result.is_last,
             }
 
             if not result.success:
                 errors += 1
 
-            page_log = PageLog( **page_log_info )
+            page_log = PageLog(**page_log_info)
             page_logs.append(page_log)
-        
+
         # if the loop completes, extraction is successful
         complete = True
 
         # dump the execution metadata
         self.handler.dump_metadata(
             self.model,
-            "extract",
-            start_time = start_time,
-            last_processed_page = last_page_downloaded,
-            complete = complete,
-            errors = errors,
-            pages = page_logs
+            OperationType.EXTRACT,
+            start_time=start_time,
+            last_processed_page=last_page_downloaded,
+            complete=complete,
+            errors=errors,
+            pages=page_logs,
         )

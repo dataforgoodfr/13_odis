@@ -1,3 +1,4 @@
+import datetime
 import json
 from pathlib import Path
 from typing import Any
@@ -5,12 +6,22 @@ from typing import Any
 import orjson
 import pandas as pd
 from bson import ObjectId
+from pydantic import ValidationError
 
 from common.data_source_model import FILE_FORMAT, DomainModel
+<<<<<<< HEAD
 from common.utils.exceptions import InvalidCSV, InvalidJson
+=======
+>>>>>>> dc68082 (refacto: IDataHandler is a pure interface)
 from common.utils.logging_odis import logger
 
-from .interfaces.data_handler import IDataHandler, PageLog, StorageInfo
+from .interfaces.data_handler import (
+    IDataHandler,
+    MetadataInfo,
+    OperationType,
+    PageLog,
+    StorageInfo,
+)
 
 DEFAULT_BASE_PATH = "data/imports"
 DEFAULT_FILE_FORMAT = "json"
@@ -27,20 +38,13 @@ class bJSONEncoder(json.JSONEncoder):
 
 class FileHandler(IDataHandler):
     """
-    a handler to save data to a file
-
-    TODO:
-    - better interfacing to allow for different file formats (csv, json, etc)
-    - better handling of metadata files
+    a handler to save data and metadata to a local file
     """
 
     base_path: str
     _index: int = 0
 
-    def __init__(
-        self,
-        base_path: str = DEFAULT_BASE_PATH
-    ):
+    def __init__(self, base_path: str = DEFAULT_BASE_PATH):
         """
         Args:
             base_path (str, optional): where to store the files, Defaults to 'data/imports'.
@@ -214,4 +218,98 @@ class FileHandler(IDataHandler):
         except Exception as e:
             logger.exception(f"Error reading file {filepath}: {str(e)}")
 
+<<<<<<< HEAD
         raise InvalidCSV(f"Error reading file '{filepath}'")
+=======
+        raise StopIteration
+
+    def load_metadata(
+        self, model: DomainModel, operation: OperationType
+    ) -> MetadataInfo:
+
+        metadata_filepath = self._data_dir(model) / self.file_name(
+            model,
+            suffix=f"metadata_{operation}",  # always the same pattern
+            format="json",  # metadata are always json
+        )
+
+        try:
+
+            with open(metadata_filepath, "r") as f:
+                metadata = orjson.loads(f.read())
+
+            return MetadataInfo(**metadata)
+
+        except orjson.JSONDecodeError as e:
+            logger.exception(f"Invalid JSON format in {metadata_filepath}: {str(e)}")
+
+        except ValidationError as e:
+            logger.exception(
+                f"Invalid metadata format in {metadata_filepath}: {str(e)}"
+            )
+
+        except Exception as e:
+            logger.exception(f"Error reading file {metadata_filepath}: {str(e)}")
+
+        raise
+
+    def dump_metadata(
+        self,
+        model: DomainModel,
+        operation: OperationType,
+        start_time: datetime = None,
+        last_processed_page: int = 1,
+        complete: bool = False,
+        errors: int = 0,
+        pages: list[PageLog] = None,
+    ) -> MetadataInfo:
+        """Dumps the information about an operation run into a MetadataInfo object and into a file.
+
+        Args:
+            model (DomainModel): the model to be processed
+            operation (OperationType): the type of operation to be performed
+            start_time (datetime): the time when the operation started, if not provided, current time is used
+            last_processed_page (int): the last page processed, default is 1
+            complete (bool): True if the operation completed successfully, default is False
+            errors (int): the number of errors encountered, default is 0
+            pages (list[PageLog]): the list of page logs, default is None
+
+        Returns:
+            MetadataInfo: the metadata information about the operation
+        """
+
+        # set default start_time if not provided
+        # do not set it in the function signature
+        # otherwise it will be set once at compilation time, not at runtime
+        if start_time is None:
+            start_time = datetime.datetime.now(tz=datetime.timezone.utc)
+
+        # Export metadata info
+        # just go through pydantic to ensure the data is valid
+        # and process eventual inner things
+        operation_metadata = MetadataInfo(
+            **{
+                "domain": model.domain_name,
+                "source": model.name,
+                "operation": str(operation),
+                "last_run_time": start_time.isoformat(),
+                "last_processed_page": last_processed_page,
+                "complete": complete,
+                "errors": errors,
+                "model": model,
+                "pages": pages,
+            }
+        )
+
+        meta_payload = operation_metadata.model_dump(mode="json")
+
+        meta_dump_info = self.file_dump(
+            model, data=meta_payload, suffix=f"metadata_{operation}", format="json"
+        )
+
+        logger.debug(
+            f"Metadata written in: '{meta_dump_info.location}/{meta_dump_info.file_name}'"
+        )
+
+        return operation_metadata
+>>>>>>> dc68082 (refacto: IDataHandler is a pure interface)

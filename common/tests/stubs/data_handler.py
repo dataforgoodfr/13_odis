@@ -1,14 +1,13 @@
 import datetime
 
+from common.data_source_model import DomainModel
 from common.utils.interfaces.data_handler import (
     IDataHandler,
     MetadataInfo,
+    OperationType,
     PageLog,
     StorageInfo,
-    OPERATION_TYPE
 )
-
-from common.data_source_model import DomainModel
 
 
 class StubDataHandler(IDataHandler):
@@ -22,20 +21,19 @@ class StubDataHandler(IDataHandler):
         return StorageInfo(
             location="test", format="test", file_name="test", encoding="test"
         )
-    
-    def dump_metadata(
-            self,
-            model: DomainModel,
-            operation: OPERATION_TYPE, 
-            start_time: datetime = None,
-            last_processed_page: int = None,
-            complete: bool = None,
-            errors: int = None,
-            pages: list[PageLog] = None
-            ):
-        
-        self.is_handled = True
 
+    def dump_metadata(
+        self,
+        model: DomainModel,
+        operation: OperationType,
+        start_time: datetime = None,
+        last_processed_page: int = None,
+        complete: bool = None,
+        errors: int = None,
+        pages: list[PageLog] = None,
+    ):
+
+        self.is_handled = True
 
         return MetadataInfo(
             **{
@@ -47,31 +45,9 @@ class StubDataHandler(IDataHandler):
                 "complete": complete,
                 "errors": errors,
                 "model": model,
-                "pages": pages
+                "pages": pages,
             }
         )
-
-
-class StubPageLog(PageLog):
-
-    def __init__(self):
-
-        page = 1
-        storage_info = StorageInfo(
-            location="data/imports",
-            format="json",
-            file_name="logement.logements_maison_et_residences_principales_1.json",
-            encoding="utf-8",
-        )
-        is_last = False
-        success = True
-
-        super().__init__(self, 
-                        page, 
-                        storage_info = storage_info, 
-                        is_last = is_last, 
-                        success = success
-                        )
 
 
 class StubMetadataInfo(MetadataInfo):
@@ -119,7 +95,7 @@ class StubMetadataInfo(MetadataInfo):
                         "encoding": "utf-8",
                     },
                     "is_last": False,
-                    "success": True
+                    "success": True,
                 }
             )
 
