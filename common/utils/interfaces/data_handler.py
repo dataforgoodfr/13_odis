@@ -87,19 +87,19 @@ class IDataHandler(Protocol):
         errors: int = 0,
         pages: list[PageLog] = None,
         **kwargs,
-    ) -> MetadataInfo: ...
+    ) -> MetadataInfo:
+        """Dumps the information about an operation run into a MetadataInfo object and into a file.
 
-    """Dumps the information about an operation run into a MetadataInfo object and into a file.
+        Args:
+            model (DomainModel): the model to be processed
+            operation (OperationType): the type of operation to be performed
+            start_time (datetime): the time when the operation started, if not provided, current time is used
+            last_processed_page (int): the last page processed, default is 1
+            complete (bool): True if the operation completed successfully, default is False
+            errors (int): the number of errors encountered, default is 0
+            pages (list[PageLog]): the list of page logs, default is None
 
-    Args:
-        model (DomainModel): the model to be processed
-        operation (OperationType): the type of operation to be performed
-        start_time (datetime): the time when the operation started, if not provided, current time is used
-        last_processed_page (int): the last page processed, default is 1
-        complete (bool): True if the operation completed successfully, default is False
-        errors (int): the number of errors encountered, default is 0
-        pages (list[PageLog]): the list of page logs, default is None
-
-    Returns:
-        MetadataInfo: the metadata information about the operation
-    """
+        Returns:
+            MetadataInfo: the metadata information about the operation
+        """
+        ...

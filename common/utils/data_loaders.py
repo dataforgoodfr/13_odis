@@ -11,10 +11,9 @@ from psycopg2.extras import Json
 from pydantic import validate_call
 
 from common.data_source_model import DataSourceModel, DomainModel
-from common.utils.database_client import DatabaseClient
 from common.utils.exceptions import InvalidCSV
 from common.utils.file_handler import FileHandler
-from common.utils.interfaces.data_handler import IDataHandler, PageLog
+from common.utils.interfaces.data_handler import IDataHandler, OperationType, PageLog
 from common.utils.interfaces.loader import AbstractDataLoader
 from common.utils.logging_odis import logger
 
@@ -166,7 +165,9 @@ class CsvDataLoader(AbstractDataLoader):
             )
 
             # load actual data from metadata
-            metadata = self.load_metadata()
+            metadata = self.handler.load_metadata(
+                self.model, operation=OperationType.EXTRACT
+            )
 
             # take 1st page log
             page_log = metadata.pages[0]

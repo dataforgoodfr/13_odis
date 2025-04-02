@@ -9,10 +9,7 @@ from bson import ObjectId
 from pydantic import ValidationError
 
 from common.data_source_model import FILE_FORMAT, DomainModel
-<<<<<<< HEAD
 from common.utils.exceptions import InvalidCSV, InvalidJson
-=======
->>>>>>> dc68082 (refacto: IDataHandler is a pure interface)
 from common.utils.logging_odis import logger
 
 from .interfaces.data_handler import (
@@ -69,7 +66,8 @@ class FileHandler(IDataHandler):
             model (DomainModel): the model that generated the data
             suffix (str, optional): a suffix to append to the file name. Defaults
                 to None, in which case an index is appended to the model name
-            format (str, optional): expected file format. Defaults to the model's file format
+            format (FILE_FORMAT, optional): expected file format.
+                Defaults to the model's file format
         """
 
         # If format not specified, apply the Model's file format
@@ -101,8 +99,8 @@ class FileHandler(IDataHandler):
         Args:
             model (DomainModel): the model that generated the data
             data (Any): the data to save
-            suffix (str, optional): a suffix to append to the file name. Defaults
-                to None.
+            suffix (FILE_FORMAT, optional): a suffix to append to the file name.
+                Defaults to the model's file format
 
         Returns:
             StorageInfo: the storage info, including the location of the file
@@ -218,10 +216,7 @@ class FileHandler(IDataHandler):
         except Exception as e:
             logger.exception(f"Error reading file {filepath}: {str(e)}")
 
-<<<<<<< HEAD
         raise InvalidCSV(f"Error reading file '{filepath}'")
-=======
-        raise StopIteration
 
     def load_metadata(
         self, model: DomainModel, operation: OperationType
@@ -312,4 +307,3 @@ class FileHandler(IDataHandler):
         )
 
         return operation_metadata
->>>>>>> dc68082 (refacto: IDataHandler is a pure interface)
