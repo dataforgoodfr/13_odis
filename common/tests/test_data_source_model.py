@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+
 import pytest
 from pydantic_core import ValidationError
 
@@ -72,6 +75,87 @@ def test_DomainModel_headers_are_merged_with_api_ones():
         model.headers.another_key == "another_value"
     )  # imported from the domain model
     assert model.headers.api_key == "api_value"  # imported from the API model
+
+
+def test_DomainModel_notebook_path_is_mandatory_for_NotebookExtractor():
+    # given
+    domain_type = "NotebookExtractor"
+    path = None
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            notebook_path=path,
+        )
+
+    # then
+    assert "notebook_path" in str(e.value)
+
+
+def test_DomainModel_notebook_path_must_be_valid_for_NotebookExtractor():
+    # given
+    domain_type = "NotebookExtractor"
+    path = "blah.ipynb"  # invalid path
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            notebook_path=path,
+        )
+
+    # then
+    assert "notebook_path" in str(e.value)
+
+
+def test_DomainModel_notebook_path_nominal():
+    # given
+    domain_type = "NotebookExtractor"
+
+    # when
+    # create a temporary file
+    # to simulate a notebook path
+    # and check that the path is valid
+    with tempfile.NamedTemporaryFile() as fp:
+        m = DomainModel(
+            type=domain_type,
+            notebook_path=Path(fp.name),
+        )
+
+    # then
+    assert m.notebook_path is not None
+
+
+def test_DomainModel_API_is_mandatory_when_not_a_notebook():
+    # given
+    domain_type = "JsonExtractor"
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            API=None,
+        )
+
+    # then
+    assert "API" in str(e.value)
+
+
+def test_DomainModel_endpoint_is_mandatory_when_not_a_notebook():
+    # given
+    domain_type = "JsonExtractor"
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            API="INSEE.Metadonnees",
+            endpoint=None,
+        )
+
+    # then
+    assert "endpoint" in str(e.value)
 
 
 def test_HeaderModel_accepts_extra_keys():
@@ -191,7 +275,7 @@ def test_DomainModel():
     assert model.description == model_dict["description"]
     assert model.type == model_dict["type"]
     assert model.endpoint == model_dict["endpoint"]
-    assert model.load_params is None
+    assert model.load_params is not None  # default value
     assert model.extract_params is None
 
 
@@ -227,6 +311,33 @@ def test_DomainModel_bad_type():
 
     # then
     assert "endpoint" in str(e.value)
+
+
+def test_DataSourceModel_domain_api_is_optional():
+    # given
+    domain_type = "NotebookExtractor"
+
+    # when
+    # create a temporary file
+    # to simulate a notebook path
+    # and check that the path is valid
+    with tempfile.NamedTemporaryFile() as fp:
+        notebook_path = Path(fp.name)
+        m = DataSourceModel(
+            **{
+                "domains": {
+                    "level1": {
+                        "domain1": {
+                            "type": domain_type,
+                            "notebook_path": notebook_path,
+                        },
+                    }
+                },
+            }
+        )
+
+    # then
+    assert m is not None
 
 
 def test_DataSourceModel_domain_api_is_ok():
@@ -303,7 +414,15 @@ def test_DomainModel_load_params_is_arbitrary_dict():
     model = DomainModel(**model_dict)
 
     # then
-    assert model.load_params == model_dict["load_params"]
+    # check all keys are in the model
+    # and values are kept as-is
+    assert all(
+        [
+            k in model.load_params.model_dump(mode="json")
+            and v == model.load_params.model_dump(mode="json")[k]
+            for k, v in model_dict["load_params"].items()
+        ]
+    )
 
 
 def test_DomainModel_extract_params_is_arbitrary_dict():
@@ -352,7 +471,10 @@ def test_DomainModel_load_params_default_value():
     model = DomainModel(**model_dict)
 
     # then
-    assert model.load_params is None
+    assert model.load_params is not None
+    assert model.load_params.model_dump()["separator"] == ";"
+    assert model.load_params.model_dump()["header"] == 0
+    assert model.load_params.model_dump()["skipfooter"] == 0
 
 
 def test_DomainModel_response_map_is_arbitrary_dict():
@@ -811,3 +933,238 @@ def test_table_name_is_derived_from_model_name():
 
     # then
     assert m.get_models()["level1.mod1_lvl1"].table_name == "level1_mod1_lvl1"
+
+
+def test_get_model_nominal():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.name == "level1.mod1_lvl1"
+
+
+def test_get_model_raises_ValueError():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+    with pytest.raises(ValueError) as e:
+        m.get_model("level1.mod1_lvl2")
+
+    # then
+    assert "level1.mod1_lvl2" in str(e.value)
+
+
+def test_AcceptHeader_simple():
+    # given
+
+    headers = {
+        "accept": "application/json",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_zip():
+    # given
+
+    headers = {
+        "accept": "application/zip",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_multiple():
+    # given
+
+    headers = {
+        "accept": "application/zip, application/octet-stream, */*",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_multiple_space_is_optional():
+    # given
+
+    headers = {
+        "accept": "application/json,application/xml, */*",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_incorrect():
+    # given
+
+    headers = {
+        "accept": "blah, application/xml, */*",
+    }
+
+    # when
+    with pytest.raises(ValidationError) as e:
+        HeaderModel(**headers)
+
+    # then
+    assert "accept" in str(e.value)
+
+
+def test_DataLoadParameters_nominal():
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "load_params": {
+                        "param1": "value1",
+                        "param2": 2,
+                    },
+                },
+            }
+        },
+    }
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.load_params.model_dump()["param1"] == "value1"
+    assert model.load_params.model_dump()["param2"] == 2
+
+
+def test_DataLoadParameters_empty():
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.load_params.model_dump(mode="json") == {
+        "separator": ";",
+        "header": 0,
+        "skipfooter": 0,
+    }
+
+
+def test_DataLoadParameters_default_values():
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "load_params": {},
+                },
+            }
+        },
+    }
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.load_params.model_dump(mode="json") == {
+        "separator": ";",
+        "header": 0,
+        "skipfooter": 0,
+    }

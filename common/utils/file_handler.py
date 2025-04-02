@@ -7,6 +7,7 @@ import pandas as pd
 from bson import ObjectId
 
 from common.data_source_model import DomainModel
+from common.utils.exceptions import InvalidCSV, InvalidJson
 from common.utils.logging_odis import logger
 
 from .interfaces.data_handler import IDataHandler, PageLog, StorageInfo
@@ -145,19 +146,21 @@ class FileHandler(IDataHandler):
         Args :
             page_log (PageLog) : the info where the file is stored
 
-        Return decoded JSON data into a python dict"""
+        Return decoded JSON data into a python dict
 
-        payload = {}
+        Raises:
+            InvalidJson: if the file is not found or the JSON is invalid
+
+        """
 
         filepath = Path(page_log.storage_info.location) / Path(
             page_log.storage_info.file_name
         )
-        logger.debug(f"File path: {filepath}")
 
         try:
             logger.debug(f"loading JSON file : {filepath}")
             with open(filepath, "r") as f:
-                payload = orjson.loads(f.read())
+                return orjson.loads(f.read())
 
         except json.JSONDecodeError as e:
             logger.exception(f"Invalid JSON format in {filepath}: {str(e)}")
@@ -165,26 +168,27 @@ class FileHandler(IDataHandler):
         except Exception as e:
             logger.exception(f"Error reading file {filepath}: {str(e)}")
 
-        return payload
+        raise InvalidJson(f"Error reading file '{filepath}'")
 
     def csv_load(
         self,
         page_log: PageLog,
-        header: int = 0,
-        skipfooter: int = 0,
-        separator: str = ";",
+        model: DomainModel,
     ) -> pd.DataFrame:
         """Parses a CSV file and returns the data as an iterator of `dict`
 
         TODO:
-        - better handling of CSV parameters (delimiter, etc)
         - benchmark usage of pandas vs csv module
 
         Args:
             page_log (PageLog) : the info where the file is stored
+            model (DomainModel): the model that generated the data
 
         Returns:
-            Iterator[dict]: the data from the CSV file
+            DataFrame: the data from the CSV file as a pandas DataFrame
+
+        Raises:
+            InvalidCSV: if the file is not found or the CSV is invalid
         """
 
         filepath = Path(page_log.storage_info.location) / Path(
@@ -195,13 +199,13 @@ class FileHandler(IDataHandler):
             logger.debug(f"loading CSV file : {filepath}")
             return pd.read_csv(
                 filepath,
-                header=header,
-                skipfooter=skipfooter,
-                sep=separator,
+                header=model.load_params.header,
+                skipfooter=model.load_params.skipfooter,
+                sep=model.load_params.separator,
                 engine="python",  # Required for skipfooter parameter
             )
 
         except Exception as e:
             logger.exception(f"Error reading file {filepath}: {str(e)}")
 
-        raise StopIteration
+        raise InvalidCSV(f"Error reading file '{filepath}'")
