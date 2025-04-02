@@ -92,6 +92,16 @@ models:
       - name: id
         description: id
 
+  - name: logements_annuel_dept_data
+    columns:
+      - name: id
+        description: id
+
+  - name: logements_dido_catalogue
+    columns:
+      - name: id
+        description: id
+
   - name: services_services
     columns:
       - name: id
