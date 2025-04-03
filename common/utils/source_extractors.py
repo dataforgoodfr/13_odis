@@ -6,31 +6,15 @@ import jmespath
 import nbformat
 import requests
 from nbconvert.preprocessors import ExecutePreprocessor
-from pydantic import Field
 
-from common.data_source_model import DataSourceModel, DomainModel
-from common.utils.interfaces.data_handler import IDataHandler
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
 from common.utils.logging_odis import logger
-
-from .file_handler import FileHandler
 
 
 class FileExtractor(AbstractSourceExtractor):
     """Generic extractor for a file dump from an API"""
 
     is_json: bool = False
-    handler: IDataHandler
-
-    def __init__(
-        self, config: DataSourceModel, model: DomainModel, handler: IDataHandler = None
-    ):
-
-        # default handler type to FileHandler
-        if not handler:
-            handler = FileHandler()
-
-        super().__init__(config, model, handler=handler)
 
     def download(self) -> Generator[ExtractionResult, None, None]:
         """Downloads data corresponding to the given source model.
@@ -134,16 +118,8 @@ class MelodiExtractor(FileExtractor):
         )
 
 
-class NotebookExtractor(AbstractSourceExtractor):
+class NotebookExtractor(FileExtractor):
     """Extractor for getting JSON data from an API"""
-
-    def __init__(self, config: DataSourceModel, model: DomainModel):
-        super().__init__(
-            config,
-            model,
-            handler=FileHandler(),
-            metadata_handler=FileHandler(file_name=f"{model.name}_extract_log.json"),
-        )
 
     def download(self) -> Generator[ExtractionResult, None, None]:
         """

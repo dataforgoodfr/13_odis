@@ -61,7 +61,6 @@ class AbstractSourceExtractor(ABC):
     config: DataSourceModel
     url: str  # TODO: add type hint (HTTPUrl)
     handler: IDataHandler
-    # metadata_handler: IDataHandler
     model: DomainModel
     api_config: APIModel
 
