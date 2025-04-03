@@ -8,7 +8,9 @@ from pydantic import BaseModel, Field
 from common.utils.logging_odis import logger
 
 from ...data_source_model import APIModel, DataSourceModel, DomainModel
-from .data_handler import IDataHandler, MetadataInfo, PageLog
+from .data_handler import IDataHandler, OperationType, PageLog
+
+# from common.utils.file_handler import FileHandler
 
 
 class ExtractionResult(BaseModel):
@@ -17,6 +19,15 @@ class ExtractionResult(BaseModel):
     success: bool = Field(..., description="is the page successfully extracted")
     payload: Any = Field(..., description="the extracted data")
     is_last: bool = Field(..., description="is this the last page")
+
+    count: Optional[int] = Field(
+        0, description="number of records extracted from the page"
+    )
+
+    total_count: Optional[int] = Field(
+        0,
+        description="Total number of records to extract, if specified in the response",
+    )
 
     # TODO:
     # - improve typing here
@@ -29,18 +40,15 @@ class ExtractionResult(BaseModel):
     )
 
     next_page: Optional[int] = Field(
-        None,
-        description="next page number, for use with pagenumber-style pagination"
+        None, description="next page number, for use with pagenumber-style pagination"
     )
 
     next_token: Optional[str] = Field(
-        None,
-        description="next page token, for use with token-style pagination"
+        None, description="next page token, for use with token-style pagination"
     )
 
     next_offset: Optional[int] = Field(
-        None,
-        description="next page offset, for use with offset-based pagination"
+        None, description="next page offset, for use with offset-based pagination"
     )
 
 
@@ -52,17 +60,12 @@ class AbstractSourceExtractor(ABC):
 
     config: DataSourceModel
     url: str  # TODO: add type hint (HTTPUrl)
-    handler: IDataHandler = None
-    metadata_handler: IDataHandler = None
+    handler: IDataHandler
     model: DomainModel
     api_config: APIModel
 
     def __init__(
-        self,
-        config: DataSourceModel,
-        model: DomainModel,
-        handler: IDataHandler,
-        metadata_handler: IDataHandler,
+        self, config: DataSourceModel, model: DomainModel, handler: IDataHandler = None
     ):
         """
         - populates the extractor with the configuration, the model and the handler
@@ -71,14 +74,12 @@ class AbstractSourceExtractor(ABC):
         Args:
             config (DataSourceModel): the configuration of the data source
             model (DomainModel): the model of the data source
-            handler (IDataHandler): the handler used to store the data
-            metadata_handler (IDataHandler): the handler used to store the metadata
+            handler (FileHandler): the handler used to store the data
         """
 
         self.config = config
-        self.handler = handler
-        self.metadata_handler = metadata_handler
         self.model = model
+        self.handler = handler
 
         # Decompose base API URl
         api = self.config.get_api(model)
@@ -95,6 +96,13 @@ class AbstractSourceExtractor(ABC):
         self.url = urllib.parse.urljoin(f"https://{base_split.netloc}", full_path)
 
         self.api_config = self.config.get_api(model)
+
+    @abstractmethod
+    def download(self) -> Generator[ExtractionResult, None, None]:
+        """Method to be implemented by the child class to download data from the API.
+        The method should yield a ExtractionResult object for each page of data downloaded.
+        """
+        pass
 
     def execute(self) -> None:
         """Method to be called to start the extraction process.
@@ -124,59 +132,25 @@ class AbstractSourceExtractor(ABC):
                 "page": last_page_downloaded,
                 "storage_info": storage_info,
                 "success": result.success,
-                "is_last": result.is_last
+                "is_last": result.is_last,
             }
 
             if not result.success:
                 errors += 1
 
-            page_log = PageLog( **page_log_info )
+            page_log = PageLog(**page_log_info)
             page_logs.append(page_log)
-        
+
         # if the loop completes, extraction is successful
         complete = True
 
-        # Export metadata info
-        # just go through pydantic to ensure the data is valid
-        # and process eventual inner things
-        extract_metadata = MetadataInfo(
-            **{
-                "domain": self.config.get_domain_name(self.model),
-                "source": self.model.name,
-                "operation": 'extract',
-                "last_run_time": start_time.isoformat(),
-                "last_processed_page": last_page_downloaded,
-                "complete": complete,
-                "errors": errors,
-                "model": self.model,
-                "pages": page_logs
-            }
-        ).model_dump( 
-            mode = "json" 
-        ) 
-
-        meta_info = self.metadata_handler.file_dump(
+        # dump the execution metadata
+        self.handler.dump_metadata(
             self.model,
-            data = extract_metadata
-            )
-
-        logger.debug(
-            f"Metadata written in: '{meta_info.location}/{meta_info.file_name}'"
+            OperationType.EXTRACT,
+            start_time=start_time,
+            last_processed_page=last_page_downloaded,
+            complete=complete,
+            errors=errors,
+            pages=page_logs,
         )
-
-    @abstractmethod
-    def download(self, *args, **kwargs) -> Generator[ExtractionResult, None, None]:
-        """Method to be implemented by the concrete extractor class.
-        It should return a generator that yields ExtractionResult objects.
-
-        Example:
-        ```python
-
-        def download(self):
-            for page in range(1, 10):
-                data = self.get_page(page)
-                is_last = page == 9
-                yield ExtractionResult(payload=data, is_last=is_last)
-        ```
-        """
-        pass

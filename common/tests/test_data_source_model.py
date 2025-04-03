@@ -13,7 +13,12 @@ def test_EndPoint_may_be_slash():
     path = "/"
 
     # when
-    model = DomainModel(API="INSEE.Metadonnees", type="JsonExtractor", endpoint=path)
+    model = DomainModel(
+        API="INSEE.Metadonnees",
+        type="JsonExtractor",
+        description="Only / in the endpoint path",
+        endpoint=path,
+    )
 
     # then
     assert model.endpoint == path  # no exception, this is OK
@@ -26,7 +31,12 @@ def test_EndPoint_must_start_with_slash():
 
     # when
     with pytest.raises(ValidationError) as e:
-        DomainModel(API="INSEE.Metadonnees", type="JsonExtractor", endpoint=path)
+        DomainModel(
+            API="INSEE.Metadonnees",
+            type="JsonExtractor",
+            description="Endpoint must start with /",
+            endpoint=path,
+        )
 
     # then
     assert "endpoint" in str(e.value)
@@ -39,10 +49,33 @@ def test_EndPoint_must_have_min_length():
 
     # when
     with pytest.raises(ValidationError) as e:
-        DomainModel(API="INSEE.Metadonnees", type="JsonExtractor", endpoint=path)
+        DomainModel(
+            API="INSEE.Metadonnees",
+            type="JsonExtractor",
+            description="Endpoint must have min length",
+            endpoint=path,
+        )
 
     # then
     assert "endpoint" in str(e.value)
+
+
+def test_Description_must_have_min_length():
+
+    # given
+    description = ""  # empty string
+
+    # when
+    with pytest.raises(ValidationError) as e:
+        DomainModel(
+            API="INSEE.Metadonnees",
+            type="JsonExtractor",
+            description=description,
+            endpoint="/example",
+        )
+
+    # then
+    assert "description" in str(e.value)
 
 
 def test_DomainModel_default_headers():
@@ -50,7 +83,10 @@ def test_DomainModel_default_headers():
 
     # when
     model = DomainModel(
-        API="INSEE.Metadonnees", type="JsonExtractor", endpoint="/geo/regions"
+        API="INSEE.Metadonnees",
+        type="JsonExtractor",
+        description="This is for testing default headers",
+        endpoint="/geo/regions",
     )
 
     # then
@@ -62,6 +98,7 @@ def test_DomainModel_headers_are_merged_with_api_ones():
     model = DomainModel(
         API="INSEE.Metadonnees",
         type="JsonExtractor",
+        description="Valid test description",
         endpoint="/geo/regions",
         headers=HeaderModel(another_key="another_value", accept="application/xml"),
     )
@@ -121,6 +158,7 @@ def test_DomainModel_notebook_path_nominal():
         m = DomainModel(
             type=domain_type,
             notebook_path=Path(fp.name),
+            description="Valid test description",
         )
 
     # then
@@ -330,6 +368,7 @@ def test_DataSourceModel_domain_api_is_optional():
                         "domain1": {
                             "type": domain_type,
                             "notebook_path": notebook_path,
+                            "description": "Valid test description",
                         },
                     }
                 },
@@ -406,6 +445,7 @@ def test_DomainModel_load_params_is_arbitrary_dict():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
         "load_params": {"key": "value", "key2": 1.2},
     }
@@ -431,6 +471,7 @@ def test_DomainModel_extract_params_is_arbitrary_dict():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
         "extract_params": {"key": "value", "key2": 1.2},
     }
@@ -448,6 +489,7 @@ def test_DomainModel_extract_params_default_value():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
     }
 
@@ -464,6 +506,7 @@ def test_DomainModel_load_params_default_value():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
     }
 
@@ -483,6 +526,7 @@ def test_DomainModel_response_map_is_arbitrary_dict():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
         "response_map": {"next": "paging.next"},
     }
@@ -500,6 +544,7 @@ def test_DomainModel_response_map_default_value():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
     }
 
