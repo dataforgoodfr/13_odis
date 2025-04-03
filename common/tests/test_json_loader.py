@@ -6,7 +6,7 @@ from common.data_source_model import DataSourceModel
 from common.tests.stubs.file_handler_stub import FileHandlerForJsonStub
 from common.utils.database_client import DatabaseClient
 from common.utils.interfaces.data_handler import PageLog
-from common.utils.loader import JsonDataLoader
+from common.utils.loader.json_loader import JsonDataLoader
 
 
 def test_create_or_overwrite_json_table(
