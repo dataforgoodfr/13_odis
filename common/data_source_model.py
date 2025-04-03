@@ -20,6 +20,7 @@ EndPoint = Annotated[
     ),
 ]
 
+
 AcceptHeader = Annotated[
     str,
     StringConstraints(
@@ -28,6 +29,11 @@ AcceptHeader = Annotated[
 ]
 
 FILE_FORMAT = Literal["csv", "json", "xlsx", "zip"]
+
+Description = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1),  # must not be empty string
+]
 
 
 class HeaderModel(BaseModel):
@@ -71,7 +77,7 @@ class APIModel(BaseModel):
     name: str
     base_url: HttpUrl
     apidoc: Optional[HttpUrl] = None
-    description: Optional[str] = None
+    description: Optional[Description] = None
     default_headers: Optional[HeaderModel] = None
     throttle: Optional[int] = 60
 
@@ -106,13 +112,19 @@ class DomainModel(BaseModel):
         """,
         examples=["NotebookExtractor", "JsonExtractor", "CSVExtractor"],
     )
-    description: Optional[str] = Field(
-        default=None,
+    description: Description = Field(
+        ...,
         description="""
             a human-readable description of the data source
         """,
     )
-    format: Optional[FILE_FORMAT] = "json"
+    format: Optional[FILE_FORMAT] = Field(
+        default="json",
+        description="""
+            format of the data to be extracted,
+            if not provided, the default format is `json`
+        """,
+    )
     name: Optional[str] = Field(
         default=None,
         description="""
@@ -246,6 +258,22 @@ class DomainModel(BaseModel):
                 )
 
         return self
+
+    @computed_field
+    @property
+    def domain_name(self) -> str:
+        """
+        gets the domain name for the model
+
+        Example:
+        ```python
+        DomainModel(name="logement.dido")
+        # table_name would be "logement"
+        ```
+        """
+        if self.name:
+            return self.name.split(".")[0]
+        return None
 
 
 class ConfigurationModel(BaseModel):

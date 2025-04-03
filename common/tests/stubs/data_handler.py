@@ -1,8 +1,10 @@
 import datetime
 
+from common.data_source_model import DomainModel
 from common.utils.interfaces.data_handler import (
     IDataHandler,
     MetadataInfo,
+    OperationType,
     PageLog,
     StorageInfo,
 )
@@ -20,23 +22,32 @@ class StubDataHandler(IDataHandler):
             location="test", format="test", file_name="test", encoding="test"
         )
 
+    def dump_metadata(
+        self,
+        model: DomainModel,
+        operation: OperationType,
+        start_time: datetime = None,
+        last_processed_page: int = None,
+        complete: bool = None,
+        errors: int = None,
+        pages: list[PageLog] = None,
+    ):
 
-class StubPageLog(PageLog):
+        self.is_handled = True
 
-    def __init__(self):
-
-        page = 1
-        storage_info = StorageInfo(
-            location="data/imports",
-            format="json",
-            file_name="logement.logements_maison_et_residences_principales_1.json",
-            encoding="utf-8",
+        return MetadataInfo(
+            **{
+                "domain": model.domain_name,
+                "source": model.name,
+                "operation": operation,
+                "last_run_time": start_time.isoformat(),
+                "last_processed_page": last_processed_page,
+                "complete": complete,
+                "errors": errors,
+                "model": model,
+                "pages": pages,
+            }
         )
-        is_last = False
-        extracted = True
-        loaded = False
-
-        super().__init__(self, page, storage_info, is_last, extracted, loaded)
 
 
 class StubMetadataInfo(MetadataInfo):
@@ -84,8 +95,7 @@ class StubMetadataInfo(MetadataInfo):
                         "encoding": "utf-8",
                     },
                     "is_last": False,
-                    "extracted": True,
-                    "loaded": False,
+                    "success": True,
                 }
             )
 

@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 from common.data_source_model import DataSourceModel
 from common.utils.source_extractors import NotebookExtractor
 
@@ -30,6 +29,7 @@ def test_json_extractor_init():
                         "API": api_name,
                         "endpoint": "/source_model1",
                         "type": "JsonExtractor",  # type of extractor
+                        "description": "Valid test description",
                     },
                 },
             },
@@ -37,7 +37,8 @@ def test_json_extractor_init():
     )
     model = list(config.get_models().values())[0]
 
-    extractor = StubExtractor(config, model, StubDataHandler(), StubDataHandler())
+    stub_handler = StubDataHandler()
+    extractor = StubExtractor(config, model, stub_handler)
 
     # when
     # call the next() method to call the generator
@@ -62,17 +63,16 @@ def test_NotebookExtractor_with_several_cells():
                         "type": "NotebookExtractor",
                         "notebook_path": f"{Path.cwd()}/common/tests/notebooks/test_notebook_cells.ipynb",
                         "format": "json",  # format of the result
+                        "description": "test",
                     },
                 },
             },
         }
     )
-    model = list(config.get_models().values())[0]
+    model = config.get_model("my_domain.my_notebook")
+    stub_handler = StubDataHandler()
 
-    extractor = NotebookExtractor(
-        config,
-        model,
-    )
+    extractor = NotebookExtractor(config, model, stub_handler)
 
     # when
     # call the next() method to call the generator
