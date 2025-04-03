@@ -3,9 +3,10 @@ import os
 import psycopg2
 
 from common.data_source_model import DataSourceModel
-from common.utils.data_loaders import JsonDataLoader
+from common.tests.stubs.file_handler_stub import FileHandlerForJsonStub
 from common.utils.database_client import DatabaseClient
 from common.utils.interfaces.data_handler import PageLog
+from common.utils.loader import JsonDataLoader
 
 
 def test_create_or_overwrite_json_table(
@@ -94,6 +95,7 @@ def test_load_json_data_nominal(
     )
 
     model = config.get_model("domain1.model_json")
+    handler = FileHandlerForJsonStub()
 
     data_loader = JsonDataLoader(
         model=model,
@@ -102,21 +104,7 @@ def test_load_json_data_nominal(
             settings=pg_settings,
             autocommit=False,
         ),
-    )
-
-    test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
-    pagelog = PageLog(
-        **{
-            "page": 1,
-            "success": True,
-            "is_last": True,
-            "storage_info": {
-                "location": test_data_dir,
-                "format": "json",
-                "file_name": "test_data.json",
-                "encoding": "utf-8",
-            },
-        }
+        handler=handler,
     )
 
     # need to create the table before loading data
@@ -129,7 +117,7 @@ def test_load_json_data_nominal(
     pg_con.commit()
 
     # when
-    result = next(data_loader.load_data([pagelog]))
+    result = next(data_loader.load_data(handler.page_logs))
 
     # then
     assert isinstance(result, PageLog)
@@ -179,6 +167,26 @@ def test_load_data_array_of_json(
         }
     )
 
+    test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
+
+    handler = FileHandlerForJsonStub(
+        page_logs=[
+            PageLog(
+                **{
+                    "page": 1,
+                    "success": True,
+                    "is_last": True,
+                    "storage_info": {
+                        "location": test_data_dir,
+                        "format": "json",
+                        "file_name": "test_array_of_json.json",
+                        "encoding": "utf-8",
+                    },
+                }
+            )
+        ]
+    )
+
     model = config.get_model("domain1.model_json")
     data_loader = JsonDataLoader(
         model=model,
@@ -187,20 +195,7 @@ def test_load_data_array_of_json(
             settings=pg_settings,
             autocommit=False,
         ),
-    )
-    test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
-    pagelog = PageLog(
-        **{
-            "page": 1,
-            "success": True,
-            "is_last": True,
-            "storage_info": {
-                "location": test_data_dir,
-                "format": "json",
-                "file_name": "test_array_of_json.json",
-                "encoding": "utf-8",
-            },
-        }
+        handler=handler,
     )
 
     # need to create the table before loading data
@@ -213,7 +208,7 @@ def test_load_data_array_of_json(
     pg_con.commit()
 
     # when
-    result = next(data_loader.load_data([pagelog]))
+    result = next(data_loader.load_data(handler.page_logs))
 
     # then
     assert isinstance(result, PageLog)

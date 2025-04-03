@@ -3,11 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Generator
 
 from common.data_source_model import DataSourceModel, DomainModel
-from common.utils.interfaces.data_handler import (
-    IDataHandler,
-    OperationType,
-    PageLog,
-)
+from common.utils.interfaces.data_handler import IDataHandler, OperationType, PageLog
 from common.utils.interfaces.db_client import IDBClient
 
 
@@ -84,6 +80,7 @@ class AbstractDataLoader(ABC):
         complete = True
 
         self.handler.dump_metadata(
+            self.model,
             OperationType.LOAD,
             start_time=start_time,
             last_processed_page=last_processed_page,

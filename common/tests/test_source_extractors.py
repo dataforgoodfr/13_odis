@@ -69,12 +69,10 @@ def test_NotebookExtractor_with_several_cells():
             },
         }
     )
-    model = list(config.get_models().values())[0]
+    model = config.get_model("my_domain.my_notebook")
+    stub_handler = StubDataHandler()
 
-    extractor = NotebookExtractor(
-        config,
-        model,
-    )
+    extractor = NotebookExtractor(config, model, stub_handler)
 
     # when
     # call the next() method to call the generator
