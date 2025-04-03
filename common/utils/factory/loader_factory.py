@@ -46,6 +46,7 @@ def create_loader(
     """
 
     try:
+
         loader_name = f"{str.capitalize(model.format)}DataLoader"
 
         settings = dotenv_values()
@@ -55,7 +56,7 @@ def create_loader(
             autocommit=False,
         )
 
-        source_module = import_module("common.utils.loader")
+        source_module = import_module(f"common.utils.loader.{model.format}_loader")
         _class: AbstractDataLoader = getattr(source_module, loader_name)
 
         return _class(config, model, db_client, handler=handler)
