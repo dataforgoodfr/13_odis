@@ -70,6 +70,13 @@ class DataLoadParameters(BaseModel):
         """,
     )
 
+    preprocessor: Optional[str] = Field(
+        default='init',
+        description="""
+            Optional : name of the jupyter notebook to be executed for preprocessing before load
+        """,
+    )
+
 
 class APIModel(BaseModel):
     """the API section of the yaml file"""

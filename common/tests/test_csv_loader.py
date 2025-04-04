@@ -6,7 +6,7 @@ from common.data_source_model import DataSourceModel
 from common.tests.stubs.file_handler_stub import FileHandlerForCSVStub
 from common.utils.database_client import DatabaseClient
 from common.utils.interfaces.data_handler import PageLog
-from common.utils.loader.csv_loader import CsvDataLoader
+from common.utils.loaders.csv_loader import CsvDataLoader
 
 
 def test_create_or_overwrite_csv_table(
