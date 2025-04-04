@@ -1201,3 +1201,77 @@ def test_DataLoadParameters_default_values():
         "header": 0,
         "skipfooter": 0,
     }
+
+
+def test_set_dictionary():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "load_params": {},
+                },
+            }
+        },
+        "dictionary": {
+            "level1": {
+                "mod1_lvl1": {"key": "value"},
+            }
+        },
+    }
+
+    # when
+    m = DataSourceModel(**model_dict)
+    # then
+    assert m.get_model("level1.mod1_lvl1").dictionary == {"key": "value"}
+
+
+def test_set_dictionary_is_optional():
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "load_params": {},
+                },
+                "mod1_lvl2": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "load_params": {},
+                },
+            }
+        },
+        "dictionary": {
+            "level1": {
+                "mod1_lvl1": {"key": "value"},
+            }
+        },
+    }
+
+    # when
+    m = DataSourceModel(**model_dict)
+    # then
+    assert m.get_model("level1.mod1_lvl2").dictionary == {}

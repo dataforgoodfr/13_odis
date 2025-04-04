@@ -83,6 +83,8 @@ class CsvDataLoader(AbstractDataLoader):
 
         All columns are set to TEXT type and nullable.
 
+        The dictionary is used to provide a description for each column.
+
         Example:
         ```
         # imagine the CSV file has the following content:
@@ -90,7 +92,7 @@ class CsvDataLoader(AbstractDataLoader):
         # "2023";"01";"Ain";"Tous Logements";4586;;409166;
         # "2023";"01";"Ain";"Individuel pur";1273;;159228;
 
-        # The sniffed columns would be: ['ANNEE', 'DEPARTEMENT_CODE', 'DEPARTEMENT_LIBELLE',...]
+        # The sniffed columns would be: ['annee', 'departement_code',...]
         ```
         """
 
@@ -145,13 +147,13 @@ class CsvDataLoader(AbstractDataLoader):
                     f"Invalid CSV file: No field names found in {filepath}"
                 )
 
-            logger.info(f"Sniffed columns: {csv_reader.fieldnames}")
+            logger.debug(f"Sniffed columns: {csv_reader.fieldnames}")
 
             return [
                 Column(
                     name=col,
                     data_type=ColumnType.TEXT,
-                    description="",
+                    description=self.model.dictionary.get(col, ""),
                 )
                 for col in csv_reader.fieldnames
                 # if col not in self.model.load_params.ignore_columns  # TODO: add this to the model

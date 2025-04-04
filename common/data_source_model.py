@@ -1,5 +1,5 @@
-from typing import Annotated, Literal, Optional, Self
 from pathlib import Path
+from typing import Annotated, Literal, Optional, Self
 
 from pydantic import (
     BaseModel,
@@ -72,6 +72,7 @@ class DataLoadParameters(BaseModel):
         """,
     )
 
+
 class DataProcessingParameters(BaseModel):
 
     name: str = Field(
@@ -83,7 +84,7 @@ class DataProcessingParameters(BaseModel):
     )
 
     type: PROCESSOR_TYPE = Field(
-        default = "notebook",
+        default="notebook",
         description="""
             Type of the processor.
             The following values are accepted :
@@ -92,10 +93,10 @@ class DataProcessingParameters(BaseModel):
     )
 
     base: str = Field(
-        default = "notebooks",
-        description = """
+        default="notebooks",
+        description="""
             Base folder path where the preprocessr code is to be found
-        """
+        """,
     )
 
     @computed_field
@@ -214,12 +215,7 @@ class DomainModel(BaseModel):
             Parameters to be passed if and when data needs 
             to be perprocessed between extract and load
         """,
-        examples = [
-            {
-                "name": "logements_sociaux_rpls",
-                "type": "notebook"
-            }
-        ]
+        examples=[{"name": "logements_sociaux_rpls", "type": "notebook"}],
     )
 
     #################################
@@ -234,6 +230,38 @@ class DomainModel(BaseModel):
             such as the separator for CSV files,
             the parameters are passed to the loader as keyword arguments,
         """,
+    )
+
+    response_map: Optional[dict] = Field(
+        default={},
+        examples=[{"next": "paging.next"}],
+        description="mapping of response keys to domain-specific keys",
+    )
+
+    #################################
+    # Notebook related fields
+    #################################
+    notebook_path: Optional[FilePath] = Field(
+        default=None,
+        description="""
+            path to the notebook to be used for the extraction,
+            the path is relative to the root of the repository,
+            it is used when the type is `NotebookExtractor`
+            the path must be a valid path and not a URL
+            the path is ignored (unused) when the API is used,
+        """,
+        examples=["notebooks/regions.ipynb", "notebooks/departements.ipynb"],
+    )
+
+    #################################
+    # Dictionary related fields
+    #################################
+    dictionary: Optional[dict] = Field(
+        default_factory=dict,
+        description="""
+            mapping between extracted fields and their business names
+        """,
+        examples=[{"NOMBE24": "Nom du bassin d'emploi"}],
     )
 
     def merge_headers(self, api_headers: HeaderModel) -> Self:
@@ -278,13 +306,9 @@ class DomainModel(BaseModel):
         """
 
         if self.API is None:
-            raise ValueError(
-                "API must be provided"
-            )
+            raise ValueError("API must be provided")
         elif self.endpoint is None:
-            raise ValueError(
-                "endpoint must be provided"
-            )
+            raise ValueError("endpoint must be provided")
 
         return self
 
@@ -327,6 +351,26 @@ class DataSourceModel(ConfigurationModel):
         ],
     )
     domains: dict[str, dict[str, DomainModel]]
+
+    dictionary: Optional[dict[str, dict[str, dict[str, str]]]] = Field(
+        default=None,
+        description="""
+            high level definition of the dictionary,
+            each key is a domain name 
+                each domain name contains a dict of model names
+                    each model name contains a list of dictionaries
+        """,
+        examples=[
+            {
+                "emploi": {
+                    "bmo": {
+                        "NOMBE24": "Nom du bassin d'emploi",
+                        "toto": "toto",
+                    }
+                }
+            }
+        ],
+    )
 
     @model_validator(mode="after")
     def check_consistency(self) -> Self:
@@ -377,6 +421,20 @@ class DataSourceModel(ConfigurationModel):
         for d_name, domain in self.domains.items():
             for m_name, model in domain.items():
                 model.name = f"{d_name}.{m_name}"
+        return self
+
+    @model_validator(mode="after")
+    def set_dictionary(self) -> Self:
+        """
+        sets the dictionary for each model in the domain section if available
+        """
+        if self.dictionary:
+            for domain, v in self.dictionary.items():
+                for model_name, dictionary in v.items():
+                    model = self.get_model(f"{domain}.{model_name}")
+                    if model:
+                        model.dictionary = dictionary
+
         return self
 
     def get_domains_with_models_for_api(self, api_name: str) -> dict[str, list[str]]:
