@@ -388,21 +388,8 @@ domains:
         # notebook_path: notebook/logements_sociaux_2024.ipynb # skip the notebook processing state for now
         format: xlsx
         last_publish_date: "2024-01-01"
-        
-      # logements_sociaux_region:
-      #   description: Données nationales RPLS 2024 - régions
-      #   type: ExcelProcessor
-      #   parent_source: logements_sociaux
-      #   format: xlsx
-      #   preprocess_params:
-      #     sheets:
-      #       - REGION
-      #     header: 5
-      #     skipfooter: 0
-      #     keep_columns:
-      #       - nb_loues
-      #       - nb_vacants
-      #       - nb_vides
+        load_params:
+          preprocessor: logements_sociaux_rpls
 
 
 

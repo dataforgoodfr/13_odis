@@ -104,7 +104,7 @@ class AbstractSourceExtractor(ABC):
         """
         pass
 
-    def execute(self) -> Generator[ExtractionResult,None,None]:
+    def execute(self) -> None:
         """Method to be called to start the extraction process.
         This method will download the data and store it in a local file; it will also
         store the metadata of the extraction in a separate file.
@@ -140,9 +140,6 @@ class AbstractSourceExtractor(ABC):
 
             page_log = PageLog(**page_log_info)
             page_logs.append(page_log)
-            
-            # yield the current page result and PageLog 
-            yield page_log
 
         # if the loop completes, extraction is successful
         complete = True
@@ -156,4 +153,5 @@ class AbstractSourceExtractor(ABC):
             complete=complete,
             errors=errors,
             pages=page_logs,
+            artifacts=[]
         )
