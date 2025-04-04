@@ -12,13 +12,33 @@ from common.utils.logging_odis import logger
 class JsonDataLoader(AbstractDataLoader):
 
     def list_columns(self) -> list[Column]:
-        """for json data, we only need a single column to store the jsonb data"""
+        """for json data, we only need a single column to store the jsonb data
+
+        the description contains the dictionary of the json data if available
+
+        Example:
+        ```yaml
+        dictionary:
+            my_domain:
+                my_source:
+                    unique_id: id unique
+                    description: description de la donnée
+
+        # would generate the following column description
+        # unique_id: id unique, description: description de la donnée
+        ```
+        """
+
+        description = ", ".join(
+            [f"{key}: {value}" for key, value in self.model.dictionary.items()]
+        )
+        description = description.replace("'", '"')
 
         return [
             Column(
                 name="data",
                 data_type=ColumnType.JSON,
-                description="Data loaded as JSONB",
+                description=description,
             )
         ]
 

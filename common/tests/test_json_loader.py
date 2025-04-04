@@ -352,3 +352,59 @@ def test_load_data_raises_error_when_data_is_corrupt(
 
     # then
     assert not result.success
+
+
+def test_list_columns(pg_settings):
+    """scenario where the table does not exist in the database"""
+
+    # given
+    config = DataSourceModel(
+        **{
+            "APIs": {
+                "api1": {
+                    "name": "INSEE.Metadonnees",
+                    "base_url": "https://api.insee.fr/",
+                },
+            },
+            "domains": {
+                "domain1": {
+                    "model_json": {
+                        "API": "api1",  # OK, api1 is defined
+                        "type": "JSONExtractor",
+                        "endpoint": "/geo/regions",
+                        "description": "test",
+                    },
+                }
+            },
+            "dictionary": {
+                "domain1": {
+                    "model_json": {
+                        "DEPARTEMENT_CODE": "Code du département",
+                    }
+                },
+            },
+        }
+    )
+
+    model = config.get_model("domain1.model_json")
+
+    file_handler = FileHandlerForJsonStub()
+
+    data_loader = JsonDataLoader(
+        model=model,
+        config=config,
+        db_client=DatabaseClient(
+            settings=pg_settings,
+            autocommit=False,
+        ),
+        handler=file_handler,
+    )
+
+    # when
+    result = data_loader.list_columns()
+
+    # then
+    assert len(result) == 1
+    assert result[0].name == "data"
+    assert result[0].data_type == "JSONB"
+    assert result[0].description == "DEPARTEMENT_CODE: Code du département"

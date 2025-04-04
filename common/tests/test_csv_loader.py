@@ -145,3 +145,66 @@ def test_load_data_raises_error_if_table_does_not_exist(
 
     # then
     assert not result.success
+
+
+def test_list_columns(pg_settings):
+    """scenario where the table does not exist in the database"""
+
+    # given
+    config = DataSourceModel(
+        **{
+            "APIs": {
+                "api1": {
+                    "name": "INSEE.Metadonnees",
+                    "base_url": "https://api.insee.fr/",
+                },
+            },
+            "domains": {
+                "domain1": {
+                    "model_csv": {
+                        "API": "api1",  # OK, api1 is defined
+                        "type": "CSVExtractor",
+                        "endpoint": "/geo/regions",
+                        "description": "test",
+                    },
+                }
+            },
+            "dictionary": {
+                "domain1": {
+                    "model_csv": {
+                        # correspond to the cols in test_data.csv file
+                        "DEPARTEMENT_CODE": "Code du département",
+                    }
+                },
+            },
+        }
+    )
+
+    model = config.get_model("domain1.model_csv")
+
+    file_handler = FileHandlerForCSVStub(
+        test_data_dir=os.path.split(os.path.abspath(__file__))[0] + "/data",
+        file_name="test_data.csv",
+    )
+
+    data_loader = CsvDataLoader(
+        model=model,
+        config=config,
+        db_client=DatabaseClient(
+            settings=pg_settings,
+            autocommit=False,
+        ),
+        handler=file_handler,
+    )
+
+    # when
+    result = data_loader.list_columns()
+
+    # then
+    assert len(result) > 0
+
+    assert any(
+        col.name == "DEPARTEMENT_CODE".lower()
+        and col.description == "Code du département"
+        for col in result
+    )
