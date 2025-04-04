@@ -108,7 +108,6 @@ domains:
         header: 3
         skipfooter: 3
 
-
     demandeur_emploi_communes:
       API: statistiques.francetravail.org
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par communes de plus de 5000 hab
@@ -146,6 +145,15 @@ domains:
       format: zip
       headers:
         accept: application/zip, application/octet-stream
+
+    bmo:
+      notebook_path: notebook/emploi_bmo.ipynb
+      description: indicateurs de besoin de main d'oeuvre 
+      type: NotebookExtractor
+      format: csv
+      load_params:
+        header: 3 # index de la première ligne utile du csv
+        skipfooter: 3 # combien de lignes inutiles à skipper en fin de document
 
   presentation_page:
 
