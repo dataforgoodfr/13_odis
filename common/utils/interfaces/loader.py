@@ -1,10 +1,71 @@
 import datetime
+import re
+import unicodedata
 from abc import ABC, abstractmethod
-from typing import Generator
+from enum import StrEnum
+from typing import Generator, Optional
+
+from pydantic import BaseModel, ValidationInfo, field_validator
 
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.interfaces.data_handler import IDataHandler, OperationType, PageLog
 from common.utils.interfaces.db_client import IDBClient
+from common.utils.logging_odis import logger
+
+
+class ColumnType(StrEnum):
+    """Enum for column types."""
+
+    TEXT = "TEXT"
+    JSON = "JSONB"
+
+
+class Column(BaseModel):
+    """Column model."""
+
+    name: str
+    description: Optional[str] = None
+    data_type: Optional[ColumnType] = None
+    is_primary_key: Optional[bool] = False
+
+    @field_validator("name", mode="after")
+    @classmethod
+    def sanitize_name(cls, value: str, info: ValidationInfo) -> str:
+        """
+        Sanitize column names by:
+        1. Replacing spaces with underscores
+        2. Removing accents
+        3. Ensuring the name is SQL-friendly
+        4. remove surrounding quotes
+        5. Ensuring the name starts with a letter
+        6. Converting to lowercase
+        7. Removing any non-alphanumeric characters except underscores
+        """
+        # Normalize unicode characters and remove accents
+        normalized = (
+            unicodedata.normalize("NFKD", value)
+            .encode("ascii", "ignore")
+            .decode("utf-8")
+        )
+        # Replace spaces with underscores
+        sanitized = normalized.replace(" ", "_")
+        # Remove any non-alphanumeric characters except underscores
+        sanitized = re.sub(r"[^\w]", "", sanitized)
+        # Remove surrounding quotes
+        sanitized = sanitized.strip('"').strip("'")
+        # Remove any leading/trailing whitespace
+        sanitized = sanitized.strip()
+        # Remove any leading/trailing underscores
+        sanitized = sanitized.strip("_")
+
+        # Ensure the name is not empty
+        if not sanitized:
+            raise ValueError(f"Invalid column name: {value}")
+        # Ensure the column name starts with a letter
+        if not sanitized[0].isalpha():
+            sanitized = f"col_{sanitized}"
+
+        return sanitized.lower()
 
 
 class AbstractDataLoader(ABC):
@@ -14,6 +75,9 @@ class AbstractDataLoader(ABC):
     model: DomainModel
     handler: IDataHandler
     db_client: IDBClient
+
+    # cache for columns
+    columns: list[Column] = None
 
     def __init__(
         self,
@@ -33,8 +97,66 @@ class AbstractDataLoader(ABC):
         pass
 
     @abstractmethod
-    def create_or_overwrite_table(self):
+    def list_columns(self) -> list[Column]:
+        """List columns to be created in the target table."""
         pass
+
+    def create_or_overwrite_table(self):
+        # initiate database session
+        logger.info(f"Creating table bronze.{self.model.table_name}")
+
+        try:
+
+            self.db_client.connect()
+
+            self.db_client.execute(
+                f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
+            )
+
+            # cache columns for later
+            self.columns = self.list_columns()
+
+            logger.debug(
+                f"Creating table bronze.{self.model.table_name} with columns: {self.columns}"
+            )
+
+            columns_str = ", ".join(
+                [f"{col.name} {col.data_type}" for col in self.columns]
+            )
+
+            self.db_client.execute(
+                f"""
+                CREATE TABLE bronze.{self.model.table_name} (
+                    id SERIAL PRIMARY KEY,
+                    {columns_str},
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            # add comments on table
+            self.db_client.execute(
+                f"""
+                COMMENT ON TABLE bronze.{self.model.table_name} IS '{self.model.description}'
+                """
+            )
+
+            # add comments on columns
+            for col in self.columns:
+                if col.description is not None:
+                    self.db_client.execute(
+                        f"""
+                        COMMENT ON COLUMN bronze.{self.model.table_name}.{col.name} IS '{col.description}'
+                        """
+                    )
+
+            self.db_client.commit()
+
+            logger.info(f"Table bronze.{self.model.table_name} created successfully")
+
+        finally:
+            # always close the db connection
+            self.db_client.close()
 
     def execute(self, overwrite_table: bool = True):
         """

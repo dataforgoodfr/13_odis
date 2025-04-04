@@ -446,4 +446,21 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
-        
+  
+dictionary:
+  emploi:
+    bmo:
+      Code métier BMO: Code métier BMO (FAP)
+      Nom métier BMO: Libellé métier BMO
+      Famille_met: Code famille de métier
+      Lbl_fam_met: Libellé famille de métier
+      REG: Code région INSEE
+      NOM_REG: Nom de la région
+      Dept: N° de département
+      NomDept: Nom du département
+      BE24: Code bassin d'emploi 
+      NOMBE24: Nom du bassin d'emploi
+      met: Nombre de projet de recrutement 
+      xmet: Nombre de projets de recrutement jugés difficiles
+      smet: Nombre de projets de recrutement saisonniers
+

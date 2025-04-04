@@ -5,41 +5,42 @@ from psycopg2.extras import Json
 from pydantic import validate_call
 
 from common.utils.interfaces.data_handler import PageLog
-from common.utils.interfaces.loader import AbstractDataLoader
+from common.utils.interfaces.loader import AbstractDataLoader, Column, ColumnType
 from common.utils.logging_odis import logger
 
 
 class JsonDataLoader(AbstractDataLoader):
 
-    def create_or_overwrite_table(self):
-        """Creates the target Bronze table.
-        If exists, drops table to recreate"""
+    def list_columns(self) -> list[Column]:
+        """for json data, we only need a single column to store the jsonb data
 
-        # initiate database session
-        logger.info(f"Creating table bronze.{self.model.table_name}")
+        the description contains the dictionary of the json data if available
 
-        try:
+        Example:
+        ```yaml
+        dictionary:
+            my_domain:
+                my_source:
+                    unique_id: id unique
+                    description: description de la donnée
 
-            self.db_client.connect()
+        # would generate the following column description
+        # unique_id: id unique, description: description de la donnée
+        ```
+        """
 
-            self.db_client.execute(
-                f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
+        description = ", ".join(
+            [f"{key}: {value}" for key, value in self.model.dictionary.items()]
+        )
+        description = description.replace("'", '"')
+
+        return [
+            Column(
+                name="data",
+                data_type=ColumnType.JSON,
+                description=description,
             )
-            self.db_client.execute(
-                f"""
-                CREATE TABLE bronze.{self.model.table_name} (
-                    id SERIAL PRIMARY KEY,
-                    data JSONB,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
-            """
-            )
-            self.db_client.commit()
-
-            logger.info(f"Table bronze.{self.model.table_name} created successfully")
-
-        finally:
-            # always close the db connection
-            self.db_client.close()
+        ]
 
     def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """Method to load pages from json files, indexed in a DataProcessLog object.
