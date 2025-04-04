@@ -147,7 +147,7 @@ domains:
         accept: application/zip, application/octet-stream
 
     bmo:
-      notebook_path: notebook/emploi_bmo.ipynb
+      notebook_path: notebook/emploi_BMO.ipynb
       description: indicateurs de besoin de main d'oeuvre 
       type: NotebookExtractor
       format: csv
