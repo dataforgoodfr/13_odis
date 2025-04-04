@@ -5,7 +5,7 @@ from typing import Any, Optional, Protocol
 from pandas import DataFrame
 from pydantic import BaseModel, NonNegativeInt
 
-from common.data_source_model import DomainModel
+from common.data_source_model import DomainModel, FILE_FORMAT
 
 
 class OperationType(StrEnum):
@@ -13,6 +13,7 @@ class OperationType(StrEnum):
 
     EXTRACT = "extract"
     LOAD = "load"
+    PREPROCESS = "preprocess"
     HARVEST = "harvest"
 
 
@@ -33,6 +34,13 @@ class PageLog(BaseModel):
     is_last: Optional[bool] = False
     success: Optional[bool] = False
 
+class ArtifactLog(BaseModel):
+    """model for easily updating and logging information about the processing of an artifact file"""
+    name: str
+    format: FILE_FORMAT
+    storage_info: Optional[StorageInfo] = None
+    load_to_bronze: Optional[bool] = False
+    success: Optional[bool] = False
 
 class MetadataInfo(BaseModel):
     """Information about the metadata"""
@@ -46,6 +54,7 @@ class MetadataInfo(BaseModel):
     errors: int
     model: DomainModel
     pages: list[PageLog]
+    artifacts: list[ArtifactLog]
 
 
 class IDataHandler(Protocol):
