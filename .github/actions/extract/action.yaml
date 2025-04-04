@@ -1,0 +1,14 @@
+name: extract
+description: extract a specific domain
+
+inputs:
+  domain:
+    description: domain name
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: extract
+      shell: bash
+      run : poetry run bin/odis.py extract -d ${{ inputs.domain }}
