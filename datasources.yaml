@@ -82,9 +82,9 @@ domains:
     eff_secteur_prive_gds_secteurs:
       API: URSSAF
       description : Effectifs salariés du secteur privé par grands secteurs
-      type: JsonExtractor
-      endpoint: /catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/json
-      format: json
+      type: FileExtractor
+      endpoint: /catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/csv
+      format: csv
     
     demandeur_emploi_regions:
       API: statistiques.francetravail.org
