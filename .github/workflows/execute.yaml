@@ -7,27 +7,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: chcekout repository
+      - name: checkout
         uses: actions/checkout@v4
-      - name: setup python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v4
-      - name: Setup a local virtual environment
-        run: |
-          poetry config virtualenvs.create true --local
-          poetry config virtualenvs.in-project true --local
-      - uses: actions/cache@v3
-        name: Define a cache for the virtual environment based on the dependencies lock file
-        with:
-          path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
-      - name: Install the project dependencies
-        run: poetry install
+
+      - name: Setup
+        uses: ./.github/actions/setup
 
       - name: Extract logement
         uses: ./.github/actions/extract
         with:
-          domain: logement
+          domain: logement.logements_total
+
+      - name: Load logement
+        uses: ./.github/actions/load
+        with:
+          domain: logement.logements_total

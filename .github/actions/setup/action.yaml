@@ -1,0 +1,49 @@
+name: setup
+description: setup the pipeline
+
+runs:
+  using: composite
+  steps:
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v4
+      
+      - name: Setup a local virtual environment
+        shell: bash
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+      
+      - uses: actions/cache@v3
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+      
+      - name: Install the project dependencies
+        shell: bash
+        run: poetry install
+      
+      - name: create env file
+        shell: bash
+        run: cp .env.dist .env
+
+      - name: docker compose
+        shell: bash
+        run: docker compose up -d
+
+      - name: docker ps
+        shell: bash
+        run: docker ps -a
+
+      - name: all in
+        shell: bash
+        run: sleep 5s
+
+      - name: setup db
+        shell: bash
+        run: poetry run python bin/db.py init

@@ -1,5 +1,5 @@
-name: extract
-description: extract a specific domain
+name: load
+description: load a specific domain
 
 inputs:
   domain:
@@ -11,4 +11,4 @@ runs:
   steps:
     - name: extract
       shell: bash
-      run : poetry run python bin/odis.py extract -s ${{ inputs.domain }}
+      run : poetry run python bin/odis.py load -s ${{ inputs.domain }}
