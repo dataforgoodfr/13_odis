@@ -1,70 +1,54 @@
 #! /usr/bin/env python3
 import os
+import sys
 import argparse
-import psycopg2
-from psycopg2.extensions import connection
-from dotenv import load_dotenv
+from dotenv import load_dotenv, dotenv_values
+
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from common.utils.database_client import DatabaseClient
 
 load_dotenv()
-
-DB_BASE_CONFIG = {
-    'dbname': 'postgres',
-    'user': os.environ['PG_DB_USER'],
-    'password': os.environ['PG_DB_PWD'],
-    'host': os.environ['PG_DB_HOST'],
-    'port': os.environ['PG_DB_PORT']
-}
 
 DB_TARGET_NAME = os.environ['PG_DB_NAME']
 SCHEMAS = ['bronze', 'silver', 'gold']
 
-def db_connect(DB_NAME='postgres') -> connection: 
+def db_connect(db_name: str) -> DatabaseClient: 
     """connect to database"""
-    try: 
-        co = psycopg2.connect(
-            dbname=DB_NAME,
-            user=os.getenv('PG_DB_USER'),
-            password=os.getenv('PG_DB_PWD'),
-            host=os.getenv('PG_DB_HOST'),
-            port=os.getenv('PG_DB_PORT'),
-        )
-        co.autocommit = True
-        return co
-    except psycopg2.Error as e:
-        print(f"Failed to connect to database: {e}")
+    settings = dotenv_values()
+    settings["PG_DB_NAME"] = db_name
+
+    db_client = DatabaseClient(
+        settings=settings,
+        autocommit=True,
+    )
+
+    return db_client
 
 def db_init():
     """init or reset the database"""
-    co = db_connect()
-    cursor = co.cursor()
-
-    # Check if database is already setup
-    cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{DB_TARGET_NAME}'")
+    db_client = db_connect("postgres")
     
-    if cursor.fetchone():
-        response = input(f"Database '{DB_TARGET_NAME}' already exists. Do you want to reinitialize it? (y/N): ")
-        if response.lower() != 'y':
-            print("Database initialization cancelled.")
-            return
-    
-    cursor.execute("SELECT pg_terminate_backend(pg_stat_activity.pid) " +
+    db_client.execute("SELECT pg_terminate_backend(pg_stat_activity.pid) " +
                    "FROM pg_stat_activity WHERE " + 
                    f"pg_stat_activity.datname = '{DB_TARGET_NAME}' AND pid <> pg_backend_pid()")
-    cursor.execute(f"DROP DATABASE IF EXISTS {DB_TARGET_NAME}")
+    
+    
+    db_client.execute(f"DROP DATABASE IF EXISTS {DB_TARGET_NAME}")
     print(f"Dropped existing database {DB_TARGET_NAME}")
 
-    cursor.execute(f"CREATE DATABASE {DB_TARGET_NAME}")
+    db_client.execute(f"CREATE DATABASE {DB_TARGET_NAME}")
     print(f"Created database {DB_TARGET_NAME}")
 
-    co = db_connect(DB_TARGET_NAME)
-    cursor = co.cursor()
+    db_client.close()
 
+    db_client = db_connect("odis")
     for schema in SCHEMAS:
-        cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
+        db_client.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
         print(f"Created schema {schema}")
     
-    cursor.close()
-    co.close()
+    db_client.close()
     print("Database initialization completed successfully")
 
 def main():

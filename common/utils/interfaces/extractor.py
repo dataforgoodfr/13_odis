@@ -124,6 +124,10 @@ class AbstractSourceExtractor(ABC):
 
         for result in self.download():
 
+            if not result.success:
+                errors += 1
+                continue
+
             last_page_downloaded += 1
 
             storage_info = self.handler.file_dump(self.model, data=result.payload)
@@ -134,9 +138,6 @@ class AbstractSourceExtractor(ABC):
                 "success": result.success,
                 "is_last": result.is_last,
             }
-
-            if not result.success:
-                errors += 1
 
             page_log = PageLog(**page_log_info)
             page_logs.append(page_log)
