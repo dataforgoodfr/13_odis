@@ -1,13 +1,21 @@
 from datetime import datetime
 from typing import Any
+import os
+import tempfile
 
 from pandas import DataFrame
+
+from .object_storage_client import ObjectStorageClient
 from ...data_source_model import DomainModel
 from ..interfaces.data_handler import IDataHandler, MetadataInfo, OperationType, PageLog, StorageInfo
 
 
 class S3StorageHandler(IDataHandler):
     """Handler to manage S3 storage operations about extracted data"""
+
+    def __init__(self, object_storage: ObjectStorageClient, *args, **kwargs):
+        self.object_storage = object_storage
+        super().__init__(*args, **kwargs)
 
     def file_dump(
         self,
@@ -19,7 +27,20 @@ class S3StorageHandler(IDataHandler):
         **kwargs,
     ) -> StorageInfo:
         """Dumps the data into a file on S3 storage."""
-        raise NotImplementedError("TBD")
+
+        with tempfile.NamedTemporaryFile() as temp_file:
+            temp_file.write(data)
+            temp_file_path = temp_file.name
+            self.object_storage.upload_file(
+                temp_file_path,
+                object_name=f"{model.name}/{model.version}/{model.name}_{suffix}.{format}",
+            )
+        return StorageInfo(
+            location=f"s3.{self.bucket_name}",
+            file_name=f"{model.name}/{model.version}/{model.name}_{suffix}.{format}",
+            format=format,
+            encoding="utf-8",
+        )
 
     def json_load(self, page_log: PageLog, *args, suffix: str = None, **kwargs) -> dict:
         """Loads the JSON data from S3 storage."""
