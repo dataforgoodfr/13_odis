@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Generator
+import datetime
 
 import papermill as pm
 
@@ -24,13 +25,15 @@ class XlsxDataLoader(AbstractDataLoader):
         """
 
         load_success = False
+        start_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
         for extract_page_log in pages:
 
             try:
                 
                 # Prepare Notebook parameters
-                input_filepath = Path(extract_page_log.storage_info.location) / extract_page_log.storage_info.file_name
+                input_path = Path(extract_page_log.storage_info.location) 
+                input_filepath = input_path / extract_page_log.storage_info.file_name
 
                 base_path = Path('notebooks')
                 notebook_name = self.model.load_params.preprocessor
@@ -39,7 +42,10 @@ class XlsxDataLoader(AbstractDataLoader):
 
                 params = {
                     'filepath' : str(input_filepath),
-                    'model_name' : self.model.name
+                    'model_name' : self.model.name,
+                    'model': self.model,
+                    'handler': self.handler,
+                    'start_time': start_time
                 }
 
                 # Execute notebook

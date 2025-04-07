@@ -125,7 +125,7 @@ class FileHandler(IDataHandler):
 
         # Write payload content to file
         # case where we store a metadata file, the data is a dict although the model may not be json
-        if isinstance(data, dict) or model.format == "json":
+        if isinstance(data, dict) or format == "json":
 
             with open(filepath, "w") as f:
                 try:
@@ -137,7 +137,7 @@ class FileHandler(IDataHandler):
                 except Exception as e:
                     logger.error(f"Error encoding JSON data: {str(e)}")
 
-        elif isinstance(data, pd.DataFrame) and model.format=="xlsx":
+        elif isinstance(data, pd.DataFrame) and format=="xlsx":
             try:
                 with pd.ExcelWriter(
                     path = filepath,
@@ -161,12 +161,50 @@ class FileHandler(IDataHandler):
         if success:
             return StorageInfo(
                 location=str(data_dir),
-                format=model.format,
+                format = format,
                 file_name=filepath.name,
                 encoding="utf-8",
             )
         else: 
             return None
+
+    def artifact_dump(self, 
+                    data: Any, 
+                    name: str, 
+                    model: DomainModel, 
+                    format: FILE_FORMAT = None,
+                    load_to_bronze: bool = True 
+                    ) -> ArtifactLog:
+        """Utility function to dump a DataFrame to an Excel file.
+        Returns an ArtifactLog for historicization"""
+
+        dump_success = False
+        storage_info = None
+        if format is None:
+            format = model.format
+
+        try:
+            storage_info = self.file_dump(
+                model, 
+                data, 
+                suffix = name,
+                format = format
+                )
+            dump_success = True
+            load_to_bronze = True
+
+        except Exception as e:
+            print(f"Failed to dump artifact {name}: {str(e)}")
+            load_to_bronze = False
+            dump_success = False
+
+        return ArtifactLog(
+                name = name,
+                format = format,
+                storage_info = storage_info,
+                load_to_bronze = load_to_bronze,
+                success = dump_success
+            )
 
     def json_load(
         self,
