@@ -33,6 +33,12 @@ APIs:
     apidoc: https://data.education.gouv.fr/api/explore/v2.1/console
     default_headers:
       accept: application/json
+  
+  data.gouv.fr:
+    name: data.gouv.fr - Site web
+    description: Site de statistiques open data de l'Etat
+    base_url: https://www.data.gouv.fr/fr
+    apidoc: https://www.data.gouv.fr/fr
 
   GEO.api.gouv.fr:
     name: GEO api.gouv.fr
@@ -86,6 +92,7 @@ APIs:
 domains:
 
   emploi:
+
     eff_secteur_prive_gds_secteurs:
       API: URSSAF
       description : Effectifs salariés du secteur privé par grands secteurs
@@ -114,7 +121,6 @@ domains:
         separator: ;
         header: 3
         skipfooter: 3
-
 
     demandeur_emploi_communes:
       API: statistiques.francetravail.org
@@ -153,6 +159,15 @@ domains:
       format: zip
       headers:
         accept: application/zip, application/octet-stream
+
+    bmo_2024:
+      API: data.gouv.fr
+      description: Fichier BMO (Besoins en Main d'Oeuvre) - 2024
+      endpoint: /datasets/r/4319f5e8-a8e6-476c-8da0-c0d3439ebb55
+      type: FileExtractor
+      format: zip
+      load_params:
+        preprocessor: bmo_2024
 
   presentation_page:
 
@@ -385,9 +400,7 @@ domains:
         description: Données nationales RPLS 2024 - régions, départements, EPCI et communes
         type: FileExtractor
         endpoint: /media/7970/download?inline
-        # notebook_path: notebook/logements_sociaux_2024.ipynb # skip the notebook processing state for now
         format: xlsx
-        last_publish_date: "2024-01-01"
         load_params:
           preprocessor: logements_sociaux_rpls
 
