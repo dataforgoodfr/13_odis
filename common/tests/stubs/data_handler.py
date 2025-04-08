@@ -111,7 +111,7 @@ class StubMetadataInfo(MetadataInfo):
                     "storage_info": {
                         "location": "data/imports",
                         "format": "xlsx",
-                        "file_name": f"logement.logements_sociaux_epci.json",
+                        "file_name": "logement.logements_sociaux_epci.json",
                         "encoding": "utf-8",
                     },
                     "load_to_bronze": True,
