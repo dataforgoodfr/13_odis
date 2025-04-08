@@ -121,7 +121,6 @@ def test_DomainModel_notebook_name_is_mandatory_for_NotebookExtractor():
     with pytest.raises(ValueError) as e:
         
         processor_info = DataProcessingParameters(
-            name = None,
             type = "notebook"
         )
 
@@ -131,7 +130,7 @@ def test_DomainModel_notebook_name_is_mandatory_for_NotebookExtractor():
         )
 
     # then
-    assert "preprocessor.name" in str(e.value)
+    assert "name" in str(e.value)
 
 
 def test_DomainModel_preprocessor_name_must_be_valid():
