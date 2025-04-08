@@ -4,7 +4,6 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    FilePath,
     HttpUrl,
     StringConstraints,
     computed_field,
@@ -29,6 +28,8 @@ AcceptHeader = Annotated[
 ]
 
 FILE_FORMAT = Literal["csv", "json", "xlsx", "zip"]
+
+PROCESSOR_TYPE = Literal["notebook"]
 
 Description = Annotated[
     str,
@@ -70,10 +71,23 @@ class DataLoadParameters(BaseModel):
         """,
     )
 
-    preprocessor: Optional[str] = Field(
-        default='init',
+class DataProcessingParameters(BaseModel):
+
+    name: str = Field(
+        default = None,
         description="""
-            Optional : name of the jupyter notebook to be executed for preprocessing before load
+            Name of the preprocessor to be executed before load.
+            The preprocessor is assumed to be a jupyter notebook (extension .ipynb),
+            located in the notebooks/ folder.
+        """,
+    )
+
+    type: PROCESSOR_TYPE = Field(
+        default = "notebook",
+        description="""
+            Type of the processor.
+            The following values are accepted :
+             - "notebook" (default)
         """,
     )
 
@@ -140,7 +154,7 @@ class DomainModel(BaseModel):
     )
 
     #################################
-    # API related fields
+    # API / Extraction related fields
     #################################
     API: Optional[str] = Field(
         default=None,
@@ -172,6 +186,33 @@ class DomainModel(BaseModel):
         description="arbitrary query parameters passed to the API",
     )
 
+    response_map: Optional[dict] = Field(
+        default={},
+        examples=[{"next": "paging.next"}],
+        description="mapping of response keys to domain-specific keys",
+    )
+
+    #################################
+    # Preprocessing related fields
+    #################################
+    preprocessor: Optional[DataProcessingParameters] = Field(
+        default=None,
+        description="""
+            Parameters to be passed if and when data needs 
+            to be perprocessed between extract and load
+        """,
+        examples = [
+            {
+                "name": "logements_sociaux_rpls",
+                "type": "notebook"
+            }
+        ]
+    )
+
+    #################################
+    # Loader related fields
+    #################################
+
     load_params: Optional[DataLoadParameters] = Field(
         default_factory=DataLoadParameters,
         examples=[{"separator": ",", "header": 3}],
@@ -180,27 +221,6 @@ class DomainModel(BaseModel):
             such as the separator for CSV files,
             the parameters are passed to the loader as keyword arguments,
         """,
-    )
-
-    response_map: Optional[dict] = Field(
-        default={},
-        examples=[{"next": "paging.next"}],
-        description="mapping of response keys to domain-specific keys",
-    )
-
-    #################################
-    # Notebook related fields
-    #################################
-    notebook_path: Optional[FilePath] = Field(
-        default=None,
-        description="""
-            path to the notebook to be used for the extraction,
-            the path is relative to the root of the repository,
-            it is used when the type is `NotebookExtractor`
-            the path must be a valid path and not a URL
-            the path is ignored (unused) when the API is used,
-        """,
-        examples=["notebooks/regions.ipynb", "notebooks/departements.ipynb"],
     )
 
     def merge_headers(self, api_headers: HeaderModel) -> Self:

@@ -71,8 +71,6 @@ APIs:
     base_url: https://public.opendatasoft.com/api/explore/v2.1
     apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
     throttle: 100
-    #default_headers:
-      #accept: application/json
 
   URSSAF:
     name : Urssaf
@@ -401,8 +399,9 @@ domains:
         type: FileExtractor
         endpoint: /media/7970/download?inline
         format: xlsx
-        load_params:
-          preprocessor: logements_sociaux_rpls
+        preprocessor: 
+          name: logements_sociaux_rpls
+          type: notebook
 
 
 

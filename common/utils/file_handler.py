@@ -175,7 +175,7 @@ class FileHandler(IDataHandler):
                     format: FILE_FORMAT = None,
                     load_to_bronze: bool = True 
                     ) -> ArtifactLog:
-        """Utility function to dump a DataFrame to an Excel file.
+        """Utility function to dump a local file and generate an associated Artifact.
         Returns an ArtifactLog for historicization"""
 
         dump_success = False
@@ -200,7 +200,6 @@ class FileHandler(IDataHandler):
 
         return ArtifactLog(
                 name = name,
-                format = format,
                 storage_info = storage_info,
                 load_to_bronze = load_to_bronze,
                 success = dump_success
