@@ -179,7 +179,7 @@ def test_DomainModel_preprocessor_nominal():
         )
 
     # then
-    assert m.notebook_path is not None
+    assert m.preprocessor.name is not None
 
 
 def test_DomainModel_API_is_mandatory_when_not_a_notebook():
@@ -378,14 +378,17 @@ def test_DataSourceModel_domain_api_is_optional():
     # to simulate a notebook path
     # and check that the path is valid
     with tempfile.NamedTemporaryFile() as fp:
-        notebook_path = Path(fp.name)
+        notebook_name = fp.name.split('.')[0]
         m = DataSourceModel(
             **{
                 "domains": {
                     "level1": {
                         "domain1": {
                             "type": domain_type,
-                            "notebook_path": notebook_path,
+                            "prepocessor": {
+                                "name": notebook_name,
+                                "type": "notebook"
+                            },
                             "description": "Valid test description",
                         },
                     }
@@ -501,9 +504,9 @@ def test_DomainModel_preprocess_params_is_arbitrary_dict():
     # and values are kept as-is
     assert all(
         [
-            k in model.load_params.model_dump(mode="json")
-            and v == model.load_params.model_dump(mode="json")[k]
-            for k, v in model_dict["load_params"].items()
+            k in model.preprocessor.model_dump(mode="json")
+            and v == model.preprocessor.model_dump(mode="json")[k]
+            for k, v in model_dict["preprocessor"].items()
         ]
     )
 
