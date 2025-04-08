@@ -25,7 +25,7 @@ class XlsxDataLoader(AbstractDataLoader):
         """
 
         load_success = False
-        start_time = datetime.datetime.now(tz=datetime.timezone.utc)
+        # start_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
         for extract_page_log in pages:
 
