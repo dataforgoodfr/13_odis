@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from common.data_source_model import DataSourceModel
 from common.utils.source_extractors import NotebookExtractor
 
@@ -48,9 +50,10 @@ def test_json_extractor_init():
     assert extractor.is_download
 
 
-def test_NotebookExtractor_with_several_cells():
+def test_NotebookExtractor_valid():
     """
-    each cell stdout is a json object
+    the notebook should return a NotebookResult object
+    serialized as a dictionary
     """
 
     # given
@@ -61,7 +64,7 @@ def test_NotebookExtractor_with_several_cells():
                 "my_domain": {
                     "my_notebook": {
                         "type": "NotebookExtractor",
-                        "notebook_path": f"{Path.cwd()}/common/tests/notebooks/test_notebook_cells.ipynb",
+                        "notebook_path": f"{Path.cwd()}/common/tests/notebooks/test_notebook_valid.ipynb",
                         "format": "json",  # format of the result
                         "description": "test",
                     },
@@ -78,5 +81,41 @@ def test_NotebookExtractor_with_several_cells():
     # call the next() method to call the generator
     payload_1 = next(extractor.download()).payload
 
-    # 2 cells in the notebook
-    assert len(payload_1) == 2
+    # the csv file should be handled by the handler
+    assert payload_1 is not None
+
+
+def test_NotebookExtractor_invalid():
+    """
+    case where the notebook is not valid,
+    for example, the notebook does not return a NotebookResult object
+    """
+
+    # given
+    # the notebook should generate data in json format
+    config = DataSourceModel(
+        **{
+            "domains": {
+                "my_domain": {
+                    "my_notebook": {
+                        "type": "NotebookExtractor",
+                        "notebook_path": f"{Path.cwd()}/common/tests/notebooks/test_notebook_invalid.ipynb",
+                        "format": "json",  # format of the result
+                        "description": "test",
+                    },
+                },
+            },
+        }
+    )
+    model = config.get_model("my_domain.my_notebook")
+    stub_handler = StubDataHandler()
+
+    extractor = NotebookExtractor(config, model, stub_handler)
+
+    # when
+    # call the next() method to call the generator
+    with pytest.raises(StopIteration):
+        next(extractor.download())
+
+    # then
+    assert True
