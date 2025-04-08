@@ -36,16 +36,16 @@ class XlsxDataLoader(AbstractDataLoader):
                 input_filepath = input_path / extract_page_log.storage_info.file_name
 
                 base_path = Path('notebooks')
-                notebook_name = self.model.load_params.preprocessor
+                notebook_name = self.model.preprocessor.name
                 notebook_path = base_path / f"{notebook_name}.ipynb"
                 output_notebook_path = base_path / f"{notebook_name}_processed.ipynb"
 
                 params = {
                     'filepath' : str(input_filepath),
                     'model_name' : self.model.name,
-                    'model': self.model,
-                    'handler': self.handler,
-                    'start_time': start_time
+                    # 'model': self.model,
+                    # 'handler': self.handler,
+                    # 'start_time': start_time
                 }
 
                 # Execute notebook

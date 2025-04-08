@@ -7,6 +7,8 @@ import nbformat
 import requests
 from nbconvert.preprocessors import ExecutePreprocessor
 
+from pathlib import Path
+
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
 from common.utils.logging_odis import logger
 
@@ -137,9 +139,17 @@ class NotebookExtractor(FileExtractor):
             ...     print(result.payload)
         """
 
-        logger.info(f"Executing notebook '{self.model.notebook_path}'")
+        # Prepare Notebook parameters
+        notebook_name = self.model.preprocessor.name
 
-        with open(self.model.notebook_path) as f:
+        base_path = Path('notebooks')
+        notebook_name = self.model.preprocessor.name
+        notebook_path = base_path / f"{notebook_name}.ipynb"
+        # output_notebook_path = base_path / f"{notebook_name}_processed.ipynb"
+
+        logger.info(f"Executing notebook '{notebook_path}'")
+
+        with open(notebook_path) as f:
             nb_in = nbformat.read(f, nbformat.NO_CONVERT)
 
             ep = ExecutePreprocessor(timeout=600)

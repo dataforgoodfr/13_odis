@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pydantic_core import ValidationError
 
-from ..data_source_model import APIModel, DataSourceModel, DomainModel, HeaderModel
+from ..data_source_model import APIModel, DataSourceModel, DomainModel, HeaderModel, DataProcessingParameters
 
 
 def test_EndPoint_may_be_slash():
@@ -114,39 +114,50 @@ def test_DomainModel_headers_are_merged_with_api_ones():
     assert model.headers.api_key == "api_value"  # imported from the API model
 
 
-def test_DomainModel_notebook_path_is_mandatory_for_NotebookExtractor():
+def test_DomainModel_notebook_name_is_mandatory_for_NotebookExtractor():
     # given
     domain_type = "NotebookExtractor"
-    path = None
 
     # when
     with pytest.raises(ValueError) as e:
+        
+        processor_info = DataProcessingParameters(
+            name = None,
+            type = "notebook"
+        )
+
         DomainModel(
-            type=domain_type,
-            notebook_path=path,
+            type = domain_type,
+            preprocessor = processor_info,
         )
 
     # then
-    assert "notebook_path" in str(e.value)
+    assert "preprocessor.name" in str(e.value)
 
 
-def test_DomainModel_notebook_path_must_be_valid_for_NotebookExtractor():
+def test_DomainModel_preprocessor_name_must_be_valid():
     # given
     domain_type = "NotebookExtractor"
-    path = "blah.ipynb"  # invalid path
+    name = "blah"  # invalid path
 
     # when
     with pytest.raises(ValueError) as e:
+
+        processor_info = DataProcessingParameters(
+            name = name,
+            type = "notebook"
+        )
+
         DomainModel(
-            type=domain_type,
-            notebook_path=path,
+            type = domain_type,
+            preprocessor = processor_info,
         )
 
     # then
-    assert "notebook_path" in str(e.value)
+    assert "preprocessor.name" in str(e.value)
 
 
-def test_DomainModel_notebook_path_nominal():
+def test_DomainModel_preprocessor_nominal():
     # given
     domain_type = "NotebookExtractor"
 
@@ -155,10 +166,16 @@ def test_DomainModel_notebook_path_nominal():
     # to simulate a notebook path
     # and check that the path is valid
     with tempfile.NamedTemporaryFile() as fp:
+        
+        processor_info = DataProcessingParameters(
+            name = fp.name.split('.')[0],
+            type = "notebook"
+        )
+
         m = DomainModel(
             type=domain_type,
-            notebook_path=Path(fp.name),
             description="Valid test description",
+            preprocessor = processor_info
         )
 
     # then
@@ -180,7 +197,7 @@ def test_DomainModel_API_is_mandatory_when_not_a_notebook():
     assert "API" in str(e.value)
 
 
-def test_DomainModel_endpoint_is_mandatory_when_not_a_notebook():
+def test_DomainModel_endpoint_is_mandatory():
     # given
     domain_type = "JsonExtractor"
 
@@ -315,6 +332,7 @@ def test_DomainModel():
     assert model.endpoint == model_dict["endpoint"]
     assert model.load_params is not None  # default value
     assert model.extract_params is None
+    assert model.preprocessor is None
 
 
 def test_DomainModel_bad_endpoint():
@@ -464,6 +482,30 @@ def test_DomainModel_load_params_is_arbitrary_dict():
         ]
     )
 
+def test_DomainModel_preprocess_params_is_arbitrary_dict():
+    # given
+
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "description": "Valid test description",
+        "endpoint": "/geo/regions",
+        "preprocessor": {"key": "value", "key2": 1.2},
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    # check all keys are in the model
+    # and values are kept as-is
+    assert all(
+        [
+            k in model.load_params.model_dump(mode="json")
+            and v == model.load_params.model_dump(mode="json")[k]
+            for k, v in model_dict["load_params"].items()
+        ]
+    )
 
 def test_DomainModel_extract_params_is_arbitrary_dict():
     # given
@@ -519,6 +561,24 @@ def test_DomainModel_load_params_default_value():
     assert model.load_params.model_dump()["header"] == 0
     assert model.load_params.model_dump()["skipfooter"] == 0
 
+def test_DomainModel_preprocessor_params_default_value():
+    # given
+
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "description": "Valid test description",
+        "endpoint": "/geo/regions",
+        "preprocessor": {
+            "name": "bmo_2024"
+        }
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    assert model.preprocessor.model_dump()["type"] == "notebook"
 
 def test_DomainModel_response_map_is_arbitrary_dict():
     # given
