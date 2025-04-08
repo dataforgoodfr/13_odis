@@ -1,0 +1,19 @@
+meta {
+  name: repartion par sexe
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&AGE=_T&SEX=F&SEX=M&maxResult=1000
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  AGE: _T
+  SEX: F
+  SEX: M
+  maxResult: 1000
+}
