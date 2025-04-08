@@ -6,6 +6,7 @@ from common.utils.interfaces.data_handler import (
     MetadataInfo,
     OperationType,
     PageLog,
+    ArtifactLog,
     StorageInfo,
 )
 
@@ -31,6 +32,7 @@ class StubDataHandler(IDataHandler):
         complete: bool = None,
         errors: int = None,
         pages: list[PageLog] = None,
+        artifacts: list[ArtifactLog] = None
     ):
 
         self.is_handled = True
@@ -46,6 +48,7 @@ class StubDataHandler(IDataHandler):
                 "errors": errors,
                 "model": model,
                 "pages": pages,
+                "artifacts": artifacts,
             }
         )
 
@@ -114,6 +117,7 @@ class StubMetadataInfo(MetadataInfo):
             "successfully_completed": True,
             "model": stub_model,
             "pages": stub_pages,
+            "artifacts": None,
             "errors": 0,
             "complete": True,
         }
