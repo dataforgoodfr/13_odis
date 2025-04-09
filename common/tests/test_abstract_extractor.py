@@ -29,8 +29,7 @@ def test_execute_writes_data():
     model = conf.domains["level1"]["mod1_lvl1"]
 
     stub_handler = StubDataHandler()
-    stub_metadata_handler = StubDataHandler()  # TODO: add metadata handler
-    extractor = StubExtractor(conf, model, stub_handler, stub_metadata_handler)
+    extractor = StubExtractor(conf, model, stub_handler)
 
     # when
     extractor.execute()
@@ -64,14 +63,13 @@ def test_execute_writes_metadata():
     model = conf.domains["level1"]["mod1_lvl1"]
 
     stub_handler = StubDataHandler()
-    stub_metadata_handler = StubDataHandler()  # TODO: add metadata handler
-    extractor = StubExtractor(conf, model, stub_handler, stub_metadata_handler)
+    extractor = StubExtractor(conf, model, stub_handler)
 
     # when
     extractor.execute()
 
-    # then
-    assert stub_metadata_handler.is_handled
+    # # then
+    assert stub_handler.is_handled
 
 
 def test_execute_iterates_on_download():
@@ -100,8 +98,7 @@ def test_execute_iterates_on_download():
     model = conf.domains["level1"]["mod1_lvl1"]
 
     stub_handler = StubDataHandler()
-    stub_metadata_handler = StubDataHandler()  # TODO: add metadata handler
-    extractor = StubIterationExtractor(conf, model, stub_handler, stub_metadata_handler)
+    extractor = StubIterationExtractor(conf, model, stub_handler)
 
     # when
     extractor.execute()
