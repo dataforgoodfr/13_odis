@@ -20,6 +20,7 @@ def test_create_extractor_nominal():
                     "API": "INSEE.Metadonnees",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
+                    "description": "Valid test description"
                 }
             }
         },
@@ -50,6 +51,7 @@ def test_create_extractor_with_error():
                     "API": "INSEE.Metadonnees",
                     "type": "DummyExtractor",  # wrong type
                     "endpoint": "/geo/regions",
+                    "description": "Valid test description"
                 }
             }
         },

@@ -3,9 +3,10 @@ import os
 import psycopg2
 
 from common.data_source_model import DataSourceModel
-from common.utils.data_loaders import CsvDataLoader
+from common.tests.stubs.file_handler_stub import FileHandlerForCSVStub
 from common.utils.database_client import DatabaseClient
-from common.utils.interfaces.data_handler import MetadataInfo, PageLog
+from common.utils.interfaces.data_handler import PageLog
+from common.utils.loader.csv_loader import CsvDataLoader
 
 
 def test_create_or_overwrite_csv_table(
@@ -27,6 +28,7 @@ def test_create_or_overwrite_csv_table(
                         "API": "api1",  # OK, api1 is defined
                         "type": "CSVExtractor",
                         "endpoint": "/geo/regions",
+                        "description": "test",
                     },
                 }
             },
@@ -41,38 +43,9 @@ def test_create_or_overwrite_csv_table(
             settings=pg_settings,
             autocommit=False,
         ),
-    )
-    test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
-
-    # need to override the load_metadata method to return a MetadataInfo object
-    # with the required attributes
-    mocker.patch(
-        # patch the AbstractDataLoader where it is used
-        # instead of where it is defined
-        # this is important because the method is not called directly
-        "common.utils.data_loaders.AbstractDataLoader.load_metadata",
-        return_value=MetadataInfo(
-            domain="domain1",
-            source="api1",
-            operation="load",
-            last_run_time="2023-10-01T00:00:00Z",
-            last_processed_page=1,
-            complete=True,
-            errors=0,
-            model=model,
-            pages=[
-                PageLog(
-                    page=1,
-                    success=True,
-                    is_last=True,
-                    storage_info={
-                        "location": test_data_dir,
-                        "format": "csv",
-                        "file_name": "test_data.csv",
-                        "encoding": "utf-8",
-                    },
-                )
-            ],
+        handler=FileHandlerForCSVStub(
+            test_data_dir=os.path.split(os.path.abspath(__file__))[0] + "/data",
+            file_name="test_data.csv",
         ),
     )
 
@@ -116,6 +89,7 @@ def test_load_csv_data_nominal(
                         "API": "api1",  # OK, api1 is defined
                         "type": "CSVExtractor",
                         "endpoint": "/geo/regions",
+                        "description": "test",
                     },
                 }
             },
@@ -123,6 +97,12 @@ def test_load_csv_data_nominal(
     )
 
     model = config.get_model("domain1.model_csv")
+
+    file_handler = FileHandlerForCSVStub(
+        test_data_dir=os.path.split(os.path.abspath(__file__))[0] + "/data",
+        file_name="test_data.csv",
+    )
+
     data_loader = CsvDataLoader(
         model=model,
         config=config,
@@ -130,41 +110,7 @@ def test_load_csv_data_nominal(
             settings=pg_settings,
             autocommit=False,
         ),
-    )
-    test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
-
-    pagelog = PageLog(
-        **{
-            "page": 1,
-            "success": True,
-            "is_last": True,
-            "storage_info": {
-                "location": test_data_dir,
-                "format": "csv",
-                "file_name": "test_data.csv",
-                "encoding": "utf-8",
-            },
-        }
-    )
-
-    # need to override the load_metadata method to return a MetadataInfo object
-    # with the required attributes
-    mocker.patch(
-        # patch the AbstractDataLoader where it is used
-        # instead of where it is defined
-        # this is important because the method is not called directly
-        "common.utils.data_loaders.AbstractDataLoader.load_metadata",
-        return_value=MetadataInfo(
-            domain="domain1",
-            source="api1",
-            operation="load",
-            last_run_time="2023-10-01T00:00:00Z",
-            last_processed_page=1,
-            complete=True,
-            errors=0,
-            model=model,
-            pages=[pagelog],
-        ),
+        handler=file_handler,
     )
 
     # need to create the table before loading data
@@ -177,7 +123,7 @@ def test_load_csv_data_nominal(
     pg_con.commit()
 
     # when
-    result = next(data_loader.load_data([pagelog]))
+    result = next(data_loader.load_data(file_handler.page_logs))
 
     # then
     assert isinstance(result, PageLog)
@@ -218,6 +164,7 @@ def test_load_data_raises_error_if_table_does_not_exist(
                         "API": "api1",  # OK, api1 is defined
                         "type": "JsonExtractor",
                         "endpoint": "/geo/regions",
+                        "description": "test",
                     },
                 }
             },
