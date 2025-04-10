@@ -20,14 +20,16 @@ echo "----- Install poetry dependencies -----"
 poetry lock
 poetry install
 
+# Install pip dependencies like papermill
+echo "----- Install papermill -----"
+pip install papermill
+
 # Install Jupyter kernel
 echo "----- Install ipykernel -----"
 poetry run python -m ipykernel install --user --name=d4g --display-name "Python (d4g)"
 
 #echo "----- Install dependencies -----"
 #poetry add pandas psycopg2 ipykernel
-
-
 
 echo "----- EOF postStart.sh -----"
 
