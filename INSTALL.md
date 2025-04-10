@@ -53,13 +53,13 @@ Par exemple pour Ubuntu 23.04+:
 L'installation avec l'installateur officiel nécessitant quelques étapes supplémentaires,
 se référer à la [documentation officielle](https://python-poetry.org/docs/#installing-with-the-official-installer).
 
-### Utiliser un venv python
+#### Utiliser un venv python
 
     python3 -m venv .venv
 
     source .venv/bin/activate
 
-### Utiliser Poetry
+#### Utiliser Poetry
 
 Installer les dépendances:
 
@@ -73,12 +73,12 @@ Mettre à jour les dépendances:
 
     poetry update
 
-### Lancer les precommit-hook localement
+#### Lancer les precommit-hook localement
 
 [Installer les precommit](https://pre-commit.com/)
 
     pre-commit run --all-files
 
-### Utiliser Tox pour tester votre code
+#### Utiliser Tox pour tester votre code
 
     tox -vv
