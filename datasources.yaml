@@ -167,14 +167,14 @@ domains:
       peprocessor:
         name: bmo_2024
 
-    bmo:
-      notebook_path: notebook/emploi_bmo.ipynb
-      description: indicateurs de besoin de main d'oeuvre 
-      type: NotebookExtractor
-      format: csv
-      load_params:
-        header: 3 # index de la première ligne utile du csv
-        skipfooter: 3 # combien de lignes inutiles à skipper en fin de document
+    # bmo:
+    #   notebook_path: notebook/emploi_bmo.ipynb
+    #   description: indicateurs de besoin de main d'oeuvre 
+    #   type: NotebookExtractor
+    #   format: csv
+    #   load_params:
+    #     header: 3 # index de la première ligne utile du csv
+    #     skipfooter: 3 # combien de lignes inutiles à skipper en fin de document
 
   presentation_page:
 

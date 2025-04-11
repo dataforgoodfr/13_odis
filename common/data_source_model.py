@@ -1,4 +1,5 @@
 from typing import Annotated, Literal, Optional, Self
+from pathlib import Path
 
 from pydantic import (
     BaseModel,
@@ -89,6 +90,19 @@ class DataProcessingParameters(BaseModel):
              - "notebook" (default)
         """,
     )
+
+    base: str = Field(
+        default = "notebooks",
+        description = """
+            Base folder path where the preprocessr code is to be found
+        """
+    )
+
+    @computed_field
+    @property
+    def base_path(self) -> Path:
+        """Return the "base" parameter as a Path object"""
+        return Path(self.base)
 
 
 class APIModel(BaseModel):
