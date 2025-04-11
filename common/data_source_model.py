@@ -262,27 +262,16 @@ class DomainModel(BaseModel):
         """
         verify the consistency of the model:
         - check that the API names are valid
-        - check that model `notebook_path` is provided when the type is `NotebookExtractor`
         """
 
-        if self.type == "NotebookExtractor":
-            if self.notebook_path is None:
-                raise ValueError(
-                    "notebook_path must be provided when the type is 'NotebookExtractor'"
-                )
-            elif not self.notebook_path.is_file():
-                raise ValueError(
-                    "notebook_path must be a valid path to a notebook file"
-                )
-        else:
-            if self.API is None:
-                raise ValueError(
-                    "API must be provided when the type is not 'NotebookExtractor'"
-                )
-            elif self.endpoint is None:
-                raise ValueError(
-                    "endpoint must be provided when the type is not 'NotebookExtractor'"
-                )
+        if self.API is None:
+            raise ValueError(
+                "API must be provided when the type is not 'NotebookExtractor'"
+            )
+        elif self.endpoint is None:
+            raise ValueError(
+                "endpoint must be provided when the type is not 'NotebookExtractor'"
+            )
 
         return self
 

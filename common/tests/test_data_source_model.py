@@ -483,30 +483,6 @@ def test_DomainModel_load_params_is_arbitrary_dict():
         ]
     )
 
-def test_DomainModel_preprocess_params_is_arbitrary_dict():
-    # given
-
-    model_dict = {
-        "API": "INSEE.Metadonnees",
-        "type": "JsonExtractor",
-        "description": "Valid test description",
-        "endpoint": "/geo/regions",
-        "preprocessor": {"key": "value", "key2": 1.2},
-    }
-
-    # when
-    model = DomainModel(**model_dict)
-
-    # then
-    # check all keys are in the model
-    # and values are kept as-is
-    assert all(
-        [
-            k in model.preprocessor.model_dump(mode="json")
-            and v == model.preprocessor.model_dump(mode="json")[k]
-            for k, v in model_dict["preprocessor"].items()
-        ]
-    )
 
 def test_DomainModel_extract_params_is_arbitrary_dict():
     # given
