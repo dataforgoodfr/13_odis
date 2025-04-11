@@ -56,7 +56,7 @@ def create_loader(
             autocommit=False,
         )
 
-        source_module = import_module(f"common.utils.loader.{model.format}_loader")
+        source_module = import_module(f"common.utils.loaders.{model.format}_loader")
         _class: AbstractDataLoader = getattr(source_module, loader_name)
 
         return _class(config, model, db_client, handler=handler)
