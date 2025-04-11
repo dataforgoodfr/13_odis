@@ -1,10 +1,10 @@
 from typing import Annotated, Literal, Optional, Self
+from pathlib import Path
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    FilePath,
     HttpUrl,
     StringConstraints,
     computed_field,
@@ -29,6 +29,8 @@ AcceptHeader = Annotated[
 ]
 
 FILE_FORMAT = Literal["csv", "json", "xlsx", "zip"]
+
+PROCESSOR_TYPE = Literal["notebook"]
 
 Description = Annotated[
     str,
@@ -69,6 +71,38 @@ class DataLoadParameters(BaseModel):
             if not provided, the CSV loader will not skip any lines
         """,
     )
+
+class DataProcessingParameters(BaseModel):
+
+    name: str = Field(
+        description="""
+            Name of the preprocessor to be executed before load.
+            The preprocessor is assumed to be a jupyter notebook (extension .ipynb),
+            located in the notebooks/ folder.
+        """,
+    )
+
+    type: PROCESSOR_TYPE = Field(
+        default = "notebook",
+        description="""
+            Type of the processor.
+            The following values are accepted :
+             - "notebook" (default)
+        """,
+    )
+
+    base: str = Field(
+        default = "notebooks",
+        description = """
+            Base folder path where the preprocessr code is to be found
+        """
+    )
+
+    @computed_field
+    @property
+    def base_path(self) -> Path:
+        """Return the "base" parameter as a Path object"""
+        return Path(self.base)
 
 
 class APIModel(BaseModel):
@@ -133,7 +167,7 @@ class DomainModel(BaseModel):
     )
 
     #################################
-    # API related fields
+    # API / Extraction related fields
     #################################
     API: Optional[str] = Field(
         default=None,
@@ -165,6 +199,33 @@ class DomainModel(BaseModel):
         description="arbitrary query parameters passed to the API",
     )
 
+    response_map: Optional[dict] = Field(
+        default={},
+        examples=[{"next": "paging.next"}],
+        description="mapping of response keys to domain-specific keys",
+    )
+
+    #################################
+    # Preprocessing related fields
+    #################################
+    preprocessor: Optional[DataProcessingParameters] = Field(
+        default=None,
+        description="""
+            Parameters to be passed if and when data needs 
+            to be perprocessed between extract and load
+        """,
+        examples = [
+            {
+                "name": "logements_sociaux_rpls",
+                "type": "notebook"
+            }
+        ]
+    )
+
+    #################################
+    # Loader related fields
+    #################################
+
     load_params: Optional[DataLoadParameters] = Field(
         default_factory=DataLoadParameters,
         examples=[{"separator": ",", "header": 3}],
@@ -173,27 +234,6 @@ class DomainModel(BaseModel):
             such as the separator for CSV files,
             the parameters are passed to the loader as keyword arguments,
         """,
-    )
-
-    response_map: Optional[dict] = Field(
-        default={},
-        examples=[{"next": "paging.next"}],
-        description="mapping of response keys to domain-specific keys",
-    )
-
-    #################################
-    # Notebook related fields
-    #################################
-    notebook_path: Optional[FilePath] = Field(
-        default=None,
-        description="""
-            path to the notebook to be used for the extraction,
-            the path is relative to the root of the repository,
-            it is used when the type is `NotebookExtractor`
-            the path must be a valid path and not a URL
-            the path is ignored (unused) when the API is used,
-        """,
-        examples=["notebooks/regions.ipynb", "notebooks/departements.ipynb"],
     )
 
     def merge_headers(self, api_headers: HeaderModel) -> Self:
@@ -235,27 +275,16 @@ class DomainModel(BaseModel):
         """
         verify the consistency of the model:
         - check that the API names are valid
-        - check that model `notebook_path` is provided when the type is `NotebookExtractor`
         """
 
-        if self.type == "NotebookExtractor":
-            if self.notebook_path is None:
-                raise ValueError(
-                    "notebook_path must be provided when the type is 'NotebookExtractor'"
-                )
-            elif not self.notebook_path.is_file():
-                raise ValueError(
-                    "notebook_path must be a valid path to a notebook file"
-                )
-        else:
-            if self.API is None:
-                raise ValueError(
-                    "API must be provided when the type is not 'NotebookExtractor'"
-                )
-            elif self.endpoint is None:
-                raise ValueError(
-                    "endpoint must be provided when the type is not 'NotebookExtractor'"
-                )
+        if self.API is None:
+            raise ValueError(
+                "API must be provided"
+            )
+        elif self.endpoint is None:
+            raise ValueError(
+                "endpoint must be provided"
+            )
 
         return self
 

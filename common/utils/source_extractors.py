@@ -162,9 +162,15 @@ class NotebookExtractor(FileExtractor):
             ...     print(result.payload)
         """
 
-        logger.info(f"Executing notebook '{self.model.notebook_path}'")
+        # Prepare Notebook parameters
+        notebook_name = self.model.preprocessor.name
 
-        with open(self.model.notebook_path) as f:
+        notebook_name = self.model.preprocessor.name
+        notebook_path = self.model.preprocessor.base_path / f"{notebook_name}.ipynb"
+
+        logger.info(f"Executing notebook '{notebook_path}'")
+
+        with open(notebook_path) as f:
             nb_in = nbformat.read(f, nbformat.NO_CONVERT)
 
             ep = ExecutePreprocessor(timeout=600)
