@@ -36,8 +36,9 @@ class XlsxDataLoader(AbstractDataLoader):
                 input_filepath = input_path / extract_page_log.storage_info.file_name
 
                 notebook_name = self.model.preprocessor.name
-                notebook_path = self.preprocessor.base_path / f"{notebook_name}.ipynb"
-                output_notebook_path = self.preprocessor.base_path / f"{notebook_name}_processed.ipynb"
+                base_path = self.model.preprocessor.base_path
+                notebook_path = base_path / f"{notebook_name}.ipynb"
+                output_notebook_path = base_path / f"{notebook_name}_processed.ipynb"
 
                 params = {
                     'filepath' : str(input_filepath),

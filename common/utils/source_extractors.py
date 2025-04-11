@@ -166,7 +166,7 @@ class NotebookExtractor(FileExtractor):
         notebook_name = self.model.preprocessor.name
 
         notebook_name = self.model.preprocessor.name
-        notebook_path = self.preprocessor.base_path / f"{notebook_name}.ipynb"
+        notebook_path = self.model.preprocessor.base_path / f"{notebook_name}.ipynb"
 
         logger.info(f"Executing notebook '{notebook_path}'")
 
