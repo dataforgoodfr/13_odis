@@ -34,6 +34,9 @@ flags:
 models:
   dbt_odis:
     # Config indicated by + and applies to all files under models/example/
+    +persist_docs:
+      relation: true
+      columns: true
 
     bronze:
       +schema: bronze
