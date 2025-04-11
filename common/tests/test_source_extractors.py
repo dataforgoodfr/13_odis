@@ -65,7 +65,7 @@ def test_NotebookExtractor_valid():
                         "API": "INSEE.Metadonnees",
                         "endpoint": "/test",
                         "preprocessor": {
-                            "base": "/tests/notebooks",
+                            "base": "/common/tests/notebooks",
                             "name": "test_notebook_valid",
                         },
                         "format": "json",  # format of the result
@@ -105,7 +105,7 @@ def test_NotebookExtractor_invalid():
                         "API": "INSEE.Metadonnees",
                         "endpoint": "/test",
                         "preprocessor": {
-                            "base": "/tests/notebooks",
+                            "base": "/common/tests/notebooks",
                             "name": "test_notebook_invalid",
                         },
                         "format": "json",  # format of the result
