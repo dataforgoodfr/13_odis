@@ -64,9 +64,14 @@ def test_NotebookExtractor_valid():
                 "my_domain": {
                     "my_notebook": {
                         "type": "NotebookExtractor",
-                        "notebook_path": f"{Path.cwd()}/common/tests/notebooks/test_notebook_valid.ipynb",
+                        "API": "INSEE.Metadonnees",
+                        "endpoint": "/test",
+                        "preprocessor": {
+                            "base": "/tests/notebooks",
+                            "name": "test_notebook_valid",
+                        },
                         "format": "json",  # format of the result
-                        "description": "test",
+                        "description": "test description",
                     },
                 },
             },
@@ -99,9 +104,14 @@ def test_NotebookExtractor_invalid():
                 "my_domain": {
                     "my_notebook": {
                         "type": "NotebookExtractor",
-                        "notebook_path": f"{Path.cwd()}/common/tests/notebooks/test_notebook_invalid.ipynb",
+                        "API": "INSEE.Metadonnees",
+                        "endpoint": "/test",
+                        "preprocessor": {
+                            "base": "/tests/notebooks",
+                            "name": "test_notebook_invalid",
+                        },
                         "format": "json",  # format of the result
-                        "description": "test",
+                        "description": "test description",
                     },
                 },
             },
