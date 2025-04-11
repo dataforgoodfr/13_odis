@@ -74,7 +74,6 @@ class DataLoadParameters(BaseModel):
 class DataProcessingParameters(BaseModel):
 
     name: str = Field(
-        default = None,
         description="""
             Name of the preprocessor to be executed before load.
             The preprocessor is assumed to be a jupyter notebook (extension .ipynb),
@@ -266,11 +265,11 @@ class DomainModel(BaseModel):
 
         if self.API is None:
             raise ValueError(
-                "API must be provided when the type is not 'NotebookExtractor'"
+                "API must be provided"
             )
         elif self.endpoint is None:
             raise ValueError(
-                "endpoint must be provided when the type is not 'NotebookExtractor'"
+                "endpoint must be provided"
             )
 
         return self
