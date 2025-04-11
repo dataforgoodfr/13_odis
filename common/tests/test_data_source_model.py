@@ -113,9 +113,9 @@ def test_DomainModel_headers_are_merged_with_api_ones():
     assert model.headers.api_key == "api_value"  # imported from the API model
 
 
-def test_DomainModel_notebook_name_is_mandatory_for_NotebookExtractor():
+def test_DomainModel_notebook_name_is_mandatory_for_Preprocessor():
     # given
-    domain_type = "NotebookExtractor"
+    domain_type = "FileExtractor"
 
     # when
     with pytest.raises(ValueError) as e:
@@ -125,39 +125,20 @@ def test_DomainModel_notebook_name_is_mandatory_for_NotebookExtractor():
         )
 
         DomainModel(
-            type = domain_type,
-            preprocessor = processor_info,
+            type=domain_type,
+            api="INSEE.Metadonnees",
+            endpoint="/geo/regions",
+            description="Référentiel géographique INSEE - niveau régional",
+            preprocessor = processor_info
         )
 
     # then
     assert "name" in str(e.value)
 
 
-def test_DomainModel_preprocessor_name_must_be_valid():
-    # given
-    domain_type = "NotebookExtractor"
-    name = "blah"  # invalid path
-
-    # when
-    with pytest.raises(ValueError) as e:
-
-        processor_info = DataProcessingParameters(
-            name = name,
-            type = "notebook"
-        )
-
-        DomainModel(
-            type = domain_type,
-            preprocessor = processor_info,
-        )
-
-    # then
-    assert "preprocessor.name" in str(e.value)
-
-
 def test_DomainModel_preprocessor_nominal():
     # given
-    domain_type = "NotebookExtractor"
+    domain_type = "FileExtractor"
 
     # when
     # create a temporary file
@@ -172,7 +153,9 @@ def test_DomainModel_preprocessor_nominal():
 
         m = DomainModel(
             type=domain_type,
-            description="Valid test description",
+            api="INSEE.Metadonnees",
+            endpoint="/geo/regions",
+            description="Référentiel géographique INSEE - niveau régional",
             preprocessor = processor_info
         )
 
@@ -180,7 +163,7 @@ def test_DomainModel_preprocessor_nominal():
     assert m.preprocessor.name is not None
 
 
-def test_DomainModel_API_is_mandatory_when_not_a_notebook():
+def test_DomainModel_API_is_mandatory():
     # given
     domain_type = "JsonExtractor"
 
