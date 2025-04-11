@@ -8,8 +8,6 @@ import requests
 from nbconvert.preprocessors import ExecutePreprocessor
 from pydantic import BaseModel, Field
 
-from pathlib import Path
-
 from common.data_source_model import FILE_FORMAT
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
 from common.utils.logging_odis import logger
@@ -167,10 +165,8 @@ class NotebookExtractor(FileExtractor):
         # Prepare Notebook parameters
         notebook_name = self.model.preprocessor.name
 
-        base_path = Path('notebooks')
         notebook_name = self.model.preprocessor.name
-        notebook_path = base_path / f"{notebook_name}.ipynb"
-        # output_notebook_path = base_path / f"{notebook_name}_processed.ipynb"
+        notebook_path = self.preprocessor.base_path / f"{notebook_name}.ipynb"
 
         logger.info(f"Executing notebook '{notebook_path}'")
 

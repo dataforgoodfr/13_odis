@@ -126,7 +126,7 @@ def test_DomainModel_notebook_name_is_mandatory_for_Preprocessor():
 
         DomainModel(
             type=domain_type,
-            api="INSEE.Metadonnees",
+            API="INSEE.Metadonnees",
             endpoint="/geo/regions",
             description="Référentiel géographique INSEE - niveau régional",
             preprocessor = processor_info
@@ -153,7 +153,7 @@ def test_DomainModel_preprocessor_nominal():
 
         m = DomainModel(
             type=domain_type,
-            api="INSEE.Metadonnees",
+            API="INSEE.Metadonnees",
             endpoint="/geo/regions",
             description="Référentiel géographique INSEE - niveau régional",
             preprocessor = processor_info
