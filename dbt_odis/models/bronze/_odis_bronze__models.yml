@@ -136,3 +136,18 @@ models:
     columns:
       - name: id
         description: id
+        
+  - name: emploi_demandeur_emploi_communes
+    columns:
+      - name: id
+        description: id
+        
+  - name: emploi_demandeur_emploi_departements
+    columns:
+      - name: id
+        description: id
+        
+  - name: emploi_demandeur_emploi_regions
+    columns:
+      - name: id
+        description: id
