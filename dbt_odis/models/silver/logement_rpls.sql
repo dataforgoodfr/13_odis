@@ -1,28 +1,35 @@
 {{ config(alias = 'logement_rpls') }}
 
 
--- depends_on: {{ ref('logement_rpls_region') }}
+WITH rpls_commune AS (
+   SELECT
+       "DEPCOM_ARM" as com,
+       densite,
+       nb_ls,
+       nb_loues,
+       nb_vacants,
+       nb_vides,
+       nb_asso,
+       nb_occup_finan,
+       nb_occup_temp,
+       nb_ls_en_qpv,
+       tx_vac,
+       tx_vac3,
+       tx_mob
+   FROM {{ ref('logement_rpls_commune') }}
+),
 
 
-{% set table_ref = ref('logement_rpls_region') %}
-{% set column_prefix = 'tx_vac%' %}
-{% set columns = get_columns_by_prefix(table_ref, column_prefix) %}
+communes as
+(
+   select
+       code as code_com
+   from {{ ref('geographical_references_communes') }}
+)
 
 
-{% if columns | length == 0 %}
-   select NULL as densite, NULL as tx_vac, NULL as annee
-{% else %}
-   with logement_rpls as (
-       {% for col in columns %}
-           {% if not loop.first %}
-               UNION ALL
-           {% endif %}
-           select
-               densite,
-               "{{ col }}" as tx_vac,  -- 🚀 Fix: Quotes column name
-               '{{ col.split('_')[2] }}' as annee
-           from {{ table_ref }}
-       {% endfor %}
-   )
-   select * from logement_rpls
-{% endif %}
+SELECT
+   *
+FROM rpls_commune rpls
+inner join communes com
+       on rpls.com = com.code_com
