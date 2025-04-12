@@ -27,7 +27,19 @@ sources:
       - name: vw_education_moyenne_eleve_region
         description: View contenant
         loaded_at_field: created_at
-        
+
+      - name: vw_emploi_demandeur_emploi_communes
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_emploi_demandeur_emploi_departements
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_emploi_demandeur_emploi_regions
+        description: View contenant
+        loaded_at_field: created_at
+
       - name: vw_logement_annuel_dept_data
         description: View contenants
         loaded_at_field: created_at

@@ -12,7 +12,7 @@ with regions as
         json_value(data, '$.code') as code, 
         json_value(data, '$.type') as type,  
         json_value(data, '$.chefLieu') as chef_lieu,
-        json_value(data, '$.intitule') as intitule, 
+        replace(json_value(data, '$.intitule'), ' ', '-') as intitule,
         json_value(data, '$.typeArticle') as type_article, 
         json_value(data, '$.dateCreation') as date_creation,
         json_value(data, '$.intituleSansArticle') as intitule_sans_article,
