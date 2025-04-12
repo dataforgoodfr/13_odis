@@ -22,6 +22,18 @@ sources:
         freshness :
         warn_after: {count: 1, period : year}
         
+      - name: emploi_demandeur_emploi_communes
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: emploi_demandeur_emploi_departements
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: emploi_demandeur_emploi_regions
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
       - name: education_moyenne_eleve_commune
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at

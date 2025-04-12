@@ -66,7 +66,7 @@ from total tot
     left join maison_rp maison_rp on maison_rp.geo = tot.geo
     left join apt_ apt on apt.geo = tot.geo
     left join apt_rp apt_rp on apt_rp.geo = tot.geo
-    left join pieces pieces on pieces.geo = tot.geo;
+    left join pieces pieces on pieces.geo = tot.geo
 
 
 
