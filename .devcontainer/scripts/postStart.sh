@@ -20,23 +20,29 @@ echo "----- Install poetry dependencies -----"
 poetry lock
 poetry install
 
+# Install requirements
+echo "----- Install requirements -----"
+pip install -r $(pwd)/requirements.txt
+
 # Install pip dependencies like papermill
 echo "----- Install papermill -----"
-pip install papermill
+# pip install papermill
 
 # Install Jupyter kernel
 echo "----- Install ipykernel -----"
 poetry run python -m ipykernel install --user --name=d4g --display-name "Python (d4g)"
 
 # Install pip dependencies like papermill
-echo "----- Install dbt -----"
-pip install dbt-core 
-echo "----- Adapter pour PostgreSQL  -----"
-pip install dbt-postgres
-echo "----- Vérifier l'installation -----" 
-dbt --version
+# echo "----- Install dbt -----"
+# pip install dbt-core 
+# echo "----- Adapter pour PostgreSQL  -----"
+# pip install dbt-postgres
+# echo "----- Vérifier l'installation -----" 
+# dbt --version
 echo "-----  Installation des dépendences -----" 
+cd dbt_odis
 dbt deps
+cd ..
 
 #echo "----- Install dependencies -----"
 #poetry add pandas psycopg2 ipykernel

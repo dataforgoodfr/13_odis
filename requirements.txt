@@ -1,0 +1,16 @@
+langchain
+langchain-community
+langchain-openai 
+langchain-ollama
+python-dotenv
+langchain-experimental
+transformers
+mistralai
+psycopg2-binary
+jupyterlab
+ipykernel
+poetry
+torch
+papermill
+dbt-core
+dbt-postgres
