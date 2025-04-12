@@ -15,8 +15,8 @@ services:
     container_name: pgadmin
     restart: no
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL} 
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: 'False'           # désactive le mode multi-utilisateur
       PGADMIN_CONFIG_AUTHENTICATION_SOURCES: '["internal"]'
       PGADMIN_CONFIG_ALLOW_SAVE_PASSWORD: 'True'    # optionnel
@@ -27,8 +27,8 @@ services:
       - db
     volumes:
       - ./pgadmin/servers.json:/pgadmin4/servers.json
-    command: >
-      /bin/sh -c "envsubst < /pgadmin4/servers.json > /pgadmin4/servers.json && /entrypoint.sh"
+    env_file:
+      - .env
 
 volumes:
   db_data:

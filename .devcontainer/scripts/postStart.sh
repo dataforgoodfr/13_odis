@@ -28,6 +28,16 @@ pip install papermill
 echo "----- Install ipykernel -----"
 poetry run python -m ipykernel install --user --name=d4g --display-name "Python (d4g)"
 
+# Install pip dependencies like papermill
+echo "----- Install dbt -----"
+pip install dbt-core 
+echo "----- Adapter pour PostgreSQL  -----"
+pip install dbt-postgres
+echo "----- Vérifier l'installation -----" 
+dbt --version
+echo "-----  Installation des dépendences -----" 
+dbt deps
+
 #echo "----- Install dependencies -----"
 #poetry add pandas psycopg2 ipykernel
 
