@@ -9,7 +9,7 @@ Suivre les instructions sur le [site officiel](https://www.docker.com/get-starte
 Poetry est l'outil que nous utilisons pour gérer les dépendances et l'environnement Python du projet.
 Pour utiliser Poetry, tu as deux options :
 
-### Utilisation d'un devcontainer (recommandée)
+### Utilisation d'un devcontainer
 
 Si tu préfères ne rien installer localement et travailler dans un environnement isolé, tu peux utiliser Devcontainer. C'est un environnement de développement, principalement utilisé avec des outils comme VS Code. Il est configuré dans le fichier devcontainer/devcontainer.json pour spécifier notre environnement python, y compris l'installation de Poetry et d'autres dépendances.
 
@@ -19,7 +19,7 @@ Pour installer l'extension Dev Containers dans VS Code :
 code --install-extension ms-vscode-remote.remote-containers
 ```
 
-Une fois l'extension installée, tu pourras ouvrir le projet dans un Devcontainer ignorer les autres installations et passer directement à la configuration de l'environnement.
+Une fois l'extension installée, tu pourras ouvrir le projet dans un Devcontainer, ignorer les autres installations et passer directement à la configuration du projet dans le [README](./README.md)
 
 ### Installation locale de Poetry
 
