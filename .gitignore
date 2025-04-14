@@ -171,5 +171,8 @@ dbt_odis/seeds/*
 log/*
 !log/.gitkeep
 
+# ignore Jupyter notebooks outputted by papermill
+notebooks/*_processed.ipynb
+
 # ignore .env files for Bruno to avoid sharing secrets
 common/collections/** */.env
