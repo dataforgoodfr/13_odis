@@ -1,4 +1,5 @@
 from typing import Annotated, Literal, Optional, Self
+from pathlib import Path
 
 from pydantic import (
     BaseModel,
@@ -19,16 +20,89 @@ EndPoint = Annotated[
     ),
 ]
 
-FILE_FORMAT = Literal["csv", "json", "xlsx"]
+
+AcceptHeader = Annotated[
+    str,
+    StringConstraints(
+        pattern=r"^((application\/json|application\/xml|text\/csv|application\/zip|application\/octet-stream|\*\/\*)(,\s?)?){1,}$"
+    ),
+]
+
+FILE_FORMAT = Literal["csv", "json", "xlsx", "zip"]
+
+PROCESSOR_TYPE = Literal["notebook"]
+
+Description = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1),  # must not be empty string
+]
 
 
 class HeaderModel(BaseModel):
+    model_config = ConfigDict(extra="allow")  # allow extra headers
+    accept: AcceptHeader = "application/json"
+
+
+class DataLoadParameters(BaseModel):
 
     model_config = ConfigDict(extra="allow")  # allow extra headers
 
-    accept: Literal["application/json", "application/xml", "text/csv"] = (
-        "application/json"
+    separator: Optional[str] = Field(
+        default=";",
+        description="""
+            Optional separator for CSV files.
+            if not provided, the CSV loader will sniff the separator
+        """,
     )
+
+    header: Optional[int] = Field(
+        default=0,
+        description="""
+            Used to specify the row number(s) to use as the column names,
+            and the start of the data.
+            see https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html
+        """,
+    )
+
+    skipfooter: Optional[int] = Field(
+        default=0,
+        description="""
+            Optional number of lines to skip at the end of the file.
+            if not provided, the CSV loader will not skip any lines
+        """,
+    )
+
+class DataProcessingParameters(BaseModel):
+
+    name: str = Field(
+        description="""
+            Name of the preprocessor to be executed before load.
+            The preprocessor is assumed to be a jupyter notebook (extension .ipynb),
+            located in the notebooks/ folder.
+        """,
+    )
+
+    type: PROCESSOR_TYPE = Field(
+        default = "notebook",
+        description="""
+            Type of the processor.
+            The following values are accepted :
+             - "notebook" (default)
+        """,
+    )
+
+    base: str = Field(
+        default = "notebooks",
+        description = """
+            Base folder path where the preprocessr code is to be found
+        """
+    )
+
+    @computed_field
+    @property
+    def base_path(self) -> Path:
+        """Return the "base" parameter as a Path object"""
+        return Path(self.base)
 
 
 class APIModel(BaseModel):
@@ -37,7 +111,7 @@ class APIModel(BaseModel):
     name: str
     base_url: HttpUrl
     apidoc: Optional[HttpUrl] = None
-    description: Optional[str] = None
+    description: Optional[Description] = None
     default_headers: Optional[HeaderModel] = None
     throttle: Optional[int] = 60
 
@@ -65,10 +139,55 @@ class DomainModel(BaseModel):
 
     """
 
-    API: str
-    type: str
-    endpoint: EndPoint
-    description: Optional[str] = None
+    type: str = Field(
+        ...,
+        description="""
+            type of the extractor to be used,
+        """,
+        examples=["NotebookExtractor", "JsonExtractor", "CSVExtractor"],
+    )
+    description: Description = Field(
+        ...,
+        description="""
+            a human-readable description of the data source
+        """,
+    )
+    format: Optional[FILE_FORMAT] = Field(
+        default="json",
+        description="""
+            format of the data to be extracted,
+            if not provided, the default format is `json`
+        """,
+    )
+    name: Optional[str] = Field(
+        default=None,
+        description="""
+            a human-readable name for the model
+        """,
+    )
+
+    #################################
+    # API / Extraction related fields
+    #################################
+    API: Optional[str] = Field(
+        default=None,
+        description="""
+            API name as defined in the APIs section,
+            the API name is optional when the API is not used, 
+            which is the case when using the type `NotebookExtractor`
+        """,
+    )
+    endpoint: Optional[EndPoint] = Field(
+        default=None,
+        description="""
+            endpoint of the API to be called,
+            must start with a '/' and not end with one,
+            The endpoint is optional when the API is not used,
+            which is the case when using the type `NotebookExtractor`
+        """,
+        examples=["/regions", "/departements"],
+    )
+
     headers: Optional[HeaderModel] = Field(
         default_factory=HeaderModel,
         description="headers to be sent with the request",
@@ -80,24 +199,40 @@ class DomainModel(BaseModel):
         description="arbitrary query parameters passed to the API",
     )
 
-    load_params: Optional[dict] = Field(
-        default=None,
-        examples=[{"key": "value", "key2": 1.2}],
-        description="Parameters to be passed to the Loader",
-    )
-
     response_map: Optional[dict] = Field(
         default={},
         examples=[{"next": "paging.next"}],
         description="mapping of response keys to domain-specific keys",
     )
 
-    format: Optional[FILE_FORMAT] = "json"
-
-    name: Optional[str] = Field(
+    #################################
+    # Preprocessing related fields
+    #################################
+    preprocessor: Optional[DataProcessingParameters] = Field(
         default=None,
         description="""
-            a human-readable name for the model
+            Parameters to be passed if and when data needs 
+            to be perprocessed between extract and load
+        """,
+        examples = [
+            {
+                "name": "logements_sociaux_rpls",
+                "type": "notebook"
+            }
+        ]
+    )
+
+    #################################
+    # Loader related fields
+    #################################
+
+    load_params: Optional[DataLoadParameters] = Field(
+        default_factory=DataLoadParameters,
+        examples=[{"separator": ",", "header": 3}],
+        description="""
+            Parameters to be passed to the Loader when parsing the data,
+            such as the separator for CSV files,
+            the parameters are passed to the loader as keyword arguments,
         """,
     )
 
@@ -110,7 +245,8 @@ class DomainModel(BaseModel):
         if self.headers:
             if api_headers:
                 d = api_headers.model_dump(mode="json")
-                d.update(self.headers.model_dump(mode="json"))
+                model_headers_dump = self.headers.model_dump(mode="json")
+                d.update(model_headers_dump)
                 self.headers = HeaderModel(**d)
         else:
             self.headers = api_headers
@@ -134,6 +270,40 @@ class DomainModel(BaseModel):
             return self.name.replace(".", "_")
         return None
 
+    @model_validator(mode="after")
+    def check_consistency(self) -> Self:
+        """
+        verify the consistency of the model:
+        - check that the API names are valid
+        """
+
+        if self.API is None:
+            raise ValueError(
+                "API must be provided"
+            )
+        elif self.endpoint is None:
+            raise ValueError(
+                "endpoint must be provided"
+            )
+
+        return self
+
+    @computed_field
+    @property
+    def domain_name(self) -> str:
+        """
+        gets the domain name for the model
+
+        Example:
+        ```python
+        DomainModel(name="logement.dido")
+        # table_name would be "logement"
+        ```
+        """
+        if self.name:
+            return self.name.split(".")[0]
+        return None
+
 
 class ConfigurationModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -142,19 +312,31 @@ class ConfigurationModel(BaseModel):
 class DataSourceModel(ConfigurationModel):
     """global model for the yaml file"""
 
-    APIs: dict[str, APIModel]
+    APIs: dict[str, APIModel] = Field(
+        default={},
+        description="""
+            This section is optional since the domains can be used without an API,
+        """,
+        examples=[
+            {
+                "base_url": "https://api1.com",
+                "name": "api1 name",
+                "apidoc": "https://api1.com/doc",
+                "description": "description of the API",
+            },
+        ],
+    )
     domains: dict[str, dict[str, DomainModel]]
 
-    # when loading the domains, we need to check that the API is in the APIs dict
-    # this is done by the validator
     @model_validator(mode="after")
-    def check_domain_api(self) -> Self:
+    def check_consistency(self) -> Self:
         """
-        verify the domain API is in the APIs dict
+        verify the consistency of the datasource configuration:
+        - check that the API names are valid if the model is not a NotebookExtractor
         """
         for domain in self.domains.values():
             for model in domain.values():
-                if model.API not in self.APIs:
+                if model.type != "NotebookExtractor" and model.API not in self.APIs:
                     raise ValueError(f"API '{model.API}' not found in APIs section")
 
         return self
@@ -163,11 +345,15 @@ class DataSourceModel(ConfigurationModel):
     def merge_model_headers(self) -> Self:
         """
         API default headers are merged with the domain headers
+        for each model in the domain section, except for the NotebookExtractor
+        the local headers have precedence over the API headers
         """
         for domain in self.domains.values():
             for model in domain.values():
-                api = self.APIs[model.API]
-                model.merge_headers(api.default_headers)
+                if model.type == "NotebookExtractor":
+                    continue
+                api = self.APIs.get(model.API, None)
+                model.merge_headers(api.default_headers) if api is not None else None
 
         return self
 
@@ -256,6 +442,27 @@ class DataSourceModel(ConfigurationModel):
             for model in d.values()
         }
 
+    def get_model(self, model_name: str = None) -> DomainModel:
+        """provides the model for a given model name
+        Example:
+        ```python
+        # config is a DataSourceModel instance
+        # assuming the domains are "Metadonnees" and "Geographical" with models "INSEE" and "IGN"
+        config.get_model("Metadonnees.INSEE")
+        # output
+        # DomainModel(...)
+        # means that the model "INSEE" is in the "Metadonnees" domain
+        ```
+
+        """
+        if model_name:
+            for domain in self.domains.values():
+                for model in domain.values():
+                    if model.name == model_name:
+                        return model
+
+        raise ValueError(f"Model '{model_name}' not found in domains")
+
     def get_domain_name(self, model: DomainModel) -> str:
         """provides the domain name for a given model
 
@@ -280,6 +487,8 @@ class DataSourceModel(ConfigurationModel):
     def get_api(self, model: DomainModel) -> APIModel:
         """provides the `APIModel` for a given `DomainModel`
 
+        if the model is not using an API, None is returned
+
         Example:
         ```python
 
@@ -296,4 +505,4 @@ class DataSourceModel(ConfigurationModel):
             if model.API == key:
                 return api
 
-        raise ValueError(f"API '{model.API}' not found in APIs section")
+        return None

@@ -1,0 +1,22 @@
+meta {
+  name: densite
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.insee.fr/melodi/data/DS_RP_SERIE_HISTORIQUE?TIME_PERIOD=2021&GEO=COM&GEO=DEP&GEO=REG&OCS=_T&RP_MEASURE=POP&RP_MEASURE=SUP&maxResult=10
+  body: none
+  auth: none
+}
+
+params:query {
+  TIME_PERIOD: 2021
+  GEO: COM
+  GEO: DEP
+  GEO: REG
+  OCS: _T
+  RP_MEASURE: POP
+  RP_MEASURE: SUP
+  maxResult: 10
+}

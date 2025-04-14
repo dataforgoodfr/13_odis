@@ -22,6 +22,7 @@ def test_explain_source_generic_explanations():
                     "API": "INSEE.Metadonnees",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
+                    "description": "Valid test description"
                 }
             }
         },
@@ -50,6 +51,7 @@ def test_explain_source_apis():
                     "API": "INSEE.Metadonnees",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
+                    "description": "Valid test description"
                 }
             }
         },
@@ -82,6 +84,7 @@ def test_explain_source_models():
                     "API": "INSEE.Metadonnees",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
+                    "description": "Valid test description"
                 }
             }
         },
@@ -113,6 +116,7 @@ def test_extract_data(mocker):
                     "API": "INSEE",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
+                    "description": "Valid test description"
                 }
             }
         },
@@ -125,7 +129,7 @@ def test_extract_data(mocker):
     mocker.patch(
         "bin.odis.create_extractor",
         return_value=StubExtractor(
-            config, list(config.get_models().values())[0], data_handler, data_handler
+            config, list(config.get_models().values())[0], data_handler
         ),
     )
 
