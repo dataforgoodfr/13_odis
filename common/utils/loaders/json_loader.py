@@ -115,6 +115,9 @@ class JsonDataLoader(AbstractDataLoader):
 
                 self.db_client.connect()
 
+                # Drops if exist artifact table
+                self.create_or_overwrite_table(suffix = artifact_log.name)
+
                 raw_data = self.handler.json_load(artifact_log.storage_info)
 
                 # get the datapath field in the model definition and get the actual data records
