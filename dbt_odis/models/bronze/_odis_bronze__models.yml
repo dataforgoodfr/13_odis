@@ -68,3 +68,41 @@ models:
         description: Nom de la région avec articles et tirets 
 
  
+  - name: logement_rpls_region
+    description: "Flattened view of logement_rpls_region from the bronze layer"
+    columns:
+      - name: id
+        description: "Unique identifier"
+        tests:
+          - not_null
+          - unique
+
+      - name: created_at
+        description: "Timestamp when the record was created"
+
+  
+  - name: logement_rpls_departement
+    description: "Flattened view of logement_rpls_departement from the bronze layer"
+    columns:
+      - name: id
+        description: "Unique identifier"
+        tests:
+          - not_null
+          - unique
+
+      - name: created_at
+        description: "Timestamp when the record was created" 
+
+
+  - name: logement_rpls_commune
+    description: "Flattened view of logement_rpls_commune from the bronze layer"
+    columns:
+      - name: id
+        description: "Unique identifier"
+        tests:
+          - not_null
+          - unique
+
+      - name: created_at
+        description: "Timestamp when the record was created" 
+ 
