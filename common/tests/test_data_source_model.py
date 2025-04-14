@@ -1,7 +1,9 @@
+import tempfile
+
 import pytest
 from pydantic_core import ValidationError
 
-from ..data_source_model import APIModel, DataSourceModel, DomainModel, HeaderModel
+from ..data_source_model import APIModel, DataSourceModel, DomainModel, HeaderModel, DataProcessingParameters
 
 
 def test_EndPoint_may_be_slash():
@@ -10,7 +12,12 @@ def test_EndPoint_may_be_slash():
     path = "/"
 
     # when
-    model = DomainModel(API="INSEE.Metadonnees", type="JsonExtractor", endpoint=path)
+    model = DomainModel(
+        API="INSEE.Metadonnees",
+        type="JsonExtractor",
+        description="Only / in the endpoint path",
+        endpoint=path,
+    )
 
     # then
     assert model.endpoint == path  # no exception, this is OK
@@ -23,7 +30,12 @@ def test_EndPoint_must_start_with_slash():
 
     # when
     with pytest.raises(ValidationError) as e:
-        DomainModel(API="INSEE.Metadonnees", type="JsonExtractor", endpoint=path)
+        DomainModel(
+            API="INSEE.Metadonnees",
+            type="JsonExtractor",
+            description="Endpoint must start with /",
+            endpoint=path,
+        )
 
     # then
     assert "endpoint" in str(e.value)
@@ -36,10 +48,33 @@ def test_EndPoint_must_have_min_length():
 
     # when
     with pytest.raises(ValidationError) as e:
-        DomainModel(API="INSEE.Metadonnees", type="JsonExtractor", endpoint=path)
+        DomainModel(
+            API="INSEE.Metadonnees",
+            type="JsonExtractor",
+            description="Endpoint must have min length",
+            endpoint=path,
+        )
 
     # then
     assert "endpoint" in str(e.value)
+
+
+def test_Description_must_have_min_length():
+
+    # given
+    description = ""  # empty string
+
+    # when
+    with pytest.raises(ValidationError) as e:
+        DomainModel(
+            API="INSEE.Metadonnees",
+            type="JsonExtractor",
+            description=description,
+            endpoint="/example",
+        )
+
+    # then
+    assert "description" in str(e.value)
 
 
 def test_DomainModel_default_headers():
@@ -47,7 +82,10 @@ def test_DomainModel_default_headers():
 
     # when
     model = DomainModel(
-        API="INSEE.Metadonnees", type="JsonExtractor", endpoint="/geo/regions"
+        API="INSEE.Metadonnees",
+        type="JsonExtractor",
+        description="This is for testing default headers",
+        endpoint="/geo/regions",
     )
 
     # then
@@ -59,6 +97,7 @@ def test_DomainModel_headers_are_merged_with_api_ones():
     model = DomainModel(
         API="INSEE.Metadonnees",
         type="JsonExtractor",
+        description="Valid test description",
         endpoint="/geo/regions",
         headers=HeaderModel(another_key="another_value", accept="application/xml"),
     )
@@ -72,6 +111,87 @@ def test_DomainModel_headers_are_merged_with_api_ones():
         model.headers.another_key == "another_value"
     )  # imported from the domain model
     assert model.headers.api_key == "api_value"  # imported from the API model
+
+
+def test_DomainModel_notebook_name_is_mandatory_for_Preprocessor():
+    # given
+    domain_type = "FileExtractor"
+
+    # when
+    with pytest.raises(ValueError) as e:
+        
+        processor_info = DataProcessingParameters(
+            type = "notebook"
+        )
+
+        DomainModel(
+            type=domain_type,
+            API="INSEE.Metadonnees",
+            endpoint="/geo/regions",
+            description="Référentiel géographique INSEE - niveau régional",
+            preprocessor = processor_info
+        )
+
+    # then
+    assert "name" in str(e.value)
+
+
+def test_DomainModel_preprocessor_nominal():
+    # given
+    domain_type = "FileExtractor"
+
+    # when
+    # create a temporary file
+    # to simulate a notebook path
+    # and check that the path is valid
+    with tempfile.NamedTemporaryFile() as fp:
+        
+        processor_info = DataProcessingParameters(
+            name = fp.name.split('.')[0],
+            type = "notebook"
+        )
+
+        m = DomainModel(
+            type=domain_type,
+            API="INSEE.Metadonnees",
+            endpoint="/geo/regions",
+            description="Référentiel géographique INSEE - niveau régional",
+            preprocessor = processor_info
+        )
+
+    # then
+    assert m.preprocessor.name is not None
+
+
+def test_DomainModel_API_is_mandatory():
+    # given
+    domain_type = "JsonExtractor"
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            API=None,
+        )
+
+    # then
+    assert "API" in str(e.value)
+
+
+def test_DomainModel_endpoint_is_mandatory():
+    # given
+    domain_type = "JsonExtractor"
+
+    # when
+    with pytest.raises(ValueError) as e:
+        DomainModel(
+            type=domain_type,
+            API="INSEE.Metadonnees",
+            endpoint=None,
+        )
+
+    # then
+    assert "endpoint" in str(e.value)
 
 
 def test_HeaderModel_accepts_extra_keys():
@@ -191,8 +311,9 @@ def test_DomainModel():
     assert model.description == model_dict["description"]
     assert model.type == model_dict["type"]
     assert model.endpoint == model_dict["endpoint"]
-    assert model.load_params is None
+    assert model.load_params is not None  # default value
     assert model.extract_params is None
+    assert model.preprocessor is None
 
 
 def test_DomainModel_bad_endpoint():
@@ -227,7 +348,6 @@ def test_DomainModel_bad_type():
 
     # then
     assert "endpoint" in str(e.value)
-
 
 def test_DataSourceModel_domain_api_is_ok():
 
@@ -295,6 +415,7 @@ def test_DomainModel_load_params_is_arbitrary_dict():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
         "load_params": {"key": "value", "key2": 1.2},
     }
@@ -303,7 +424,15 @@ def test_DomainModel_load_params_is_arbitrary_dict():
     model = DomainModel(**model_dict)
 
     # then
-    assert model.load_params == model_dict["load_params"]
+    # check all keys are in the model
+    # and values are kept as-is
+    assert all(
+        [
+            k in model.load_params.model_dump(mode="json")
+            and v == model.load_params.model_dump(mode="json")[k]
+            for k, v in model_dict["load_params"].items()
+        ]
+    )
 
 
 def test_DomainModel_extract_params_is_arbitrary_dict():
@@ -312,6 +441,7 @@ def test_DomainModel_extract_params_is_arbitrary_dict():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
         "extract_params": {"key": "value", "key2": 1.2},
     }
@@ -329,6 +459,7 @@ def test_DomainModel_extract_params_default_value():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
     }
 
@@ -345,6 +476,7 @@ def test_DomainModel_load_params_default_value():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
     }
 
@@ -352,8 +484,29 @@ def test_DomainModel_load_params_default_value():
     model = DomainModel(**model_dict)
 
     # then
-    assert model.load_params is None
+    assert model.load_params is not None
+    assert model.load_params.model_dump()["separator"] == ";"
+    assert model.load_params.model_dump()["header"] == 0
+    assert model.load_params.model_dump()["skipfooter"] == 0
 
+def test_DomainModel_preprocessor_params_default_value():
+    # given
+
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "description": "Valid test description",
+        "endpoint": "/geo/regions",
+        "preprocessor": {
+            "name": "bmo_2024"
+        }
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    assert model.preprocessor.model_dump()["type"] == "notebook"
 
 def test_DomainModel_response_map_is_arbitrary_dict():
     # given
@@ -361,6 +514,7 @@ def test_DomainModel_response_map_is_arbitrary_dict():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
         "response_map": {"next": "paging.next"},
     }
@@ -378,6 +532,7 @@ def test_DomainModel_response_map_default_value():
     model_dict = {
         "API": "INSEE.Metadonnees",
         "type": "JsonExtractor",
+        "description": "Valid test description",
         "endpoint": "/geo/regions",
     }
 
@@ -811,3 +966,238 @@ def test_table_name_is_derived_from_model_name():
 
     # then
     assert m.get_models()["level1.mod1_lvl1"].table_name == "level1_mod1_lvl1"
+
+
+def test_get_model_nominal():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.name == "level1.mod1_lvl1"
+
+
+def test_get_model_raises_ValueError():
+    # given
+
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+
+    m = DataSourceModel(**model_dict)
+
+    # when
+    with pytest.raises(ValueError) as e:
+        m.get_model("level1.mod1_lvl2")
+
+    # then
+    assert "level1.mod1_lvl2" in str(e.value)
+
+
+def test_AcceptHeader_simple():
+    # given
+
+    headers = {
+        "accept": "application/json",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_zip():
+    # given
+
+    headers = {
+        "accept": "application/zip",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_multiple():
+    # given
+
+    headers = {
+        "accept": "application/zip, application/octet-stream, */*",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_multiple_space_is_optional():
+    # given
+
+    headers = {
+        "accept": "application/json,application/xml, */*",
+    }
+
+    # when
+    model = HeaderModel(**headers)
+
+    # then
+    assert model.accept == headers["accept"]
+
+
+def test_AcceptHeader_incorrect():
+    # given
+
+    headers = {
+        "accept": "blah, application/xml, */*",
+    }
+
+    # when
+    with pytest.raises(ValidationError) as e:
+        HeaderModel(**headers)
+
+    # then
+    assert "accept" in str(e.value)
+
+
+def test_DataLoadParameters_nominal():
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "load_params": {
+                        "param1": "value1",
+                        "param2": 2,
+                    },
+                },
+            }
+        },
+    }
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.load_params.model_dump()["param1"] == "value1"
+    assert model.load_params.model_dump()["param2"] == 2
+
+
+def test_DataLoadParameters_empty():
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                },
+            }
+        },
+    }
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.load_params.model_dump(mode="json") == {
+        "separator": ";",
+        "header": 0,
+        "skipfooter": 0,
+    }
+
+
+def test_DataLoadParameters_default_values():
+    # given
+    model_dict = {
+        "APIs": {
+            "api1": {
+                "name": "INSEE.Metadonnees",
+                "base_url": "https://api.insee.fr/",
+            },
+        },
+        "domains": {
+            "level1": {
+                "mod1_lvl1": {
+                    "API": "api1",  # OK, api1 is defined
+                    "description": "Référentiel géographique INSEE - niveau régional",
+                    "type": "JsonExtractor",
+                    "endpoint": "/geo/regions",
+                    "load_params": {},
+                },
+            }
+        },
+    }
+    m = DataSourceModel(**model_dict)
+
+    # when
+    model = m.get_model("level1.mod1_lvl1")
+
+    # then
+    assert model.load_params.model_dump(mode="json") == {
+        "separator": ";",
+        "header": 0,
+        "skipfooter": 0,
+    }

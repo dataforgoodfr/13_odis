@@ -65,6 +65,16 @@ INSEE.Melodi:
       accept: application/json
 ```
 
+## Extraire des données depuis un notebook
+Il existe un extracteur particulier pour pouvoir récupérer des données depuis un notebook.  
+Le procees est le suivant :
+- Créer un notebook dans le dossier /notebook, le notebook doit récupérer les données et les afficher
+- Mettre à jour `datasource.yaml`, la configuration doit avoir un paramètre `notebook_path` qui est le chemin relatif depuis la racine du projet du notebook (ex: notebook/logements_sociaux_2024.ipynb)
+- Au lancement, l'extractor va :
+  1. Executer le notebook 
+  2. Récupérer les cellules affichées
+  3. Enregistrer les données dans sous-dossier de data/imports
+
 ## Comment ajouter un nouvel Extracteur
 
 Si aucun des Extractors existants dans `common/utils/source_extractors.py` ne convient aux besoins et contraintes de l’API que vous ciblez, vous pouvez soit modifier un Extractor existant, soit en créer un nouveau adapté à vos besoins.

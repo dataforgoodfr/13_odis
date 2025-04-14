@@ -14,6 +14,7 @@ from common.config import load_config
 from common.data_source_model import APIModel, DataSourceModel, DomainModel
 from common.utils.factory.extractor_factory import create_extractor
 from common.utils.factory.loader_factory import create_loader
+from common.utils.file_handler import FileHandler
 from common.utils.logging_odis import logger
 
 load_dotenv()
@@ -94,7 +95,7 @@ def extract(
 
         try:
 
-            extractor = create_extractor(config, model)
+            extractor = create_extractor(config, model, handler=FileHandler())
             extractor.execute()
 
         except Exception as e:
@@ -112,7 +113,7 @@ def load(
 
         try:
 
-            loader = create_loader(config, model)
+            loader = create_loader(config, model, handler=FileHandler())
             loader.execute()
 
         except Exception as e:
