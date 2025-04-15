@@ -152,6 +152,7 @@ def test_dump_metadata_with_csv_format(stub_page_log):
             complete=True,
             errors=0,
             pages=pages,
+            artifacts=[]
         )
 
     # then

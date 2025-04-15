@@ -6,6 +6,7 @@ from common.utils.interfaces.data_handler import (
     MetadataInfo,
     OperationType,
     PageLog,
+    ArtifactLog,
     StorageInfo,
 )
 
@@ -31,6 +32,7 @@ class StubDataHandler(IDataHandler):
         complete: bool = None,
         errors: int = None,
         pages: list[PageLog] = None,
+        artifacts: list[ArtifactLog] = None
     ):
 
         self.is_handled = True
@@ -46,6 +48,7 @@ class StubDataHandler(IDataHandler):
                 "errors": errors,
                 "model": model,
                 "pages": pages,
+                "artifacts": artifacts,
             }
         )
 
@@ -101,6 +104,21 @@ class StubMetadataInfo(MetadataInfo):
 
         stub_pages[-1]["is_last"] = True
 
+        stub_artifacts = []
+        stub_artifacts.append(
+            {
+                    "name": "logements_sociaux_epci",
+                    "storage_info": {
+                        "location": "data/imports",
+                        "format": "xlsx",
+                        "file_name": "logement.logements_sociaux_epci.json",
+                        "encoding": "utf-8",
+                    },
+                    "load_to_bronze": True,
+                    "success": True,
+                }
+        )
+
         stub_metadata = {
             "domain": "logement",
             "source": "logements_maisons",
@@ -114,6 +132,7 @@ class StubMetadataInfo(MetadataInfo):
             "successfully_completed": True,
             "model": stub_model,
             "pages": stub_pages,
+            "artifacts": stub_artifacts,
             "errors": 0,
             "complete": True,
         }

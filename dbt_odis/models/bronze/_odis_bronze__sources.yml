@@ -117,4 +117,18 @@ sources:
       # - name: 
       #   description: Source JSON loadée dans le champ data contenant 
       #   loaded_at_field: created_at
+        #freshness :
+        #  warn_after: {count: 1, period : year}
+
+      - name: logement_rpls_region
+        description: feuille xlsx transformée en JSON loadée dans le champ data contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
+        loaded_at_field : created_at
+
+      - name: logement_rpls_departement
+        description: feuille xlsx transformée en JSON loadée dans le champ data contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par départements
+        loaded_at_field : created_at
+
+      - name: logement_rpls_commune
+        description: feuille xlsx transformée en JSON loadée dans le champ data contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par communes
+        loaded_at_field : created_at           
 

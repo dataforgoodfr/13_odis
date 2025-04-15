@@ -7,6 +7,7 @@ import orjson
 import pandas as pd
 from bson import ObjectId
 from pydantic import ValidationError
+from openpyxl.utils.exceptions import InvalidFileException
 
 from common.data_source_model import FILE_FORMAT, DomainModel
 from common.utils.exceptions import InvalidCSV, InvalidJson
@@ -18,6 +19,7 @@ from .interfaces.data_handler import (
     OperationType,
     PageLog,
     StorageInfo,
+    ArtifactLog,
 )
 
 DEFAULT_BASE_PATH = "data/imports"
@@ -109,6 +111,8 @@ class FileHandler(IDataHandler):
         if format is None:
             format = model.format
 
+        success = False
+
         # Create data directory if it doesn't exist
         data_dir = self._data_dir(model)
         data_dir.mkdir(parents=True, exist_ok=True)
@@ -121,29 +125,85 @@ class FileHandler(IDataHandler):
 
         # Write payload content to file
         # case where we store a metadata file, the data is a dict although the model may not be json
-        if isinstance(data, dict) or model.format == "json":
+        if isinstance(data, dict) or format == "json":
 
             with open(filepath, "w") as f:
                 try:
                     if isinstance(data, bytes):
                         data = data.decode()
                     f.write(orjson.dumps(data).decode())
+                    success = True
 
                 except Exception as e:
                     logger.error(f"Error encoding JSON data: {str(e)}")
 
+        elif isinstance(data, pd.DataFrame) and format=="xlsx":
+            try:
+                with pd.ExcelWriter(
+                    path = filepath,
+                    engine = 'openpyxl'
+                    ) as writer:
+
+                    sheet_name = suffix if suffix else "sheet1"
+                    data.to_excel(writer, sheet_name = sheet_name)
+                    success = True
+                    
+            except Exception as e:
+                logger.error(f"Error dumping dataframe to Excel: {str(e)}")
+
         else:
             with open(filepath, "wb") as f:
                 f.write(data)
+                success = True
 
         logger.info(f"{model.name} -> results saved to : '{filepath}'")
 
-        return StorageInfo(
-            location=str(data_dir),
-            format=model.format,
-            file_name=filepath.name,
-            encoding="utf-8",
-        )
+        if success:
+            return StorageInfo(
+                location=str(data_dir),
+                format = format,
+                file_name=filepath.name,
+                encoding="utf-8",
+            )
+        else: 
+            return None
+
+    def artifact_dump(self, 
+                    data: Any, 
+                    name: str, 
+                    model: DomainModel, 
+                    format: FILE_FORMAT = None,
+                    load_to_bronze: bool = True 
+                    ) -> ArtifactLog:
+        """Utility function to dump a local file and generate an associated Artifact.
+        Returns an ArtifactLog for historicization"""
+
+        dump_success = False
+        storage_info = None
+        if format is None:
+            format = model.format
+
+        try:
+            storage_info = self.file_dump(
+                model, 
+                data, 
+                suffix = name,
+                format = format
+                )
+            dump_success = True
+            load_to_bronze = True
+
+        except Exception as e:
+            print(f"Failed to dump artifact {name}: {str(e)}")
+            load_to_bronze = False
+            dump_success = False
+
+        return ArtifactLog(
+                name = name,
+                storage_info = storage_info,
+                load_to_bronze = load_to_bronze,
+                success = dump_success
+            )
 
     def json_load(
         self,
@@ -183,7 +243,7 @@ class FileHandler(IDataHandler):
         page_log: PageLog,
         model: DomainModel,
     ) -> pd.DataFrame:
-        """Parses a CSV file and returns the data as an iterator of `dict`
+        """Parses a CSV file and returns the data as a dataframe
 
         TODO:
         - benchmark usage of pandas vs csv module
@@ -217,6 +277,47 @@ class FileHandler(IDataHandler):
             logger.exception(f"Error reading file {filepath}: {str(e)}")
 
         raise InvalidCSV(f"Error reading file '{filepath}'")
+
+    def xlsx_load(
+        self,
+        page_log: PageLog,
+        model: DomainModel,
+    ) -> pd.DataFrame:
+        """Parses an Excel file and returns the data as a pandas dataframe
+
+        TODO:
+        - benchmark usage of pandas vs csv module
+
+        Args:
+            page_log (PageLog) : the info where the file is stored
+            model (DomainModel): the model that generated the data
+
+        Returns:
+            DataFrame: the data from the CSV file as a pandas DataFrame
+
+        Raises:
+            InvalidCSV: if the file is not found or the CSV is invalid
+        """
+
+        filepath = Path(page_log.storage_info.location) / Path(
+            page_log.storage_info.file_name
+        )
+
+        try:
+            logger.debug(f"loading XLSX file : {filepath}")
+            return pd.read_excel(
+                filepath,
+                header=model.load_params.header,
+                skipfooter=model.load_params.skipfooter,
+                sep=model.load_params.separator,
+                engine="python",  # Required for skipfooter parameter
+            )
+
+        except Exception as e:
+            logger.exception(f"Error reading file {filepath}: {str(e)}")
+
+        raise InvalidFileException(f"Error reading file '{filepath}'")
+
 
     def load_metadata(
         self, model: DomainModel, operation: OperationType
@@ -257,6 +358,7 @@ class FileHandler(IDataHandler):
         complete: bool = False,
         errors: int = 0,
         pages: list[PageLog] = None,
+        artifacts: list[ArtifactLog] = None
     ) -> MetadataInfo:
         """Dumps the information about an operation run into a MetadataInfo object and into a file.
 
@@ -293,6 +395,7 @@ class FileHandler(IDataHandler):
                 "errors": errors,
                 "model": model,
                 "pages": pages,
+                "artifacts": artifacts
             }
         )
 

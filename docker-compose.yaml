@@ -10,5 +10,25 @@ services:
     ports:
       - "5432:5432"
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: no
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL} 
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'           # désactive le mode multi-utilisateur
+      PGADMIN_CONFIG_AUTHENTICATION_SOURCES: '["internal"]'
+      PGADMIN_CONFIG_ALLOW_SAVE_PASSWORD: 'True'    # optionnel
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+    command: >
+      /bin/sh -c "envsubst < /pgadmin4/servers.json > /pgadmin4/servers.json && /entrypoint.sh"
+
 volumes:
   db_data:
