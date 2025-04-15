@@ -153,7 +153,7 @@ class CsvDataLoader(AbstractDataLoader):
                 Column(
                     name=col,
                     data_type=ColumnType.TEXT,
-                    description=self.model.dictionary.get(col, ""),
+                    description="",  # self.model.dictionary.get(col, ""),
                 )
                 for col in csv_reader.fieldnames
                 # if col not in self.model.load_params.ignore_columns  # TODO: add this to the model
