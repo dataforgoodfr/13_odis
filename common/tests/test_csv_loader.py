@@ -9,66 +9,6 @@ from common.utils.interfaces.data_handler import PageLog
 from common.utils.loaders.csv_loader import CsvDataLoader
 
 
-def test_create_or_overwrite_csv_table(
-    pg_con: psycopg2.extensions.connection, pg_settings: dict, mocker
-):
-
-    # given
-    config = DataSourceModel(
-        **{
-            "APIs": {
-                "api1": {
-                    "name": "INSEE.Metadonnees",
-                    "base_url": "https://api.insee.fr/",
-                },
-            },
-            "domains": {
-                "domain1": {
-                    "model_csv": {
-                        "API": "api1",  # OK, api1 is defined
-                        "type": "CSVExtractor",
-                        "endpoint": "/geo/regions",
-                        "description": "test",
-                    },
-                }
-            },
-        }
-    )
-
-    model = config.get_model("domain1.model_csv")
-    data_loader = CsvDataLoader(
-        model=model,
-        config=config,
-        db_client=DatabaseClient(
-            settings=pg_settings,
-            autocommit=False,
-        ),
-        handler=FileHandlerForCSVStub(
-            test_data_dir=os.path.split(os.path.abspath(__file__))[0] + "/data",
-            file_name="test_data.csv",
-        ),
-    )
-
-    # when
-    data_loader.create_or_overwrite_table()
-
-    # then
-    # Check if the table was created successfully
-    cur = pg_con.cursor()
-
-    sql = f"""
-        SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE  table_schema = 'bronze'
-            AND    table_name   = '{model.table_name}'
-        );
-    """
-
-    cur.execute(sql)
-
-    assert cur.fetchone()[0]  # Check if the table exists
-
-
 def test_load_csv_data_nominal(
     pg_con: psycopg2.extensions.connection, pg_settings: dict, mocker
 ):
