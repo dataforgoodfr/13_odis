@@ -278,7 +278,7 @@ def test_load_csv_coma_separated():
     )
 
     # when
-    df = file_handler.csv_load(page_log, model)
+    df = file_handler.csv_load(page_log.storage_info, model)
 
     # then
     assert df.shape == (2, 2)
@@ -325,7 +325,7 @@ def test_load_csv_semicolon_separated():
     )
 
     # when
-    df = file_handler.csv_load(page_log, model)
+    df = file_handler.csv_load(page_log.storage_info, model)
 
     # then
     assert df.shape == (2, 2)
@@ -373,7 +373,7 @@ def test_load_csv_raises_invalid_csv():
 
     # when
     with pytest.raises(InvalidCSV) as e:
-        file_handler.csv_load(page_log, model)
+        file_handler.csv_load(page_log.storage_info, model)
 
     # then
     assert "blah" in str(e.value)

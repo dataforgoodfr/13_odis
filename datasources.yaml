@@ -443,7 +443,7 @@ domains:
         endpoint: /media/7970/download?inline
         format: xlsx
         preprocessor: 
-          name: logements_sociaux_rpls
+          name: logements_sociaux_rpls_dfload
           type: notebook
 
 

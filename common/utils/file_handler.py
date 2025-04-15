@@ -207,7 +207,7 @@ class FileHandler(IDataHandler):
 
     def json_load(
         self,
-        page_log: PageLog,
+        storage_info: StorageInfo,
     ) -> dict:
         """Parses a JSON file and returns the decoded data
 
@@ -221,8 +221,8 @@ class FileHandler(IDataHandler):
 
         """
 
-        filepath = Path(page_log.storage_info.location) / Path(
-            page_log.storage_info.file_name
+        filepath = Path(storage_info.location) / Path(
+            storage_info.file_name
         )
 
         try:
@@ -240,7 +240,7 @@ class FileHandler(IDataHandler):
 
     def csv_load(
         self,
-        page_log: PageLog,
+        storage_info: StorageInfo,
         model: DomainModel,
     ) -> pd.DataFrame:
         """Parses a CSV file and returns the data as a dataframe
@@ -259,8 +259,8 @@ class FileHandler(IDataHandler):
             InvalidCSV: if the file is not found or the CSV is invalid
         """
 
-        filepath = Path(page_log.storage_info.location) / Path(
-            page_log.storage_info.file_name
+        filepath = Path(storage_info.location) / Path(
+            storage_info.file_name
         )
 
         try:
@@ -280,7 +280,7 @@ class FileHandler(IDataHandler):
 
     def xlsx_load(
         self,
-        page_log: PageLog,
+        storage_info: StorageInfo,
         model: DomainModel,
     ) -> pd.DataFrame:
         """Parses an Excel file and returns the data as a pandas dataframe
@@ -299,8 +299,8 @@ class FileHandler(IDataHandler):
             InvalidCSV: if the file is not found or the CSV is invalid
         """
 
-        filepath = Path(page_log.storage_info.location) / Path(
-            page_log.storage_info.file_name
+        filepath = Path(storage_info.location) / Path(
+            storage_info.file_name
         )
 
         try:

@@ -17,19 +17,22 @@ class CsvDataLoader(AbstractDataLoader):
 
     columns: list[str] = []
 
-    def create_or_overwrite_table(self):
+    def create_or_overwrite_table(self, suffix:str = None):
         """Creates the target Bronze table.
         If exists, drops table to recreate"""
 
+        # append suffix to construct final name if provided
+        table_name = f"{self.model.table_name}_{suffix}" if suffix else self.model.table_name
+
         # initiate database session
-        logger.info(f"Creating table bronze.{self.model.table_name}")
+        logger.info(f"Creating table bronze.{table_name}")
 
         try:
 
             self.db_client.connect()
 
             self.db_client.execute(
-                f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
+                f"DROP TABLE IF EXISTS bronze.{table_name}"
             )
 
             # load actual data from metadata
@@ -47,7 +50,7 @@ class CsvDataLoader(AbstractDataLoader):
 
             self.db_client.execute(
                 f"""
-                CREATE TABLE bronze.{self.model.table_name} (
+                CREATE TABLE bronze.{table_name} (
                     id SERIAL PRIMARY KEY,
                     {columns_str},
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -57,7 +60,7 @@ class CsvDataLoader(AbstractDataLoader):
 
             self.db_client.commit()
 
-            logger.info(f"Table bronze.{self.model.table_name} created successfully")
+            logger.info(f"Table bronze.{table_name} created successfully")
 
         finally:
             # always close the db connection
@@ -87,7 +90,7 @@ class CsvDataLoader(AbstractDataLoader):
                 self.db_client.connect()
 
                 # Read CSV with specific parameters from config
-                results = self.handler.csv_load(extract_page_log, self.model)
+                results = self.handler.csv_load(extract_page_log.storage_info, self.model)
 
                 for _, row in results.iterrows():
                     # Convert any NaN values to None for database compatibility
