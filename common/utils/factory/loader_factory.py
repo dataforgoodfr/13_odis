@@ -2,14 +2,13 @@ from importlib import import_module
 
 from dotenv import dotenv_values
 
-from common.data_source_model import DataSourceModel, DomainModel
+from common.data_source_model import DataSourceModel, DomainModel, FILE_FORMAT
 from common.utils.database_client import DatabaseClient
 from common.utils.interfaces.data_handler import IDataHandler
 from common.utils.interfaces.loader import AbstractDataLoader
 
-
 def create_loader(
-    config: DataSourceModel, model: DomainModel, handler: IDataHandler = None
+    config: DataSourceModel, model: DomainModel, handler: IDataHandler = None, format: FILE_FORMAT = None
 ) -> AbstractDataLoader:
     """instanciates the correct extractor class for the given model
     based on the model format
@@ -46,8 +45,10 @@ def create_loader(
     """
 
     try:
+        
+        format = format if format else model.format
 
-        loader_name = f"{str.capitalize(model.format)}DataLoader"
+        loader_name = f"{str.capitalize(format)}DataLoader"
 
         settings = dotenv_values()
 
@@ -56,7 +57,7 @@ def create_loader(
             autocommit=False,
         )
 
-        source_module = import_module(f"common.utils.loaders.{model.format}_loader")
+        source_module = import_module(f"common.utils.loaders.{format}_loader")
         _class: AbstractDataLoader = getattr(source_module, loader_name)
 
         return _class(config, model, db_client, handler=handler)
