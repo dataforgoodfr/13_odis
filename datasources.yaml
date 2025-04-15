@@ -33,12 +33,19 @@ APIs:
     apidoc: https://data.education.gouv.fr/api/explore/v2.1/console
     default_headers:
       accept: application/json
-  
+
   data.gouv.fr:
     name: data.gouv.fr - Site web
     description: Site de statistiques open data de l'Etat
     base_url: https://www.data.gouv.fr/fr
     apidoc: https://www.data.gouv.fr/fr
+
+  devdurable.gouv.fr:
+    name: Site du Ministère du Développement Durable
+    description: Site de statistiqeus du Ministère du Développement Durable pour téléchargement direct de fichiers
+    base_url: https://www.statistiques.developpement-durable.gouv.fr
+    apidoc: https://www.statistiques.developpement-durable.gouv.fr
+    throttle: 500
 
   GEO.api.gouv.fr:
     name: GEO api.gouv.fr
@@ -58,19 +65,14 @@ APIs:
     default_headers:
       accept: application/json
 
-  devdurable.gouv.fr:
-    name: Site du Ministère du Développement Durable
-    description: Site de statistiqeus du Ministère du Développement Durable pour téléchargement direct de fichiers
-    base_url: https://www.statistiques.developpement-durable.gouv.fr
-    apidoc: https://www.statistiques.developpement-durable.gouv.fr
-    throttle: 500
-
   Opendatasoft:
     name: Opendatasoft
     description: API de données ouverte
     base_url: https://public.opendatasoft.com/api/explore/v2.1
     apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
     throttle: 100
+    #default_headers:
+      #accept: application/json
 
   URSSAF:
     name : Urssaf
@@ -87,16 +89,9 @@ APIs:
     base_url: https://statistiques.francetravail.org
     apidoc: https://www.francetravail.org/statistiques-analyses/
 
-  datawrapper:
-    name: datawrapper
-    description: Serving charts and maps for millions of readers every day. 
-    base_url: https://datawrapper.dwcdn.net
-    apidoc: https://www.datawrapper.de/
-    
 domains:
 
   emploi:
-
     eff_secteur_prive_gds_secteurs:
       API: URSSAF
       description : Effectifs salariés du secteur privé par grands secteurs
@@ -164,15 +159,6 @@ domains:
       headers:
         accept: application/zip, application/octet-stream
 
-    bmo_2024:
-      API: data.gouv.fr
-      description: Fichier BMO (Besoins en Main d'Oeuvre) - 2024
-      endpoint: /datasets/r/4319f5e8-a8e6-476c-8da0-c0d3439ebb55
-      type: FileExtractor
-      format: zip
-      peprocessor:
-        name: bmo_2024
-
     # bmo:
     #   notebook_path: notebook/emploi_bmo.ipynb
     #   description: indicateurs de besoin de main d'oeuvre 
@@ -182,7 +168,16 @@ domains:
     #     header: 3 # index de la première ligne utile du csv
     #     skipfooter: 3 # combien de lignes inutiles à skipper en fin de document
 
-  presentation:
+    bmo_2024:
+      API: data.gouv.fr
+      description: Fichier BMO (Besoins en Main d'Oeuvre) - 2024
+      endpoint: /datasets/r/4319f5e8-a8e6-476c-8da0-c0d3439ebb55
+      type: FileExtractor
+      format: zip
+      peprocessor:
+        name: bmo_2024
+
+  presentation_page:
 
     elus_communes:
       API: Opendatasoft
@@ -190,17 +185,28 @@ domains:
       type: FileExtractor
       endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/exports/csv
       format: csv
-      load_params:
-        separator: ;
+      response_map:
+        data: results
 
-    elections_municipales:
+    epci:
       API: Opendatasoft
-      description: Elections municipales 2020
+      description: Groupement de communes
       type: FileExtractor
-      endpoint: /catalog/datasets/election-france-municipale-2020-deuxieme-tour/exports/csv?use_labels=true
+      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/exports/csv
       format: csv
-      load_params:
-        separator: ;
+      response_map:
+        data: results
+
+    population_communes:
+      API: INSEE.Melodi
+      description: Population des communes
+      type: MelodiExtractor
+      endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&AGE=_T&SEX=F&SEX=M&maxResult=1000
+      format: json
+      response_map:
+        data: observations
+        next: paging.next
+        is_last: paging.isLast
 
   geographical_references:
 
@@ -225,25 +231,6 @@ domains:
       endpoint: /communes?fields=code,nom,population,departement,region,centre
       format: json
 
-    communes_et_arrondissements:
-      API: Opendatasoft
-      description: Communes et Arrondissements Municipaux - France 
-      type: FileExtractor
-      endpoint: /catalog/datasets/georef-france-commune-arrondissement-municipal/exports/csv
-      format: csv
-      load_params:
-        separator: ;
-
-  accueil:
-    cada_cph_huda:
-      API: datawrapper
-      description: Nombre de places en centres d’accueil pour demandeurs d’asile (CADA), centres provisoires d’hébergement (CPH), hébergement d’urgence des demandeurs d’asile (HUDA) 
-      endpoint: /TKQuX/6/dataset.csv
-      type: FileExtractor
-      format: csv
-      load_params:
-        separator: ','
-    
   logement:
 
       dido_catalogue:
@@ -416,6 +403,12 @@ domains:
           next: paging.next
           is_last: paging.isLast
         
+      # logement_sociaux:
+      #   notebook_path: notebook/logements_sociaux_2024.ipynb
+      #   description: recuperation des indicateurs des logements sociaux via notebook
+      #   type: NotebookExtractor
+      #   format: csv
+      
       logements_sociaux:
         API: devdurable.gouv.fr
         description: Données nationales RPLS 2024 - régions, départements, EPCI et communes
@@ -425,8 +418,6 @@ domains:
         preprocessor: 
           name: logements_sociaux_rpls_dfload
           type: notebook
-
-
 
   education:
 
