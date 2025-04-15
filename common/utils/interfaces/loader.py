@@ -87,4 +87,5 @@ class AbstractDataLoader(ABC):
             complete=complete,
             errors=errors,
             pages=page_logs,
+            artifacts=[]
         )

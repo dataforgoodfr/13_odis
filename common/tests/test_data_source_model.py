@@ -1,10 +1,9 @@
 import tempfile
-from pathlib import Path
 
 import pytest
 from pydantic_core import ValidationError
 
-from ..data_source_model import APIModel, DataSourceModel, DomainModel, HeaderModel
+from ..data_source_model import APIModel, DataSourceModel, DomainModel, HeaderModel, DataProcessingParameters
 
 
 def test_EndPoint_may_be_slash():
@@ -114,58 +113,57 @@ def test_DomainModel_headers_are_merged_with_api_ones():
     assert model.headers.api_key == "api_value"  # imported from the API model
 
 
-def test_DomainModel_notebook_path_is_mandatory_for_NotebookExtractor():
+def test_DomainModel_notebook_name_is_mandatory_for_Preprocessor():
     # given
-    domain_type = "NotebookExtractor"
-    path = None
+    domain_type = "FileExtractor"
 
     # when
     with pytest.raises(ValueError) as e:
+        
+        processor_info = DataProcessingParameters(
+            type = "notebook"
+        )
+
         DomainModel(
             type=domain_type,
-            notebook_path=path,
+            API="INSEE.Metadonnees",
+            endpoint="/geo/regions",
+            description="Référentiel géographique INSEE - niveau régional",
+            preprocessor = processor_info
         )
 
     # then
-    assert "notebook_path" in str(e.value)
+    assert "name" in str(e.value)
 
 
-def test_DomainModel_notebook_path_must_be_valid_for_NotebookExtractor():
+def test_DomainModel_preprocessor_nominal():
     # given
-    domain_type = "NotebookExtractor"
-    path = "blah.ipynb"  # invalid path
-
-    # when
-    with pytest.raises(ValueError) as e:
-        DomainModel(
-            type=domain_type,
-            notebook_path=path,
-        )
-
-    # then
-    assert "notebook_path" in str(e.value)
-
-
-def test_DomainModel_notebook_path_nominal():
-    # given
-    domain_type = "NotebookExtractor"
+    domain_type = "FileExtractor"
 
     # when
     # create a temporary file
     # to simulate a notebook path
     # and check that the path is valid
     with tempfile.NamedTemporaryFile() as fp:
+        
+        processor_info = DataProcessingParameters(
+            name = fp.name.split('.')[0],
+            type = "notebook"
+        )
+
         m = DomainModel(
             type=domain_type,
-            notebook_path=Path(fp.name),
-            description="Valid test description",
+            API="INSEE.Metadonnees",
+            endpoint="/geo/regions",
+            description="Référentiel géographique INSEE - niveau régional",
+            preprocessor = processor_info
         )
 
     # then
-    assert m.notebook_path is not None
+    assert m.preprocessor.name is not None
 
 
-def test_DomainModel_API_is_mandatory_when_not_a_notebook():
+def test_DomainModel_API_is_mandatory():
     # given
     domain_type = "JsonExtractor"
 
@@ -180,7 +178,7 @@ def test_DomainModel_API_is_mandatory_when_not_a_notebook():
     assert "API" in str(e.value)
 
 
-def test_DomainModel_endpoint_is_mandatory_when_not_a_notebook():
+def test_DomainModel_endpoint_is_mandatory():
     # given
     domain_type = "JsonExtractor"
 
@@ -315,6 +313,7 @@ def test_DomainModel():
     assert model.endpoint == model_dict["endpoint"]
     assert model.load_params is not None  # default value
     assert model.extract_params is None
+    assert model.preprocessor is None
 
 
 def test_DomainModel_bad_endpoint():
@@ -349,35 +348,6 @@ def test_DomainModel_bad_type():
 
     # then
     assert "endpoint" in str(e.value)
-
-
-def test_DataSourceModel_domain_api_is_optional():
-    # given
-    domain_type = "NotebookExtractor"
-
-    # when
-    # create a temporary file
-    # to simulate a notebook path
-    # and check that the path is valid
-    with tempfile.NamedTemporaryFile() as fp:
-        notebook_path = Path(fp.name)
-        m = DataSourceModel(
-            **{
-                "domains": {
-                    "level1": {
-                        "domain1": {
-                            "type": domain_type,
-                            "notebook_path": notebook_path,
-                            "description": "Valid test description",
-                        },
-                    }
-                },
-            }
-        )
-
-    # then
-    assert m is not None
-
 
 def test_DataSourceModel_domain_api_is_ok():
 
@@ -519,6 +489,24 @@ def test_DomainModel_load_params_default_value():
     assert model.load_params.model_dump()["header"] == 0
     assert model.load_params.model_dump()["skipfooter"] == 0
 
+def test_DomainModel_preprocessor_params_default_value():
+    # given
+
+    model_dict = {
+        "API": "INSEE.Metadonnees",
+        "type": "JsonExtractor",
+        "description": "Valid test description",
+        "endpoint": "/geo/regions",
+        "preprocessor": {
+            "name": "bmo_2024"
+        }
+    }
+
+    # when
+    model = DomainModel(**model_dict)
+
+    # then
+    assert model.preprocessor.model_dump()["type"] == "notebook"
 
 def test_DomainModel_response_map_is_arbitrary_dict():
     # given

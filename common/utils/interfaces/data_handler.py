@@ -13,6 +13,7 @@ class OperationType(StrEnum):
 
     EXTRACT = "extract"
     LOAD = "load"
+    PREPROCESS = "preprocess"
     HARVEST = "harvest"
 
 
@@ -33,6 +34,12 @@ class PageLog(BaseModel):
     is_last: Optional[bool] = False
     success: Optional[bool] = False
 
+class ArtifactLog(BaseModel):
+    """model for easily updating and logging information about the processing of an artifact file"""
+    name: str
+    storage_info: Optional[StorageInfo] = None
+    load_to_bronze: Optional[bool] = False
+    success: Optional[bool] = False
 
 class MetadataInfo(BaseModel):
     """Information about the metadata"""
@@ -46,6 +53,7 @@ class MetadataInfo(BaseModel):
     errors: int
     model: DomainModel
     pages: list[PageLog]
+    artifacts: list[ArtifactLog]
 
 
 class IDataHandler(Protocol):
