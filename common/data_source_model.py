@@ -5,6 +5,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    FilePath,
     HttpUrl,
     StringConstraints,
     computed_field,
@@ -253,17 +254,6 @@ class DomainModel(BaseModel):
         examples=["notebooks/regions.ipynb", "notebooks/departements.ipynb"],
     )
 
-    #################################
-    # Dictionary related fields
-    #################################
-    dictionary: Optional[dict] = Field(
-        default_factory=dict,
-        description="""
-            mapping between extracted fields and their business names
-        """,
-        examples=[{"NOMBE24": "Nom du bassin d'emploi"}],
-    )
-
     def merge_headers(self, api_headers: HeaderModel) -> Self:
         """
         local headers are merged with the API headers
@@ -352,26 +342,6 @@ class DataSourceModel(ConfigurationModel):
     )
     domains: dict[str, dict[str, DomainModel]]
 
-    dictionary: Optional[dict[str, dict[str, dict[str, str]]]] = Field(
-        default=None,
-        description="""
-            high level definition of the dictionary,
-            each key is a domain name 
-                each domain name contains a dict of model names
-                    each model name contains a list of dictionaries
-        """,
-        examples=[
-            {
-                "emploi": {
-                    "bmo": {
-                        "NOMBE24": "Nom du bassin d'emploi",
-                        "toto": "toto",
-                    }
-                }
-            }
-        ],
-    )
-
     @model_validator(mode="after")
     def check_consistency(self) -> Self:
         """
@@ -421,20 +391,6 @@ class DataSourceModel(ConfigurationModel):
         for d_name, domain in self.domains.items():
             for m_name, model in domain.items():
                 model.name = f"{d_name}.{m_name}"
-        return self
-
-    @model_validator(mode="after")
-    def set_dictionary(self) -> Self:
-        """
-        sets the dictionary for each model in the domain section if available
-        """
-        if self.dictionary:
-            for domain, v in self.dictionary.items():
-                for model_name, dictionary in v.items():
-                    model = self.get_model(f"{domain}.{model_name}")
-                    if model:
-                        model.dictionary = dictionary
-
         return self
 
     def get_domains_with_models_for_api(self, api_name: str) -> dict[str, list[str]]:
