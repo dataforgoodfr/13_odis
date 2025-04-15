@@ -107,13 +107,14 @@ class JsonDataLoader(AbstractDataLoader):
         Yields an iterable result with page number (int) and load success information (bool) for each page
         """
 
+        # initiate connection
+        self.db_client.connect()
+
         for artifact_log in artifacts:
 
             try:
 
                 load_success = False
-
-                self.db_client.connect()
 
                 # Drops if exist artifact table
                 self.create_or_overwrite_table(suffix = artifact_log.name)
@@ -144,16 +145,13 @@ class JsonDataLoader(AbstractDataLoader):
                 load_success = self.load_to_db(payload, suffix = artifact_log.name)
 
                 logger.info(
-                    f"Page {artifact_log.page} loaded successfully: {load_success}"
+                    f"Page {artifact_log.name} loaded successfully: {load_success}"
                 )
 
             except Exception as e:
                 logger.exception(
-                    f"Error loading data for page {artifact_log.page}: {str(e)}"
+                    f"Error loading data for page {artifact_log.name}: {str(e)}"
                 )
-            finally:
-                # close db connection
-                self.db_client.close()
 
             # yield a new page log, with the db load result info
             yield ArtifactLog(
@@ -162,6 +160,9 @@ class JsonDataLoader(AbstractDataLoader):
                 success = load_success,
                 load_to_bronze = artifact_log.load_to_bronze,
             )
+    
+        # close db connection
+        self.db_client.close()
 
     @validate_call
     def load_to_db(self, rows: list[dict], suffix:str = None) -> bool:
