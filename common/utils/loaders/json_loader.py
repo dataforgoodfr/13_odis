@@ -29,16 +29,16 @@ class JsonDataLoader(AbstractDataLoader):
         ```
         """
 
-        description = ", ".join(
-            [f"{key}: {value}" for key, value in self.model.dictionary.items()]
-        )
-        description = description.replace("'", '"')
+        # description = ", ".join(
+        #     [f"{key}: {value}" for key, value in self.model.dictionary.items()]
+        # )
+        # description = description.replace("'", '"')
 
         return [
             Column(
                 name="data",
                 data_type=ColumnType.JSON,
-                description=description,
+                description="json data",
             )
         ]
 

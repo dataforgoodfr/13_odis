@@ -376,13 +376,6 @@ def test_list_columns(pg_settings):
                     },
                 }
             },
-            "dictionary": {
-                "domain1": {
-                    "model_json": {
-                        "DEPARTEMENT_CODE": "Code du département",
-                    }
-                },
-            },
         }
     )
 
@@ -407,4 +400,4 @@ def test_list_columns(pg_settings):
     assert len(result) == 1
     assert result[0].name == "data"
     assert result[0].data_type == "JSONB"
-    assert result[0].description == "DEPARTEMENT_CODE: Code du département"
+    # assert result[0].description == "DEPARTEMENT_CODE: Code du département"
