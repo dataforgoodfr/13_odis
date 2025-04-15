@@ -212,7 +212,7 @@ class FileHandler(IDataHandler):
         """Parses a JSON file and returns the decoded data
 
         Args :
-            page_log (PageLog) : the info where the file is stored
+            storage_info (StorageInfo) : the info where the file is stored
 
         Return decoded JSON data into a python dict
 
@@ -249,7 +249,7 @@ class FileHandler(IDataHandler):
         - benchmark usage of pandas vs csv module
 
         Args:
-            page_log (PageLog) : the info where the file is stored
+            storage_info (StorageInfo) : the info where the file is stored
             model (DomainModel): the model that generated the data
 
         Returns:
@@ -289,7 +289,7 @@ class FileHandler(IDataHandler):
         - benchmark usage of pandas vs csv module
 
         Args:
-            page_log (PageLog) : the info where the file is stored
+            storage_info (StorageInfo) : the info where the file is stored
             model (DomainModel): the model that generated the data
 
         Returns:
