@@ -1,10 +1,11 @@
-from typing import Annotated, Literal, Optional, Self
 from pathlib import Path
+from typing import Annotated, Literal, Optional, Self
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    FilePath,
     HttpUrl,
     StringConstraints,
     computed_field,
@@ -72,6 +73,7 @@ class DataLoadParameters(BaseModel):
         """,
     )
 
+
 class DataProcessingParameters(BaseModel):
 
     name: str = Field(
@@ -83,7 +85,7 @@ class DataProcessingParameters(BaseModel):
     )
 
     type: PROCESSOR_TYPE = Field(
-        default = "notebook",
+        default="notebook",
         description="""
             Type of the processor.
             The following values are accepted :
@@ -92,10 +94,10 @@ class DataProcessingParameters(BaseModel):
     )
 
     base: str = Field(
-        default = "notebooks",
-        description = """
+        default="notebooks",
+        description="""
             Base folder path where the preprocessr code is to be found
-        """
+        """,
     )
 
     @computed_field
@@ -214,12 +216,7 @@ class DomainModel(BaseModel):
             Parameters to be passed if and when data needs 
             to be perprocessed between extract and load
         """,
-        examples = [
-            {
-                "name": "logements_sociaux_rpls",
-                "type": "notebook"
-            }
-        ]
+        examples=[{"name": "logements_sociaux_rpls", "type": "notebook"}],
     )
 
     #################################
@@ -234,6 +231,27 @@ class DomainModel(BaseModel):
             such as the separator for CSV files,
             the parameters are passed to the loader as keyword arguments,
         """,
+    )
+
+    response_map: Optional[dict] = Field(
+        default={},
+        examples=[{"next": "paging.next"}],
+        description="mapping of response keys to domain-specific keys",
+    )
+
+    #################################
+    # Notebook related fields
+    #################################
+    notebook_path: Optional[FilePath] = Field(
+        default=None,
+        description="""
+            path to the notebook to be used for the extraction,
+            the path is relative to the root of the repository,
+            it is used when the type is `NotebookExtractor`
+            the path must be a valid path and not a URL
+            the path is ignored (unused) when the API is used,
+        """,
+        examples=["notebooks/regions.ipynb", "notebooks/departements.ipynb"],
     )
 
     def merge_headers(self, api_headers: HeaderModel) -> Self:
@@ -278,13 +296,9 @@ class DomainModel(BaseModel):
         """
 
         if self.API is None:
-            raise ValueError(
-                "API must be provided"
-            )
+            raise ValueError("API must be provided")
         elif self.endpoint is None:
-            raise ValueError(
-                "endpoint must be provided"
-            )
+            raise ValueError("endpoint must be provided")
 
         return self
 
