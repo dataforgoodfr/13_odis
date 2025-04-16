@@ -17,7 +17,7 @@ sources:
         loaded_at_field: created_at
         
       - name: emploi_eff_secteur_prive_gds_secteurs
-        description: Source JSON loadée dans le champ data contenant les Effectifs salariés du secteur privé par grands secteurs
+        description: Source CSV contenant les Effectifs salariés du secteur privé par grands secteurs
         loaded_at_field : created_at
         freshness :
         warn_after: {count: 1, period : year}
