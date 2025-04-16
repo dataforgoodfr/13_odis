@@ -159,6 +159,15 @@ domains:
       headers:
         accept: application/zip, application/octet-stream
 
+    bmo_2024:
+      API: data.gouv.fr
+      description: Fichier BMO (Besoins en Main d'Oeuvre) - 2024
+      endpoint: /datasets/r/4319f5e8-a8e6-476c-8da0-c0d3439ebb55
+      type: FileExtractor
+      format: zip
+      peprocessor:
+        name: bmo_2024
+
     # bmo:
     #   notebook_path: notebook/emploi_bmo.ipynb
     #   description: indicateurs de besoin de main d'oeuvre 
@@ -402,7 +411,9 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
-        
+
+  logement_social:
+
       # logement_sociaux:
       #   notebook_path: notebook/logements_sociaux_2024.ipynb
       #   description: recuperation des indicateurs des logements sociaux via notebook

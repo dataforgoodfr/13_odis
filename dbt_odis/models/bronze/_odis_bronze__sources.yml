@@ -8,7 +8,7 @@ sources:
         description: Source JSON loadée dans le champ data contenant les références des communes
         loaded_at_field: created_at
 
-      - name: geographical_references_departments
+      - name: geographical_references_departements
         description: Source JSON loadée dans le champ data contenant les références des départements
         loaded_at_field: created_at
 
@@ -19,6 +19,104 @@ sources:
       - name: emploi_eff_secteur_prive_gds_secteurs
         description: Source JSON loadée dans le champ data contenant les Effectifs salariés du secteur privé par grands secteurs
         loaded_at_field : created_at
+        freshness :
+        warn_after: {count: 1, period : year}
+        
+      - name: emploi_demandeur_emploi_communes
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: emploi_demandeur_emploi_departements
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: emploi_demandeur_emploi_regions
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: education_moyenne_eleve_commune
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: education_moyenne_eleve_departement
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: education_moyenne_eleve_region
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: logement_annual_dept_data
+        description: Source CSV logements données annuelles par département
+        loaded_at_field: created_at  
+
+      - name: logement_dido_catalogue
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: logement_logements_appartement
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: logement_logements_appartement_et_residences_principales
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: logement_logements_maison
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: logement_logements_maison_et_residences_principales
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: logement_logements_pieces
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: logement_logements_total
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: presentation_page_elus_communes
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: presentation_page_epci
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: presentation_page_population_communes
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: services_services
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      # - name: 
+      #   description: Source JSON loadée dans le champ data contenant 
+      #   loaded_at_field: created_at
+
+      # - name: 
+      #   description: Source JSON loadée dans le champ data contenant 
+      #   loaded_at_field: created_at
+
+      # - name: 
+      #   description: Source JSON loadée dans le champ data contenant 
+      #   loaded_at_field: created_at
+
+      # - name: 
+      #   description: Source JSON loadée dans le champ data contenant 
+      #   loaded_at_field: created_at
+
+      # - name: 
+      #   description: Source JSON loadée dans le champ data contenant 
+      #   loaded_at_field: created_at
+
+      # - name: 
+      #   description: Source JSON loadée dans le champ data contenant 
+      #   loaded_at_field: created_at
         #freshness :
         #  warn_after: {count: 1, period : year}
 
@@ -33,3 +131,4 @@ sources:
       - name: logement_rpls_commune
         description: feuille xlsx transformée en JSON loadée dans le champ data contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par communes
         loaded_at_field : created_at           
+

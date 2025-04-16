@@ -34,6 +34,9 @@ flags:
 models:
   dbt_odis:
     # Config indicated by + and applies to all files under models/example/
+    +persist_docs:
+      relation: true
+      columns: true
 
     bronze:
       +schema: bronze
@@ -45,14 +48,16 @@ models:
 
     gold:
       +schema: gold
+      +materialized: table
 
-      fact:
-        +materialized: incremental
-        +incremental_strategy: merge
-        +on_schema_change: sync_all_columns
+
+      # fact:
+      #   +materialized: incremental
+      #   +incremental_strategy: merge
+      #   +on_schema_change: sync_all_columns
       
-      dimension:
-        +materialized: table
+      # dimension:
+      #   +materialized: table
   
   elementary:
     +schema: tec_odis  
