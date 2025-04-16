@@ -7,23 +7,31 @@ DataForGood saison 13. OD&IS est une application permettant à l’association J
 
 Le but de ce projet est de récupérer et traiter les différentes sources de données utiles, de façon fiable, répétable et régulièrement mise à jour.
 
-# Installation
+# Installation et configuration du projet
 
 Pour prendre en main ce repository et installer les dépendances du projet :
 - [Guide d'installation](./INSTALL.md)
 
+## Variables d'environnement
+
+Pour créer le fichier local des variables d'environnement (.env) à partir de .env.dist :
+
 ```bash
 cp .env.dist .env
-poetry install
 ```
 
-Ce projet utilise une base de données PostgreSQL. Pour démarrer la base de données en local :
+Ajouter les secrets S3 dans le fichier .env.
+
+## Base de données
+
+Ce projet utilise une base de données PostgreSQL gérée via Docker Compose. 
+Pour démarrer la base de données :
 
 ```bash
 docker compose up -d
 ```
 
-La base de données sera ensuite accessible sur `localhost:5432`
+La base de données sera ensuite accessible sur `localhost:5432` et le pgadmin sur :`localhost:5050` 
 
 Pour initialiser ou réinitialiser la base de données :
 
