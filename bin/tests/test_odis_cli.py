@@ -22,7 +22,7 @@ def test_explain_source_generic_explanations():
                     "API": "INSEE.Metadonnees",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
-                    "description": "Valid test description"
+                    "description": "Valid test description",
                 }
             }
         },
@@ -51,7 +51,7 @@ def test_explain_source_apis():
                     "API": "INSEE.Metadonnees",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
-                    "description": "Valid test description"
+                    "description": "Valid test description",
                 }
             }
         },
@@ -84,7 +84,7 @@ def test_explain_source_models():
                     "API": "INSEE.Metadonnees",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
-                    "description": "Valid test description"
+                    "description": "Valid test description",
                 }
             }
         },
@@ -116,7 +116,7 @@ def test_extract_data(mocker):
                     "API": "INSEE",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
-                    "description": "Valid test description"
+                    "description": "Valid test description",
                 }
             }
         },
