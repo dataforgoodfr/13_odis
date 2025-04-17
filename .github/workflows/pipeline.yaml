@@ -125,48 +125,50 @@ jobs:
       
       - name: Generate execution report
         run: |
-          echo "# ODIS Pipeline Execution Summary" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Domain | Extract | Extract Time | Load | Load Time |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|--------|---------|-------------|------|-----------|" >> "$GITHUB_STEP_SUMMARY"
-          
-          for file in ./all-statuses/*.json; do
-            domain=$(jq -r '.domain' "$file")
-            extract_status=$(jq -r '.extract_status' "$file")
-            extract_time=$(jq -r '.extract_duration' "$file")
-            load_status=$(jq -r '.load_status' "$file")
-            load_time=$(jq -r '.load_duration' "$file")
+          {
+            echo "# ODIS Pipeline Execution Summary"
+            echo ""
+            echo "| Domain | Extract | Extract Time | Load | Load Time |"
+            echo "|--------|---------|-------------|------|-----------|"
             
-            # Format durations as minutes:seconds
-            extract_mins=$((extract_time / 60))
-            extract_secs=$((extract_time % 60))
-            extract_formatted="${extract_mins}m ${extract_secs}s"
+            for file in ./all-statuses/*.json; do
+              domain=$(jq -r '.domain' "$file")
+              extract_status=$(jq -r '.extract_status' "$file")
+              extract_time=$(jq -r '.extract_duration' "$file")
+              load_status=$(jq -r '.load_status' "$file")
+              load_time=$(jq -r '.load_duration' "$file")
+              
+              # Format durations as minutes:seconds
+              extract_mins=$((extract_time / 60))
+              extract_secs=$((extract_time % 60))
+              extract_formatted="${extract_mins}m ${extract_secs}s"
+              
+              if [ "$load_status" != "skipped" ]; then
+                load_mins=$((load_time / 60))
+                load_secs=$((load_time % 60))
+                load_formatted="${load_mins}m ${load_secs}s"
+              else
+                load_formatted="N/A"
+              fi
+              
+              # Add status emojis
+              if [ "$extract_status" == "success" ]; then
+                extract_icon="✅"
+              else
+                extract_icon="❌"
+              fi
+              
+              if [ "$load_status" == "success" ]; then
+                load_icon="✅"
+              elif [ "$load_status" == "skipped" ]; then
+                load_icon="⏭️"
+              else
+                load_icon="❌"
+              fi
+              
+              echo "| $domain | $extract_icon | $extract_formatted | $load_icon | $load_formatted |"
+            done
             
-            if [ "$load_status" != "skipped" ]; then
-              load_mins=$((load_time / 60))
-              load_secs=$((load_time % 60))
-              load_formatted="${load_mins}m ${load_secs}s"
-            else
-              load_formatted="N/A"
-            fi
-            
-            # Add status emojis
-            if [ "$extract_status" == "success" ]; then
-              extract_icon="✅"
-            else
-              extract_icon="❌"
-            fi
-            
-            if [ "$load_status" == "success" ]; then
-              load_icon="✅"
-            elif [ "$load_status" == "skipped" ]; then
-              load_icon="⏭️"
-            else
-              load_icon="❌"
-            fi
-            
-            echo "| $domain | $extract_icon | $extract_formatted | $load_icon | $load_formatted |" >> "$GITHUB_STEP_SUMMARY"
-          done
-          
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "✅ Success | ❌ Failure | ⏭️ Skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo ""
+            echo "✅ Success | ❌ Failure | ⏭️ Skipped"
+          } >> "$GITHUB_STEP_SUMMARY"
