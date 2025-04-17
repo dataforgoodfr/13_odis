@@ -57,16 +57,16 @@ jobs:
         id: extract
         continue-on-error: true
         run: |
-          echo "start_time=$(date +%s)" >> "$GITHUB_ENV"
+          echo "extract_start_time=$(date +%s)" >> "$GITHUB_ENV"
           poetry run python bin/odis.py extract -d ${{ matrix.domain }}
           echo "extract_status=success" >> "$GITHUB_ENV"
-          echo "extract_duration=$(($(date +%s) - $start_time))" >> "$GITHUB_ENV"
+          echo "extract_duration=$(($(date +%s) - extract_start_time))" >> "$GITHUB_ENV"
         
       - name: Record extract failure
         if: failure() && steps.extract.outcome == 'failure'
         run: |
           echo "extract_status=failure" >> "$GITHUB_ENV"
-          echo "extract_duration=$(($(date +%s) - $start_time))" >> "$GITHUB_ENV"
+          echo "extract_duration=$(($(date +%s) - extract_start_time))" >> "$GITHUB_ENV"
       
       # Load step
       - name: Run load for domain
@@ -77,13 +77,13 @@ jobs:
           echo "load_start_time=$(date +%s)" >> "$GITHUB_ENV"
           poetry run python bin/odis.py load -d ${{ matrix.domain }}
           echo "load_status=success" >> "$GITHUB_ENV"
-          echo "load_duration=$(($(date +%s) - $load_start_time))" >> "$GITHUB_ENV"
+          echo "load_duration=$(($(date +%s) - load_start_time))" >> "$GITHUB_ENV"
       
       - name: Record load failure
         if: failure() && steps.load.outcome == 'failure'
         run: |
           echo "load_status=failure" >> "$GITHUB_ENV"
-          echo "load_duration=$(($(date +%s) - $load_start_time))" >> "$GITHUB_ENV"
+          echo "load_duration=$(($(date +%s) - load_start_time))" >> "$GITHUB_ENV"
       
       - name: Record load skipped
         if: steps.extract.outcome != 'success'
