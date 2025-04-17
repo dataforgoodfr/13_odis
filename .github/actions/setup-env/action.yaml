@@ -9,13 +9,13 @@ runs:
       run: |
         cat > .env << EOL
         # scaleway
-        SCW_OBJECT_STORAGE_ENDPOINT=https://s3.fr-par.scw.cloud
-        SCW_REGION=fr-par
-        SCW_BUCKET_NAME=${{ secrets.SCW_BUCKET_NAME }}
+        SCW_OBJECT_STORAGE_ENDPOINT=${{ secrets.SCW_OBJECT_STORAGE_ENDPOINT }}
+        SCW_REGION=${{ env.SCW_REGION }}
+        SCW_BUCKET_NAME=${{ env.SCW_BUCKET_NAME }}
         SCW_ACCESS_KEY=${{ secrets.SCW_ACCESS_KEY }}
         SCW_SECRET_KEY=${{ secrets.SCW_SECRET_KEY }}
         # db
-        PG_DB_NAME=${{ secrets.PG_DB_NAME }}
+        PG_DB_NAME=${{ env.DB_NAME }}
         PG_DB_USER=${{ secrets.PG_DB_USER }}
         PG_DB_PWD=${{ secrets.PG_DB_PWD }}
         PG_DB_HOST=${{ secrets.PG_DB_HOST }}
