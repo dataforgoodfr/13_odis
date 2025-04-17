@@ -41,14 +41,13 @@ jobs:
             echo "domains=$DOMAINS" >> "$GITHUB_OUTPUT"
           fi
 
-  extract:
+  extract-and-load:
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         domain: ${{ fromJson(needs.prepare.outputs.domains) }}
-    
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-python
@@ -58,44 +57,62 @@ jobs:
         id: extract
         continue-on-error: true
         run: |
+          echo "start_time=$(date +%s)" >> "$GITHUB_ENV"
           poetry run python bin/odis.py extract -d ${{ matrix.domain }}
+          echo "extract_status=success" >> "$GITHUB_ENV"
+          echo "extract_duration=$(($(date +%s) - $start_time))" >> "$GITHUB_ENV"
+        
+      - name: Record extract failure
+        if: failure() && steps.extract.outcome == 'failure'
+        run: |
+          echo "extract_status=failure" >> "$GITHUB_ENV"
+          echo "extract_duration=$(($(date +%s) - $start_time))" >> "$GITHUB_ENV"
       
-      - name: Upload extracted data
-        if: steps.extract.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: extracted-data-${{ matrix.domain }}
-          path: data/imports/${{ matrix.domain }}
-          retention-days: 1
-
-  load:
-    environment: prod
-    needs: [prepare, extract]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        domain: ${{ fromJson(needs.prepare.outputs.domains) }}
-    
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-python
-      - uses: ./.github/actions/setup-env
-      
-      - name: Download extracted data
-        uses: actions/download-artifact@v4
-        with:
-          name: extracted-data-${{ matrix.domain }}
-          path: data/imports/${{ matrix.domain }}
-      
+      # Load step
       - name: Run load for domain
         id: load
+        if: steps.extract.outcome == 'success'
         continue-on-error: true
-        run: poetry run python bin/odis.py load -d ${{ matrix.domain }}
+        run: |
+          echo "load_start_time=$(date +%s)" >> "$GITHUB_ENV"
+          poetry run python bin/odis.py load -d ${{ matrix.domain }}
+          echo "load_status=success" >> "$GITHUB_ENV"
+          echo "load_duration=$(($(date +%s) - $load_start_time))" >> "$GITHUB_ENV"
+      
+      - name: Record load failure
+        if: failure() && steps.load.outcome == 'failure'
+        run: |
+          echo "load_status=failure" >> "$GITHUB_ENV"
+          echo "load_duration=$(($(date +%s) - $load_start_time))" >> "$GITHUB_ENV"
+      
+      - name: Record load skipped
+        if: steps.extract.outcome != 'success'
+        run: |
+          echo "load_status=skipped" >> "$GITHUB_ENV"
+          echo "load_duration=0" >> "$GITHUB_ENV"
+      
+      - name: Create status file
+        run: |
+          mkdir -p ./status
+          cat << EOF > ./status/${{ matrix.domain }}.json
+          {
+            "domain": "${{ matrix.domain }}",
+            "extract_status": "${extract_status:-unknown}",
+            "extract_duration": "${extract_duration:-0}",
+            "load_status": "${load_status:-unknown}",
+            "load_duration": "${load_duration:-0}"
+          }
+          EOF
+      
+      - name: Upload status file
+        uses: actions/upload-artifact@v4
+        with:
+          name: status-${{ matrix.domain }}
+          path: ./status/${{ matrix.domain }}.json
+          retention-days: 1
 
   summary:
-    environment: prod
-    needs: [load]
+    needs: [extract-and-load]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -103,9 +120,53 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: status-*
-          path: all-statuses
+          path: ./all-statuses
           merge-multiple: true
       
       - name: Generate execution report
         run: |
-          echo "Hello world"
+          echo "# ODIS Pipeline Execution Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Domain | Extract | Extract Time | Load | Load Time |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|--------|---------|-------------|------|-----------|" >> "$GITHUB_STEP_SUMMARY"
+          
+          for file in ./all-statuses/*.json; do
+            domain=$(jq -r '.domain' "$file")
+            extract_status=$(jq -r '.extract_status' "$file")
+            extract_time=$(jq -r '.extract_duration' "$file")
+            load_status=$(jq -r '.load_status' "$file")
+            load_time=$(jq -r '.load_duration' "$file")
+            
+            # Format durations as minutes:seconds
+            extract_mins=$((extract_time / 60))
+            extract_secs=$((extract_time % 60))
+            extract_formatted="${extract_mins}m ${extract_secs}s"
+            
+            if [ "$load_status" != "skipped" ]; then
+              load_mins=$((load_time / 60))
+              load_secs=$((load_time % 60))
+              load_formatted="${load_mins}m ${load_secs}s"
+            else
+              load_formatted="N/A"
+            fi
+            
+            # Add status emojis
+            if [ "$extract_status" == "success" ]; then
+              extract_icon="✅"
+            else
+              extract_icon="❌"
+            fi
+            
+            if [ "$load_status" == "success" ]; then
+              load_icon="✅"
+            elif [ "$load_status" == "skipped" ]; then
+              load_icon="⏭️"
+            else
+              load_icon="❌"
+            fi
+            
+            echo "| $domain | $extract_icon | $extract_formatted | $load_icon | $load_formatted |" >> "$GITHUB_STEP_SUMMARY"
+          done
+          
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "✅ Success | ❌ Failure | ⏭️ Skipped" >> "$GITHUB_STEP_SUMMARY"
