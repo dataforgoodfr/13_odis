@@ -65,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: extracted-data-${{ matrix.domain }}
-          path: data/extracts/${{ matrix.domain }}
+          path: data/imports/${{ matrix.domain }}
           retention-days: 1
 
   load:
@@ -86,7 +86,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: extracted-data-${{ matrix.domain }}
-          path: data/extracts/${{ matrix.domain }}
+          path: data/imports/${{ matrix.domain }}
       
       - name: Run load for domain
         id: load
@@ -108,4 +108,4 @@ jobs:
       
       - name: Generate execution report
         run: |
-          Hello
+          echo "Hello world"
