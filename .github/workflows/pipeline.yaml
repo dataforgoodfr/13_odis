@@ -13,6 +13,7 @@ env:
 
 jobs:
   prepare:
+    environment: prod
     runs-on: ubuntu-latest
     outputs:
       domains: ${{ steps.set-domains.outputs.domains }}
@@ -34,6 +35,7 @@ jobs:
           fi
 
   extract:
+    environment: prod
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
@@ -72,6 +74,7 @@ jobs:
           retention-days: 1
 
   load:
+    environment: prod
     needs: [prepare, extract]
     runs-on: ubuntu-latest
     strategy:
@@ -131,6 +134,7 @@ jobs:
           retention-days: 1
 
   summary:
+    environment: prod
     needs: [load]
     runs-on: ubuntu-latest
     if: always()
