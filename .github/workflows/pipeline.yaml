@@ -25,11 +25,11 @@ jobs:
         run: |
           if [ -n "${{ github.event.inputs.domains }}" ]; then
             echo "Using manually specified domains: ${{ github.event.inputs.domains }}"
-            echo "domains=$(echo ${{ github.event.inputs.domains }} | tr ',' '\n')" >> "$GITHUB_OUTPUT"
+            echo "domains=$(echo '${{ github.event.inputs.domains }}' | jq -R -c 'split(",") | map(select(length > 0))')" >> "$GITHUB_OUTPUT"
           else
-            # Parse all domains from the config file
-            DOMAINS=$(poetry run python -c "import yaml; print(','.join(yaml.safe_load(open('datasources.yaml')).get('domains', {}).keys()))")
-            echo "Using all domains from config: $DOMAINS"
+            # Parse all domains from the config file and format as JSON array
+            DOMAINS=$(poetry run python -c "import yaml, json; print(json.dumps(list(yaml.safe_load(open('datasources.yaml')).get('domains', {}).keys())))")
+            echo "Using all domains from config"
             echo "domains=$DOMAINS" >> "$GITHUB_OUTPUT"
           fi
 
@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        domain: ${{ fromJson(format('[{0}]', needs.prepare.outputs.domains)) }}
+        domain: ${{ fromJson(needs.prepare.outputs.domains) }}
     
     steps:
       - uses: actions/checkout@v4
