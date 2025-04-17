@@ -57,7 +57,7 @@ jobs:
       
       - name: Record extraction status
         if: always()
-        uses: ./.github/actions/record-status
+        uses: ./.github/actions/pipeline-record-operation-status
         with:
           operation: "extract"
           domain: ${{ matrix.domain }}
@@ -77,7 +77,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        domain: ${{ fromJson(format('[{0}]', needs.prepare.outputs.domains)) }}
+        domain: ${{ fromJson(needs.prepare.outputs.domains) }}
     
     steps:
       - uses: actions/checkout@v4
@@ -96,34 +96,34 @@ jobs:
           name: status-extract-${{ matrix.domain }}
           path: ./status/
       
-      - name: Run load for domain ${{ matrix.domain }}
-        id: load
-        continue-on-error: true
+      - name: Check extraction status
+        id: check-extract
         run: |
-          # Check if extraction was successful before attempting to load
-          if [ -f "./status/${{ matrix.domain }}_extract_status.txt" ]; then
-            EXTRACT_STATUS=$(cat ./status/${{ matrix.domain }}_extract_status.txt)
-            if [ "$EXTRACT_STATUS" != "success" ]; then
-              echo "::warning::Skipping load for domain ${{ matrix.domain }} because extraction failed"
-              mkdir -p ./status
-              echo "skipped" > ./status/${{ matrix.domain }}_load_status.txt
-              echo "⏭️ Load for domain ${{ matrix.domain }} skipped due to extract failure" >> ./status/${{ matrix.domain }}_load_message.txt
-              exit 0
-            fi
-          fi
-
           mkdir -p ./status
-          if poetry run python bin/odis.py load -d ${{ matrix.domain }}; then
-            echo "success" > ./status/${{ matrix.domain }}_load_status.txt
-            echo "✅ Load for domain ${{ matrix.domain }} succeeded" >> ./status/${{ matrix.domain }}_load_message.txt
+          if [ -f "./status/${{ matrix.domain }}_extract_status.txt" ] && [ "$(cat ./status/${{ matrix.domain }}_extract_status.txt)" != "success" ]; then
+            echo "::warning::Skipping load for domain ${{ matrix.domain }} because extraction failed"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "skipped" > "./status/${{ matrix.domain }}_load_status.txt"
+            echo "⏭️ Load for domain ${{ matrix.domain }} skipped due to extract failure" >> "./status/${{ matrix.domain }}_load_message.txt"
           else
-            echo "failure" > ./status/${{ matrix.domain }}_load_status.txt
-            echo "❌ Load for domain ${{ matrix.domain }} failed" >> ./status/${{ matrix.domain }}_load_message.txt
-            exit 1
+            echo "skip=false" >> $GITHUB_OUTPUT
           fi
       
-      - name: Upload load status
-        if: always()
+      - name: Run load for domain
+        id: load
+        if: steps.check-extract.outputs.skip != 'true'
+        continue-on-error: true
+        run: poetry run python bin/odis.py load -d ${{ matrix.domain }}
+      
+      - uses: ./.github/actions/record-status
+        if: steps.check-extract.outputs.skip != 'true'
+        with:
+          operation: "load"
+          domain: ${{ matrix.domain }}
+          outcome: ${{ steps.load.outcome }}
+      
+      - name: Upload skipped status
+        if: steps.check-extract.outputs.skip == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: status-load-${{ matrix.domain }}

@@ -6,18 +6,29 @@ runs:
   steps:
     - name: Create .env file
       shell: bash
+      env:
+        SCW_OBJECT_STORAGE_ENDPOINT: ${{ secrets.SCW_OBJECT_STORAGE_ENDPOINT }}
+        SCW_REGION: ${{ env.SCW_REGION }}
+        SCW_BUCKET_NAME: ${ env.SCW_BUCKET_NAME }
+        SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+        SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+        PG_DB_NAME: ${{ env.DB_NAME }}
+        PG_DB_USER: ${{ env.PG_DB_USER }}
+        PG_DB_PWD: ${{ env.PG_DB_PWD }}
+        PG_DB_HOST: ${{ env.PG_DB_HOST }}
+        PG_DB_PORT: ${{ env.PG_DB_PORT }}
       run: |
         cat > .env << EOL
         # scaleway
-        SCW_OBJECT_STORAGE_ENDPOINT=${{ secrets.SCW_OBJECT_STORAGE_ENDPOINT }}
-        SCW_REGION=${{ env.SCW_REGION }}
-        SCW_BUCKET_NAME=${{ env.SCW_BUCKET_NAME }}
-        SCW_ACCESS_KEY=${{ secrets.SCW_ACCESS_KEY }}
-        SCW_SECRET_KEY=${{ secrets.SCW_SECRET_KEY }}
+        SCW_OBJECT_STORAGE_ENDPOINT="$SCW_OBJECT_STORAGE_ENDPOINT"
+        SCW_REGION="$SCW_REGION"
+        SCW_BUCKET_NAME="$SCW_BUCKET_NAME"
+        SCW_ACCESS_KEY="$SCW_ACCESS_KEY"
+        SCW_SECRET_KEY="$SCW_SECRET_KEY"
         # db
-        PG_DB_NAME=${{ env.DB_NAME }}
-        PG_DB_USER=${{ secrets.PG_DB_USER }}
-        PG_DB_PWD=${{ secrets.PG_DB_PWD }}
-        PG_DB_HOST=${{ secrets.PG_DB_HOST }}
-        PG_DB_PORT=${{ secrets.PG_DB_PORT }}
+        PG_DB_NAME="$PG_DB_NAME"
+        PG_DB_USER="$PG_DB_USER"
+        PG_DB_PWD="$PG_DB_PWD"
+        PG_DB_HOST="$PG_DB_HOST"
+        PG_DB_PORT="$PG_DB_PORT"
         EOL
