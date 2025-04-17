@@ -8,15 +8,33 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip'
+    
+    - name: Cache Poetry installation
+      uses: actions/cache@v4
+      with:
+        path: ~/.local
+        key: poetry-${{ runner.os }}-${{ env.PYTHON_VERSION }}
     
     - name: Install poetry
       shell: bash
       run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        if ! command -v poetry &> /dev/null; then
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        fi
+    
+    - name: Configure Poetry
+      shell: bash
+      run: poetry config virtualenvs.in-project true
+    
+    - name: Cache Poetry dependencies
+      uses: actions/cache@v4
+      with:
+        path: ./.venv
+        key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
     
     - name: Install dependencies
       shell: bash
-      run: |
-        poetry install --no-interaction
+      run: poetry install --no-interaction
