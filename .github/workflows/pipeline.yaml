@@ -13,10 +13,10 @@ env:
   SCW_OBJECT_STORAGE_ENDPOINT: ${{ secrets.SCW_OBJECT_STORAGE_ENDPOINT }}
   SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
   SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
-  PG_DB_USER: ${{ secrets.PG_DB_USER }}
-  PG_DB_PWD: ${{ secrets.PG_DB_PWD }}
-  PG_DB_HOST: ${{ secrets.PG_DB_HOST }}
-  PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
+  PG_DB_USER: ${{ secrets.DB_USER }}
+  PG_DB_PWD: ${{ secrets.DB_PWD }}
+  PG_DB_HOST: ${{ secrets.DB_HOST }}
+  PG_DB_PORT: ${{ secrets.DB_PORT }}
 
 jobs:
   prepare:
@@ -61,15 +61,14 @@ jobs:
           echo "extract_start_time=$(date +%s)" >> "$GITHUB_ENV"
           poetry run python bin/odis.py extract -d ${{ matrix.domain }}
           echo "extract_status=success" >> "$GITHUB_ENV"
-          echo "extract_duration=$(($(date +%s) - extract_start_time))" >> "$GITHUB_ENV"
+          echo "extract_duration=$(($(date +%s) - $extract_start_time))" >> "$GITHUB_ENV"
         
       - name: Record extract failure
         if: steps.extract.outcome == 'failure'
         run: |
           echo "extract_status=failure" >> "$GITHUB_ENV"
-          echo "extract_duration=$(($(date +%s) - extract_start_time))" >> "$GITHUB_ENV"
+          echo "extract_duration=$(($(date +%s) - $extract_start_time))" >> "$GITHUB_ENV"
       
-      # Load step
       - name: Run load for domain
         id: load
         if: steps.extract.outcome == 'success'
@@ -78,13 +77,13 @@ jobs:
           echo "load_start_time=$(date +%s)" >> "$GITHUB_ENV"
           poetry run python bin/odis.py load -d ${{ matrix.domain }}
           echo "load_status=success" >> "$GITHUB_ENV"
-          echo "load_duration=$(($(date +%s) - load_start_time))" >> "$GITHUB_ENV"
+          echo "load_duration=$(($(date +%s) - $load_start_time))" >> "$GITHUB_ENV"
       
       - name: Record load failure
         if: steps.load.outcome == 'failure'
         run: |
           echo "load_status=failure" >> "$GITHUB_ENV"
-          echo "load_duration=$(($(date +%s) - load_start_time))" >> "$GITHUB_ENV"
+          echo "load_duration=$(($(date +%s) - $load_start_time))" >> "$GITHUB_ENV"
       
       - name: Record load skipped
         if: steps.extract.outcome != 'success'
