@@ -89,6 +89,12 @@ APIs:
     base_url: https://statistiques.francetravail.org
     apidoc: https://www.francetravail.org/statistiques-analyses/
 
+  datawrapper:
+    name: datawrapper
+    description: Serving charts and maps for millions of readers every day. 
+    base_url: https://datawrapper.dwcdn.net
+    apidoc: https://www.datawrapper.de/
+    
 domains:
 
   emploi:
@@ -168,25 +174,7 @@ domains:
       peprocessor:
         name: bmo_2024
 
-    # bmo:
-    #   notebook_path: notebook/emploi_bmo.ipynb
-    #   description: indicateurs de besoin de main d'oeuvre 
-    #   type: NotebookExtractor
-    #   format: csv
-    #   load_params:
-    #     header: 3 # index de la première ligne utile du csv
-    #     skipfooter: 3 # combien de lignes inutiles à skipper en fin de document
-
-    bmo_2024:
-      API: data.gouv.fr
-      description: Fichier BMO (Besoins en Main d'Oeuvre) - 2024
-      endpoint: /datasets/r/4319f5e8-a8e6-476c-8da0-c0d3439ebb55
-      type: FileExtractor
-      format: zip
-      peprocessor:
-        name: bmo_2024
-
-  presentation_page:
+  presentation:
 
     elus_communes:
       API: Opendatasoft
@@ -194,28 +182,17 @@ domains:
       type: FileExtractor
       endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/exports/csv
       format: csv
-      response_map:
-        data: results
+      load_params:
+        separator: ;
 
-    epci:
+    elections_municipales:
       API: Opendatasoft
-      description: Groupement de communes
+      description: Elections municipales 2020
       type: FileExtractor
-      endpoint: /catalog/datasets/donnees-du-repertoire-national-des-elus/exports/csv
+      endpoint: /catalog/datasets/election-france-municipale-2020-deuxieme-tour/exports/csv?use_labels=true
       format: csv
-      response_map:
-        data: results
-
-    population_communes:
-      API: INSEE.Melodi
-      description: Population des communes
-      type: MelodiExtractor
-      endpoint: /data/DS_RP_POPULATION_PRINC?TIME_PERIOD=2021&AGE=_T&SEX=F&SEX=M&maxResult=1000
-      format: json
-      response_map:
-        data: observations
-        next: paging.next
-        is_last: paging.isLast
+      load_params:
+        separator: ;
 
   geographical_references:
 
@@ -240,6 +217,25 @@ domains:
       endpoint: /communes?fields=code,nom,population,departement,region,centre
       format: json
 
+    communes_et_arrondissements:
+      API: Opendatasoft
+      description: Communes et Arrondissements Municipaux - France 
+      type: FileExtractor
+      endpoint: /catalog/datasets/georef-france-commune-arrondissement-municipal/exports/csv
+      format: csv
+      load_params:
+        separator: ;
+
+  accueil:
+    cada_cph_huda:
+      API: datawrapper
+      description: Nombre de places en centres d’accueil pour demandeurs d’asile (CADA), centres provisoires d’hébergement (CPH), hébergement d’urgence des demandeurs d’asile (HUDA) 
+      endpoint: /TKQuX/6/dataset.csv
+      type: FileExtractor
+      format: csv
+      load_params:
+        separator: ','
+    
   logement:
 
       dido_catalogue:
@@ -583,6 +579,4 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
-
-        
-
+     
