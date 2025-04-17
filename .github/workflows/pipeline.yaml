@@ -102,11 +102,11 @@ jobs:
           mkdir -p ./status
           if [ -f "./status/${{ matrix.domain }}_extract_status.txt" ] && [ "$(cat ./status/${{ matrix.domain }}_extract_status.txt)" != "success" ]; then
             echo "::warning::Skipping load for domain ${{ matrix.domain }} because extraction failed"
-            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "skipped" > "./status/${{ matrix.domain }}_load_status.txt"
             echo "⏭️ Load for domain ${{ matrix.domain }} skipped due to extract failure" >> "./status/${{ matrix.domain }}_load_message.txt"
           else
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
       
       - name: Run load for domain
