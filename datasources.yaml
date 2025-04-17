@@ -227,6 +227,7 @@ domains:
         separator: ;
 
   accueil:
+
     cada_cph_huda:
       API: datawrapper
       description: Nombre de places en centres d’accueil pour demandeurs d’asile (CADA), centres provisoires d’hébergement (CPH), hébergement d’urgence des demandeurs d’asile (HUDA) 
@@ -579,4 +580,3 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
-     
