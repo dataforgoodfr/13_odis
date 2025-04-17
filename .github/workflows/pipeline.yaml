@@ -10,6 +10,13 @@ on:
 
 env:
   PYTHON_VERSION: "3.13"
+  SCW_OBJECT_STORAGE_ENDPOINT: ${{ secrets.SCW_OBJECT_STORAGE_ENDPOINT }}
+  SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+  SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+  PG_DB_USER: ${{ secrets.PG_DB_USER }}
+  PG_DB_PWD: ${{ secrets.PG_DB_PWD }}
+  PG_DB_HOST: ${{ secrets.PG_DB_HOST }}
+  PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
 
 jobs:
   prepare:
@@ -52,26 +59,7 @@ jobs:
         id: extract
         continue-on-error: true
         run: |
-          poetry run python bin/odis.py extract -d ${{ matrix.domain }} || {
-            echo "::error::Failed to extract domain ${{ matrix.domain }}"
-            exit 1
-          }
-      
-      - name: Record extraction status
-        if: always()
-        uses: ./.github/actions/pipeline-record-operation-status
-        with:
-          operation: "extract"
-          domain: ${{ matrix.domain }}
-          outcome: ${{ steps.extract.outcome }}
-      
-      - name: Upload extracted data
-        if: steps.extract.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: extracted-data-${{ matrix.domain }}
-          path: data/extracts/${{ matrix.domain }}
-          retention-days: 1
+          poetry run python bin/odis.py extract -d ${{ matrix.domain }}
 
   load:
     environment: prod
@@ -92,46 +80,11 @@ jobs:
         with:
           name: extracted-data-${{ matrix.domain }}
           path: data/extracts/${{ matrix.domain }}
-          
-      - name: Download extract status
-        uses: actions/download-artifact@v4
-        with:
-          name: status-extract-${{ matrix.domain }}
-          path: ./status/
-      
-      - name: Check extraction status
-        id: check-extract
-        run: |
-          mkdir -p ./status
-          if [ -f "./status/${{ matrix.domain }}_extract_status.txt" ] && [ "$(cat ./status/${{ matrix.domain }}_extract_status.txt)" != "success" ]; then
-            echo "::warning::Skipping load for domain ${{ matrix.domain }} because extraction failed"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "skipped" > "./status/${{ matrix.domain }}_load_status.txt"
-            echo "⏭️ Load for domain ${{ matrix.domain }} skipped due to extract failure" >> "./status/${{ matrix.domain }}_load_message.txt"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
       
       - name: Run load for domain
         id: load
-        if: steps.check-extract.outputs.skip != 'true'
         continue-on-error: true
         run: poetry run python bin/odis.py load -d ${{ matrix.domain }}
-      
-      - uses: ./.github/actions/record-status
-        if: steps.check-extract.outputs.skip != 'true'
-        with:
-          operation: "load"
-          domain: ${{ matrix.domain }}
-          outcome: ${{ steps.load.outcome }}
-      
-      - name: Upload skipped status
-        if: steps.check-extract.outputs.skip == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: status-load-${{ matrix.domain }}
-          path: ./status/
-          retention-days: 1
 
   summary:
     environment: prod
@@ -148,61 +101,4 @@ jobs:
       
       - name: Generate execution report
         run: |
-            # Single command to count successes and failures
-            EXTRACT_SUCCESS=$(grep -l "success" all-statuses/*_extract_status.txt 2>/dev/null | wc -l)
-            EXTRACT_FAILURE=$(grep -L "success" all-statuses/*_extract_status.txt 2>/dev/null | wc -l)
-            LOAD_SUCCESS=$(grep -l "success" all-statuses/*_load_status.txt 2>/dev/null | wc -l)
-            LOAD_FAILURE=$(grep -l "failure" all-statuses/*_load_status.txt 2>/dev/null | wc -l)
-            LOAD_SKIPPED=$(grep -l "skipped" all-statuses/*_load_status.txt 2>/dev/null | wc -l)
-            TOTAL_DOMAINS=$(( EXTRACT_SUCCESS + EXTRACT_FAILURE ))
-            
-            # Generate the report in a single operation
-            {
-              echo "# ODIS Data Pipeline Execution Report"
-              echo "📅 Execution timestamp: $(date -u)"
-              echo ""
-              echo "## Summary"
-              echo ""
-              echo "- Total domains processed: ${TOTAL_DOMAINS}"
-              echo "- Extract steps: ✅ ${EXTRACT_SUCCESS} succeeded, ❌ ${EXTRACT_FAILURE} failed"
-              echo "- Load steps: ✅ ${LOAD_SUCCESS} succeeded, ❌ ${LOAD_FAILURE} failed, ⏭️ ${LOAD_SKIPPED} skipped"
-              
-              # Only create detailed section if there were failures
-              if [ "${EXTRACT_FAILURE}" -gt 0 ] || [ "${LOAD_FAILURE}" -gt 0 ]; then
-                echo ""
-                echo "❗ **There were failures in the pipeline. See details below:**"
-                echo ""
-                echo "## Failed Domains"
-                echo ""
-                
-                # List failed extract domains
-                if [ "${EXTRACT_FAILURE}" -gt 0 ]; then
-                  echo "### Extract Failures"
-                  grep -L "success" all-statuses/*_extract_status.txt 2>/dev/null | while read -r FAILED_FILE; do
-                    DOMAIN=$(basename "${FAILED_FILE}" | sed 's/_extract_status.txt//')
-                    ERROR_MSG=$(cat "all-statuses/${DOMAIN}_extract_message.txt" 2>/dev/null || echo "No error message")
-                    echo "- **${DOMAIN}**: ${ERROR_MSG}"
-                  done
-                  echo ""
-                fi
-                
-                # List failed load domains
-                if [ "${LOAD_FAILURE}" -gt 0 ]; then
-                  echo "### Load Failures"
-                  grep -l "failure" all-statuses/*_load_status.txt 2>/dev/null | while read -r FAILED_FILE; do
-                    DOMAIN=$(basename "${FAILED_FILE}" | sed 's/_load_status.txt//')
-                    ERROR_MSG=$(cat "all-statuses/${DOMAIN}_load_message.txt" 2>/dev/null || echo "No error message")
-                    echo "- **${DOMAIN}**: ${ERROR_MSG}"
-                  done
-                fi
-              else
-                echo ""
-                echo "✅ **All steps completed successfully!**"
-              fi
-            } >> "${GITHUB_STEP_SUMMARY}"
-            
-            # Exit with failure if there were any failures
-            if [ "${EXTRACT_FAILURE}" -gt 0 ] || [ "${LOAD_FAILURE}" -gt 0 ]; then
-              echo "::warning::Pipeline completed with failures: ${EXTRACT_FAILURE} extract failures, ${LOAD_FAILURE} load failures"
-              exit 1
-            fi
+          Hello
