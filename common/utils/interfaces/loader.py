@@ -137,8 +137,9 @@ class AbstractDataLoader(ABC):
             # add comments on table
             self.db_client.execute(
                 f"""
-                COMMENT ON TABLE bronze.{self.model.table_name} IS '{self.model.description}'
-                """
+                COMMENT ON TABLE bronze.{self.model.table_name} IS %s
+                """,
+                (self.model.description,),
             )
 
             # add comments on columns
@@ -146,8 +147,9 @@ class AbstractDataLoader(ABC):
                 if col.description is not None:
                     self.db_client.execute(
                         f"""
-                        COMMENT ON COLUMN bronze.{self.model.table_name}.{col.name} IS '{col.description}'
-                        """
+                        COMMENT ON COLUMN bronze.{self.model.table_name}.{col.name} IS %s
+                        """,
+                        (col.description,),
                     )
 
             self.db_client.commit()
@@ -209,5 +211,5 @@ class AbstractDataLoader(ABC):
             complete=complete,
             errors=errors,
             pages=page_logs,
-            artifacts=[]
+            artifacts=[],
         )
