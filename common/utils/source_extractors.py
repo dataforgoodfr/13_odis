@@ -33,7 +33,7 @@ class RetriableRequest:
         self.params = params
 
     @retry(
-        stop=(stop_after_delay(60) | stop_after_attempt(3)),
+        stop=(stop_after_delay(180) | stop_after_attempt(3)),
         before=before_log(logger, logging.DEBUG),
         reraise=True,  # re-raise the last exception
     )
