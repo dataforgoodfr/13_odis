@@ -94,13 +94,15 @@ jobs:
       - name: Create status file
         run: |
           mkdir -p ./status
+          extract_time=$((extract_end_time - extract_start_time))
+          load_time=$((load_end_time - load_start_time))
           cat << EOF > ./status/${{ matrix.domain }}.json
           {
             "domain": "${{ matrix.domain }}",
             "extract_status": "${extract_status:-unknown}",
-            "extract_duration": "${extract_duration:-0}",
+            "extract_duration": "${extract_time:-0}",
             "load_status": "${load_status:-unknown}",
-            "load_duration": "${load_duration:-0}"
+            "load_duration": "${load_time:-0}"
           }
           EOF
       
@@ -130,9 +132,6 @@ jobs:
             echo ""
             echo "| Domain | Extract | Extract Time | Load | Load Time |"
             echo "|--------|---------|-------------|------|-----------|"
-
-            extract_time=$((extract_end_time - extract_start_time))
-            load_time=$((load_end_time - load_start_time))
             
             for file in ./all-statuses/*.json; do
               domain=$(jq -r '.domain' "$file")
