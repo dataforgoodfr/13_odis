@@ -67,6 +67,13 @@ class Column(BaseModel):
 
         return sanitized.lower()
 
+    def __repr__(self):
+        """pretty print column name
+
+        ex: <column_name: TEXT>
+        """
+        return f"<{self.name}: {self.data_type}>"
+
 
 class AbstractDataLoader(ABC):
     """Interface for data loaders."""
