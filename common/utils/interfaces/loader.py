@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from enum import StrEnum
 from typing import Generator, Optional
 
+import psycopg2
 from pydantic import BaseModel, ValidationInfo, field_validator
 
 from common.data_source_model import DataSourceModel, DomainModel
@@ -116,9 +117,15 @@ class AbstractDataLoader(ABC):
 
             self.db_client.connect()
 
-            self.db_client.execute(
-                f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
-            )
+            try:
+                self.db_client.execute(
+                    f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
+                )
+            except psycopg2.errors.DependentObjectsStillExist as e:
+                logger.warning(
+                    f"Failed to drop table bronze.{self.model.table_name}: {str(e)}"
+                )
+                self.db_client.rollback()
 
             # cache columns for later
             self.columns = self.list_columns()
@@ -133,11 +140,11 @@ class AbstractDataLoader(ABC):
 
             self.db_client.execute(
                 f"""
-                CREATE TABLE bronze.{self.model.table_name} (
+                CREATE TABLE IF NOT EXISTS bronze.{self.model.table_name} (
                     id SERIAL PRIMARY KEY,
                     {columns_str},
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+                ) 
             """
             )
 
