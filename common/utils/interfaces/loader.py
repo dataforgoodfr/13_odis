@@ -125,6 +125,9 @@ class AbstractDataLoader(ABC):
                 logger.warning(
                     f"Failed to drop table bronze.{self.model.table_name}: {str(e)}"
                 )
+                # need to rollback the transaction
+                # to reset the state of the database
+                # before creating the table
                 self.db_client.rollback()
 
             # cache columns for later
