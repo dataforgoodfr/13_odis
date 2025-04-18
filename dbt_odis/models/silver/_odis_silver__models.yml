@@ -9,12 +9,33 @@ models:
         description: codegéo
 
   - name: logements_types_territoires
+    description: Table silver joignant tous les types de logements pour une zone géographique identifiée par "geo"
     columns:
+      - name: id
+        description: index
       - name: geo
-        description: codegéo
+        description: clé primaire
+      - name: time_period
+        description: année de mesure
+      - name: maisons
+        description: nombre de maisons dans la zone géographique
+      - name: maisons_rp
+        description: nombre de maisons RP dans la zone géographique
+      - name: appartements
+        description: nombre d'appartements dans la zone géographique
+      - name: appartements_rp
+        description: nombre d'appartements RP dans la zone géographique
+      - name: pieces
+        description: nombre de pièces dans la zone géographique 
+      - name: total_logements
+        description: nombre total de logements dans la zone géographique
+      - name: type_geo
+        description: type de zone géographique (commune, département, région).
+      - name: code_geo
+        description: code géographique (commune, département, région).
 
   - name: emploi_demandeur_emploi
     description: Silver model for employment demanders
     columns:
-      - name: codegeo
+      - name: code_geo
         description: codegéo
