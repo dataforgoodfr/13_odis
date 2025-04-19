@@ -152,7 +152,7 @@ def test_dump_metadata_with_csv_format(stub_page_log):
             complete=True,
             errors=0,
             pages=pages,
-            artifacts=[]
+            artifacts=[],
         )
 
     # then
@@ -377,3 +377,70 @@ def test_load_csv_raises_invalid_csv():
 
     # then
     assert "blah" in str(e.value)
+
+
+# def test_read_large_page():
+#     # given
+#     test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
+#     file_handler = FileHandler()
+
+#     page = PageLog(
+#         page=1,
+#         storage_info=StorageInfo(
+#             location=test_data_dir,
+#             format="json",
+#             file_name="test_large_json.json",
+#             encoding="utf-8",
+#         ),
+#     )
+
+#     content = []
+
+#     # when
+#     for last_line in file_handler.read_pages([page]):
+#         content.append(last_line)
+
+#     # then
+#     assert len(content) == 1  # Ensure that only one chunk was read
+
+#     assert all(
+#         [isinstance(line, dict) for line in content]
+#     )  # Ensure that the content is a list of dictionaries
+
+
+# def test_read_several_pages():
+#     # given
+#     test_data_dir = os.path.split(os.path.abspath(__file__))[0] + "/data"
+#     file_handler = FileHandler()
+
+#     page_1 = PageLog(
+#         page=1,
+#         storage_info=StorageInfo(
+#             location=test_data_dir,
+#             format="json",
+#             file_name="test_array_of_json.json",
+#             encoding="utf-8",
+#         ),
+#     )
+#     page_2 = PageLog(
+#         page=2,
+#         storage_info=StorageInfo(
+#             location=test_data_dir,
+#             format="json",
+#             file_name="test_data.json",
+#             encoding="utf-8",
+#         ),
+#     )
+
+#     content = []
+
+#     # when
+#     for last_line in file_handler.read_pages([page_1, page_2]):
+#         content.append(last_line)
+
+#     # then
+#     assert len(content) > 0  # Ensure that two chunks were read
+
+
+# def test_read_several_inconsistent_pages():
+#     pass
