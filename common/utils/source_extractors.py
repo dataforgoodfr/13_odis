@@ -1,3 +1,4 @@
+import logging
 import time
 import urllib
 from typing import Generator, Optional
@@ -7,10 +8,40 @@ import nbformat
 import requests
 from nbconvert.preprocessors import ExecutePreprocessor
 from pydantic import BaseModel, Field
+from tenacity import before_log, retry, stop_after_attempt, stop_after_delay
 
 from common.data_source_model import FILE_FORMAT
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
 from common.utils.logging_odis import logger
+
+
+class RetriableRequest:
+    """a wrapper around requests to retry on failure"""
+
+    url: str
+    headers: dict
+    params: dict
+
+    def __init__(
+        self,
+        url: str,
+        headers: dict,
+        params: dict,
+    ):
+        self.url = url
+        self.headers = headers
+        self.params = params
+
+    @retry(
+        stop=(stop_after_delay(180) | stop_after_attempt(3)),
+        before=before_log(logger, logging.DEBUG),
+        reraise=True,  # re-raise the last exception
+    )
+    def get(self) -> requests.Response:
+        """send a GET request to the url with the given headers and params"""
+        response = requests.get(self.url, headers=self.headers, params=self.params)
+        response.raise_for_status()
+        return response
 
 
 class FileExtractor(AbstractSourceExtractor):
@@ -24,12 +55,12 @@ class FileExtractor(AbstractSourceExtractor):
         """
 
         # Send request to API
-        response = requests.get(
+        response = RetriableRequest(
             self.url,
             headers=self.model.headers.model_dump(mode="json"),
             params=self.model.extract_params,
-        )
-        response.raise_for_status()
+        ).get()
+
         payload = response.json() if self.is_json else response.content
 
         # yield the request result
@@ -84,12 +115,11 @@ class MelodiExtractor(FileExtractor):
 
         try:
             # Send request to API
-            response = requests.get(
+            response = RetriableRequest(
                 url,
                 headers=self.model.headers.model_dump(mode="json"),
                 params=passed_params,
-            )
-            response.raise_for_status()
+            ).get()
 
             payload = response.json()
 
@@ -275,12 +305,12 @@ class OpenDataSoftExtractor(FileExtractor):
 
         try:
             # Send request to API
-            response = requests.get(
+
+            response = RetriableRequest(
                 url,
                 headers=self.model.headers.model_dump(mode="json"),
                 params=passed_params,
-            )
-            response.raise_for_status()
+            ).get()
 
             raw_data = response.json()
 
