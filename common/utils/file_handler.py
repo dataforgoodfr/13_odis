@@ -6,20 +6,20 @@ from typing import Any
 import orjson
 import pandas as pd
 from bson import ObjectId
-from pydantic import ValidationError
 from openpyxl.utils.exceptions import InvalidFileException
+from pydantic import ValidationError
 
 from common.data_source_model import FILE_FORMAT, DomainModel
 from common.utils.exceptions import InvalidCSV, InvalidJson
 from common.utils.logging_odis import logger
 
 from .interfaces.data_handler import (
+    ArtifactLog,
     IDataHandler,
     MetadataInfo,
     OperationType,
     PageLog,
     StorageInfo,
-    ArtifactLog,
 )
 
 DEFAULT_BASE_PATH = "data/imports"
@@ -137,17 +137,14 @@ class FileHandler(IDataHandler):
                 except Exception as e:
                     logger.error(f"Error encoding JSON data: {str(e)}")
 
-        elif isinstance(data, pd.DataFrame) and format=="xlsx":
+        elif isinstance(data, pd.DataFrame) and format == "xlsx":
             try:
-                with pd.ExcelWriter(
-                    path = filepath,
-                    engine = 'openpyxl'
-                    ) as writer:
+                with pd.ExcelWriter(path=filepath, engine="openpyxl") as writer:
 
                     sheet_name = suffix if suffix else "sheet1"
-                    data.to_excel(writer, sheet_name = sheet_name)
+                    data.to_excel(writer, sheet_name=sheet_name)
                     success = True
-                    
+
             except Exception as e:
                 logger.error(f"Error dumping dataframe to Excel: {str(e)}")
 
@@ -161,20 +158,21 @@ class FileHandler(IDataHandler):
         if success:
             return StorageInfo(
                 location=str(data_dir),
-                format = format,
+                format=format,
                 file_name=filepath.name,
                 encoding="utf-8",
             )
-        else: 
+        else:
             return None
 
-    def artifact_dump(self, 
-                    data: Any, 
-                    name: str, 
-                    model: DomainModel, 
-                    format: FILE_FORMAT = None,
-                    load_to_bronze: bool = True 
-                    ) -> ArtifactLog:
+    def artifact_dump(
+        self,
+        data: Any,
+        name: str,
+        model: DomainModel,
+        format: FILE_FORMAT = None,
+        load_to_bronze: bool = True,
+    ) -> ArtifactLog:
         """Utility function to dump a local file and generate an associated Artifact.
         Returns an ArtifactLog for historicization"""
 
@@ -184,12 +182,7 @@ class FileHandler(IDataHandler):
             format = model.format
 
         try:
-            storage_info = self.file_dump(
-                model, 
-                data, 
-                suffix = name,
-                format = format
-                )
+            storage_info = self.file_dump(model, data, suffix=name, format=format)
             dump_success = True
             load_to_bronze = True
 
@@ -199,11 +192,11 @@ class FileHandler(IDataHandler):
             dump_success = False
 
         return ArtifactLog(
-                name = name,
-                storage_info = storage_info,
-                load_to_bronze = load_to_bronze,
-                success = dump_success
-            )
+            name=name,
+            storage_info=storage_info,
+            load_to_bronze=load_to_bronze,
+            success=dump_success,
+        )
 
     def json_load(
         self,
@@ -221,9 +214,7 @@ class FileHandler(IDataHandler):
 
         """
 
-        filepath = Path(storage_info.location) / Path(
-            storage_info.file_name
-        )
+        filepath = Path(storage_info.location) / Path(storage_info.file_name)
 
         try:
             logger.debug(f"loading JSON file : {filepath}")
@@ -259,9 +250,7 @@ class FileHandler(IDataHandler):
             InvalidCSV: if the file is not found or the CSV is invalid
         """
 
-        filepath = Path(storage_info.location) / Path(
-            storage_info.file_name
-        )
+        filepath = Path(storage_info.location) / Path(storage_info.file_name)
 
         try:
             logger.debug(f"loading CSV file : {filepath}")
@@ -299,9 +288,7 @@ class FileHandler(IDataHandler):
             InvalidCSV: if the file is not found or the CSV is invalid
         """
 
-        filepath = Path(storage_info.location) / Path(
-            storage_info.file_name
-        )
+        filepath = Path(storage_info.location) / Path(storage_info.file_name)
 
         try:
             logger.debug(f"loading XLSX file : {filepath}")
@@ -317,7 +304,6 @@ class FileHandler(IDataHandler):
             logger.exception(f"Error reading file {filepath}: {str(e)}")
 
         raise InvalidFileException(f"Error reading file '{filepath}'")
-
 
     def load_metadata(
         self, model: DomainModel, operation: OperationType
@@ -358,7 +344,7 @@ class FileHandler(IDataHandler):
         complete: bool = False,
         errors: int = 0,
         pages: list[PageLog] = None,
-        artifacts: list[ArtifactLog] = None
+        artifacts: list[ArtifactLog] = None,
     ) -> MetadataInfo:
         """Dumps the information about an operation run into a MetadataInfo object and into a file.
 
@@ -395,7 +381,7 @@ class FileHandler(IDataHandler):
                 "errors": errors,
                 "model": model,
                 "pages": pages,
-                "artifacts": artifacts
+                "artifacts": artifacts,
             }
         )
 
