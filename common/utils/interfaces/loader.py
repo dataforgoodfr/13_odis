@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from enum import StrEnum
 from typing import Generator, Optional
 
+import psycopg2
 from pydantic import BaseModel, ValidationInfo, field_validator
 
 from common.data_source_model import DataSourceModel, DomainModel
@@ -67,6 +68,13 @@ class Column(BaseModel):
 
         return sanitized.lower()
 
+    def __repr__(self):
+        """pretty print column name
+
+        ex: <column_name: TEXT>
+        """
+        return f"<{self.name}: {self.data_type}>"
+
 
 class AbstractDataLoader(ABC):
     """Interface for data loaders."""
@@ -109,9 +117,18 @@ class AbstractDataLoader(ABC):
 
             self.db_client.connect()
 
-            self.db_client.execute(
-                f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
-            )
+            try:
+                self.db_client.execute(
+                    f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
+                )
+            except psycopg2.errors.DependentObjectsStillExist as e:
+                logger.warning(
+                    f"Failed to drop table bronze.{self.model.table_name}: {str(e)}"
+                )
+                # need to rollback the transaction
+                # to reset the state of the database
+                # before creating the table
+                self.db_client.rollback()
 
             # cache columns for later
             self.columns = self.list_columns()
@@ -126,19 +143,20 @@ class AbstractDataLoader(ABC):
 
             self.db_client.execute(
                 f"""
-                CREATE TABLE bronze.{self.model.table_name} (
+                CREATE TABLE IF NOT EXISTS bronze.{self.model.table_name} (
                     id SERIAL PRIMARY KEY,
                     {columns_str},
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+                ) 
             """
             )
 
             # add comments on table
             self.db_client.execute(
                 f"""
-                COMMENT ON TABLE bronze.{self.model.table_name} IS '{self.model.description}'
-                """
+                COMMENT ON TABLE bronze.{self.model.table_name} IS %s
+                """,
+                (self.model.description,),
             )
 
             # add comments on columns
@@ -146,8 +164,9 @@ class AbstractDataLoader(ABC):
                 if col.description is not None:
                     self.db_client.execute(
                         f"""
-                        COMMENT ON COLUMN bronze.{self.model.table_name}.{col.name} IS '{col.description}'
-                        """
+                        COMMENT ON COLUMN bronze.{self.model.table_name}.{col.name} IS %s
+                        """,
+                        (col.description,),
                     )
 
             self.db_client.commit()
@@ -209,5 +228,5 @@ class AbstractDataLoader(ABC):
             complete=complete,
             errors=errors,
             pages=page_logs,
-            artifacts=[]
+            artifacts=[],
         )
