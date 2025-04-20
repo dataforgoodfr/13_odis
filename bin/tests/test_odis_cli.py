@@ -1,141 +1,193 @@
-from bin.odis import explain, extract
-from common.data_source_model import DataSourceModel
-from common.tests.stubs.source_extractor_stub import StubExtractor
+from unittest.mock import mock_open, patch
 
-from .stubs.handler import StubDataHandler
+from typer.testing import CliRunner
+
+from bin.odis import app
+
+runner = CliRunner()
 
 
-def test_explain_source_generic_explanations():
+def test_explain_overview():
     """just validate there is no error"""
 
     # given
-    dict_config = {
-        "APIs": {
-            "INSEE.Metadonnees": {
-                "name": "Metadonnees INSEE",
-                "base_url": "https://geo.api.gouv.fr",
-            }
-        },
-        "domains": {
-            "INSEE": {
-                "Metadonnees": {
-                    "API": "INSEE.Metadonnees",
-                    "type": "JsonExtractor",
-                    "endpoint": "/geo/regions",
-                    "description": "Valid test description",
-                }
-            }
-        },
-    }
+    yaml_config = """
+    APIs:
+        INSEE.Metadonnees:
+            name: Metadonnees INSEE
+            description: INSEE - API des métadonnées
+            base_url: https://api.insee.fr/metadonnees/V1
+            apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
+
+
+    domains:
+        geographical_references:
+            regions:
+                API: INSEE.Metadonnees
+                type: JsonExtractor
+                endpoint: /geo/regions
+                description: Référentiel géographique INSEE - niveau régional
+
+    """
+    mocked_open_function = mock_open(read_data=yaml_config)
 
     # when
-    explain(DataSourceModel(**dict_config))
+    with patch("builtins.open", mocked_open_function):
+        result = runner.invoke(app, ["explain"])
 
     # then
     # no exception raised
-    assert True
+    assert result.exit_code == 0
+    assert "geographical_references" in result.stdout
 
 
 def test_explain_source_apis():
     # given
-    dict_config = {
-        "APIs": {
-            "INSEE.Metadonnees": {
-                "name": "Metadonnees INSEE",
-                "base_url": "https://geo.api.gouv.fr",
-            }
-        },
-        "domains": {
-            "INSEE": {
-                "Metadonnees": {
-                    "API": "INSEE.Metadonnees",
-                    "type": "JsonExtractor",
-                    "endpoint": "/geo/regions",
-                    "description": "Valid test description",
-                }
-            }
-        },
-    }
-    config = DataSourceModel(**dict_config)
-    apis = list(config.APIs.values())
+    yaml_config = """
+    APIs:
+        INSEE.Metadonnees:
+            name: Metadonnees INSEE
+            description: INSEE - API des métadonnées
+            base_url: https://api.insee.fr/metadonnees/V1
+            apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
+
+
+    domains:
+        geographical_references:
+            regions:
+                API: INSEE.Metadonnees
+                type: JsonExtractor
+                endpoint: /geo/regions
+                description: Référentiel géographique INSEE - niveau régional
+
+    """
+    mocked_open_function = mock_open(read_data=yaml_config)
 
     # when
-    explain(config, apis=apis)
+    with patch("builtins.open", mocked_open_function):
+        result = runner.invoke(app, ["explain", "-a", "INSEE.Metadonnees"])
 
     # then
     # no exception raised
-    assert True
+    assert result.exit_code == 0
 
 
 def test_explain_source_models():
     """verify there is no error when explaining models"""
     # given
 
-    dict_config = {
-        "APIs": {
-            "INSEE.Metadonnees": {
-                "name": "Metadonnees INSEE",
-                "base_url": "https://geo.api.gouv.fr",
-            }
-        },
-        "domains": {
-            "INSEE": {
-                "Metadonnees": {
-                    "API": "INSEE.Metadonnees",
-                    "type": "JsonExtractor",
-                    "endpoint": "/geo/regions",
-                    "description": "Valid test description",
-                }
-            }
-        },
-    }
-    config = DataSourceModel(**dict_config)
-    models = list(config.get_models().values())
+    yaml_config = """
+    APIs:
+        INSEE.Metadonnees:
+            name: Metadonnees INSEE
+            description: INSEE - API des métadonnées
+            base_url: https://api.insee.fr/metadonnees/V1
+            apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
+
+
+    domains:
+        geographical_references:
+            regions:
+                API: INSEE.Metadonnees
+                type: JsonExtractor
+                endpoint: /geo/regions
+                description: Référentiel géographique INSEE - niveau régional
+
+    """
+    mocked_open_function = mock_open(read_data=yaml_config)
 
     # when
-    explain(config, models=models)
+    with patch("builtins.open", mocked_open_function):
+        result = runner.invoke(
+            app, ["explain", "-s", "geographical_references.regions"]
+        )
 
     # then
     # no exception raised
-    assert True
+    assert result.exit_code == 0
 
 
-def test_extract_data(mocker):
+def test_extract_data():
     # given
 
-    dict_config = {
-        "APIs": {
-            "INSEE": {
-                "name": "Metadonnees INSEE",
-                "base_url": "https://geo.api.gouv.fr",
-            }
-        },
-        "domains": {
-            "INSEE": {
-                "Metadonnees": {
-                    "API": "INSEE",
-                    "type": "JsonExtractor",
-                    "endpoint": "/geo/regions",
-                    "description": "Valid test description",
-                }
-            }
-        },
-    }
-    config = DataSourceModel(**dict_config)
+    yaml_config = """
+    APIs:
+        INSEE.Metadonnees:
+            name: Metadonnees INSEE
+            description: INSEE - API des métadonnées
+            base_url: https://api.insee.fr/metadonnees/V1
+            apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
 
-    data_handler = StubDataHandler()
 
-    # verify create_extractor is called
-    mocker.patch(
-        "bin.odis.create_extractor",
-        return_value=StubExtractor(
-            config, list(config.get_models().values())[0], data_handler
-        ),
-    )
+    domains:
+        geographical_references:
+            regions:
+                API: INSEE.Metadonnees
+                type: StubExtractor # nevermind the type, we are using the patch
+                endpoint: /geo/regions
+                description: Référentiel géographique INSEE - niveau régional
+
+    """
+    mocked_open_function = mock_open(read_data=yaml_config)
 
     # when
-    extract(config, config.get_models().values())
+    with patch("builtins.open", mocked_open_function), patch(
+        "bin.odis.create_extractor"
+    ) as mock_create_extractor:
+
+        # when
+        result = runner.invoke(
+            # nevermind the name of the datasource, we are using the patch
+            # we just make sure not to load the default config
+            app,
+            ["extract", "-s", "geographical_references.regions", "-c", "test.yaml"],
+        )
 
     # then
     # no exception raised but handler is not called
-    assert data_handler.is_called
+    assert result.exit_code == 0
+    assert "All data extracted successfully" in result.stdout
+    mock_create_extractor.assert_called_once()
+
+
+def test_load_data():
+    # given
+
+    yaml_config = """
+    APIs:
+        INSEE.Metadonnees:
+            name: Metadonnees INSEE
+            description: INSEE - API des métadonnées
+            base_url: https://api.insee.fr/metadonnees/V1
+            apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
+
+
+    domains:
+        geographical_references:
+            regions:
+                API: INSEE.Metadonnees
+                type: StubExtractor # nevermind the type, we are using the patch
+                endpoint: /geo/regions
+                description: Référentiel géographique INSEE - niveau régional
+
+    """
+    mocked_open_function = mock_open(read_data=yaml_config)
+
+    # when
+    with patch("builtins.open", mocked_open_function), patch(
+        "bin.odis.create_loader"
+    ) as mock_create_loader:
+
+        # when
+        result = runner.invoke(
+            # nevermind the name of the datasource, we are using the patch
+            # we just make sure not to load the default config
+            app,
+            ["load", "-s", "geographical_references.regions", "-c", "test.yaml"],
+        )
+
+    # then
+    # no exception raised but handler is not called
+    assert result.exit_code == 0
+    assert "All data loaded successfully" in result.stdout
+    mock_create_loader.assert_called_once()

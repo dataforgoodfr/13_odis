@@ -15,7 +15,7 @@ from common.utils.interfaces.extractor import AbstractSourceExtractor, Extractio
 from common.utils.logging_odis import logger
 
 
-class RetriableRequest:
+class RobustRequest:
     """a wrapper around requests to retry on failure"""
 
     url: str
@@ -55,7 +55,7 @@ class FileExtractor(AbstractSourceExtractor):
         """
 
         # Send request to API
-        response = RetriableRequest(
+        response = RobustRequest(
             self.url,
             headers=self.model.headers.model_dump(mode="json"),
             params=self.model.extract_params,
@@ -115,7 +115,7 @@ class MelodiExtractor(FileExtractor):
 
         try:
             # Send request to API
-            response = RetriableRequest(
+            response = RobustRequest(
                 url,
                 headers=self.model.headers.model_dump(mode="json"),
                 params=passed_params,
@@ -306,7 +306,7 @@ class OpenDataSoftExtractor(FileExtractor):
         try:
             # Send request to API
 
-            response = RetriableRequest(
+            response = RobustRequest(
                 url,
                 headers=self.model.headers.model_dump(mode="json"),
                 params=passed_params,
