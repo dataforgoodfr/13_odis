@@ -33,6 +33,67 @@ app = typer.Typer()
 console = Console()
 
 
+def explain_data_source(config_model: DataSourceModel, source: str):
+
+    table = Table("Domain", "Data Source Name", "Description")
+
+    for k, d in config_model.domains.items():
+
+        for m in d.values():
+            if m.name != source:
+                continue
+            table.add_row(
+                k,
+                m.name,
+                m.description,
+            )
+
+            print(m.model_dump(mode="json"))
+            print("\n")
+
+    console.print(table)
+
+
+def explain_domain(config_model: DataSourceModel, domain: str):
+    table = Table("Domain", "Data Source Name", "Description")
+
+    for k, d in config_model.domains.items():
+        if k != domain:
+            continue
+
+        for m in d.values():
+            table.add_row(
+                k,
+                m.name,
+                m.description,
+            )
+
+    console.print(table)
+
+
+def explain_api(config_model: DataSourceModel, api: str):
+
+    apis_list = apis_from_name(config_model, apis=api)
+
+    table = Table("API", "Description", "Used by data source")
+    for a in apis_list:
+
+        used_in = config_model.get_domains_with_models_for_api(
+            a.name
+        )  # get the models using the API
+
+        for d in used_in.keys():
+            ds = config_model.get_models(d)  # get the models using the API
+            table.add_row(
+                a.name,
+                a.description,
+                "\n".join([f"- {s.name}" for s in ds.values()]),
+            )
+            table.add_section()
+
+    console.print(table)
+
+
 @app.command()
 def explain(
     api: Annotated[
@@ -123,59 +184,23 @@ def explain(
         print(f"[green]Viewing API '{api}'[/green]")
         print("\n")
 
-        table = Table("API", "Name", "Description", "Used by data source")
-        for k, m in config_model.APIs.items():
-
-            if k != api:
-                continue
-
-            used_in = config_model.get_domains_with_models_for_api(
-                k
-            )  # get the models using the API
-
-            for d in used_in.keys():
-                ds = config_model.get_models(d)  # get the models using the API
-                table.add_row(
-                    k,
-                    m.name,
-                    m.description,
-                    "\n".join([f"- {s.name}" for s in ds.values()]),
-                )
-                table.add_section()
-
-        console.print(table)
+        explain_api(config_model, api)
 
     ## ---------------------------------------
     ## case where the user specifies the API and the data source
     if api != OPTION_NONE and source != OPTION_NONE:
 
         print("\n")
-        print(f"[green]Viewing API '{api}' and data source '{source}'[/green]")
+        print(f"[green]Viewing API '{api}'[/green]")
         print("\n")
 
-        table = Table("API", "Name", "Description", "Used by data source")
-        for k, m in config_model.APIs.items():
+        explain_api(config_model, api)
 
-            if k != api:
-                continue
+        print("\n")
+        print(f"[green]Viewing data source '{source}'[/green]")
+        print("\n")
 
-            used_in = config_model.get_domains_with_models_for_api(
-                k
-            )  # get the models using the API
-
-            for d in used_in.keys():
-                ds = config_model.get_models(d)  # get the models using the API
-                if source not in [s.name for s in ds.values()]:
-                    continue
-                table.add_row(
-                    k,
-                    m.name,
-                    m.description,
-                    "\n".join([f"- {s.name}" for s in ds.values()]),
-                )
-                table.add_section()
-
-        console.print(table)
+        explain_data_source(config_model, source)
 
     ## ---------------------------------------
     ## case where the user wants to see a precise Domain
@@ -185,20 +210,7 @@ def explain(
         print(f"[green]Viewing data sources of domain '{domain}'[/green]")
         print("\n")
 
-        table = Table("Domain", "Data Source Name", "Description")
-
-        for k, d in config_model.domains.items():
-            if k != domain:
-                continue
-
-            for m in d.values():
-                table.add_row(
-                    k,
-                    m.name,
-                    m.description,
-                )
-
-        console.print(table)
+        explain_domain(config_model, domain)
 
     ## ---------------------------------------
     ## case where the user wants to see a precise Data Source only
@@ -208,23 +220,7 @@ def explain(
         print(f"[green]Viewing Data source '{source}'[/green]")
         print("\n")
 
-        table = Table("Domain", "Data Source Name", "Description")
-
-        for k, d in config_model.domains.items():
-
-            for m in d.values():
-                if m.name != source:
-                    continue
-                table.add_row(
-                    k,
-                    m.name,
-                    m.description,
-                )
-
-                print(m.model_dump(mode="json"))
-                print("\n")
-
-        console.print(table)
+        explain_data_source(config_model, source)
     ## ---------------------------------------
 
 
@@ -262,13 +258,18 @@ def extract(
 
             try:
 
-                print(f"\n[green]Extracting data from {ds.name}[/green]")
+                print("\n")
+                print("\n[blue]Using data source configuration:[/blue]")
+                explain_data_source(config_model, ds.name)
+                print("\n")
+
+                print(f"\n[blue]Extracting data from {ds.name}[/blue]")
                 print("\n")
 
                 extractor = create_extractor(config_model, ds, handler=FileHandler())
                 extractor.execute()
 
-                print(f"\n[green]Data extracted from {ds.name}[/green]")
+                print(f"\n[blue]Data extracted from {ds.name}[/blue]")
                 print("\n")
 
             except Exception as e:
@@ -308,7 +309,6 @@ def load(
     ] = DEFAULT_CONFIGFILE,
 ):
     config_model: DataSourceModel = load_config(config, response_model=DataSourceModel)
-
     data_sources: list[DomainModel] = data_sources_from_name(
         config_model, sources=source
     )
@@ -320,6 +320,11 @@ def load(
         for ds in progress:
 
             try:
+
+                print("\n")
+                print("\n[blue]Using data source configuration:[/blue]")
+                explain_data_source(config_model, ds.name)
+                print("\n")
 
                 print(f"\n[blue]Loading data into {ds.name}[/blue]")
 
@@ -402,6 +407,7 @@ def data_sources_from_name(
     if sources is not None and sources != OPTION_ALL:
         # Split the comma separated string into a list
         sources_list = [source.strip() for source in sources.split(",")]
+
     elif sources == OPTION_ALL:
         # If the user input is "*", we want all sources
         sources_list = list(config.get_models().keys())
