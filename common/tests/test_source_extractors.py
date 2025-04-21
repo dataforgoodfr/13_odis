@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 
 from common.data_source_model import DataSourceModel
-from common.utils.source_extractors import NotebookExtractor, RetriableRequest
+from common.utils.source_extractors import NotebookExtractor, RobustRequest
 
 from .stubs.data_handler import StubDataHandler
 from .stubs.source_extractor_stub import StubExtractor
@@ -148,7 +148,7 @@ def test_RetriableRequest_succeeds(mocker):
         return_value=Mock(status_code=200, json=lambda: {"key": "value"}),
     )
 
-    req = RetriableRequest(
+    req = RobustRequest(
         url="https://api1.com",
         params={},
         headers={},
@@ -183,7 +183,7 @@ def test_RetriableRequest_retries_on_err(mocker):
         side_effect=raise_on_first_call,
     )
 
-    req = RetriableRequest(
+    req = RobustRequest(
         url="https://api1.com",
         params={},
         headers={},
@@ -210,7 +210,7 @@ def test_RetriableRequest_final_exc_is_reraised(mocker):
         side_effect=Exception("Network error"),
     )
 
-    req = RetriableRequest(
+    req = RobustRequest(
         url="https://api1.com",
         params={},
         headers={},
