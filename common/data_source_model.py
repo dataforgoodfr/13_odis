@@ -65,9 +65,10 @@ class DomainModel(BaseModel):
 
     """
 
-    API: str
+    API: Optional[str] = None  # Make API optional,for non-API extractors
     type: str
-    endpoint: EndPoint
+    url: Optional[str] = None 
+    endpoint: Optional[EndPoint] = None 
     description: Optional[str] = None
     headers: Optional[HeaderModel] = Field(
         default_factory=HeaderModel,
@@ -106,14 +107,16 @@ class DomainModel(BaseModel):
         local headers are merged with the API headers
 
         the local headers have precedence over the API headers
+        Skip merging if the model's API is None.
         """
-        if self.headers:
-            if api_headers:
-                d = api_headers.model_dump(mode="json")
-                d.update(self.headers.model_dump(mode="json"))
-                self.headers = HeaderModel(**d)
-        else:
-            self.headers = api_headers
+        if self.API is not None:  # Only proceed if API is not None
+            if self.headers:
+                if api_headers:
+                    d = api_headers.model_dump(mode="json")
+                    d.update(self.headers.model_dump(mode="json"))
+                    self.headers = HeaderModel(**d)
+            else:
+                self.headers = api_headers
 
         return self
 
@@ -151,14 +154,16 @@ class DataSourceModel(ConfigurationModel):
     def check_domain_api(self) -> Self:
         """
         verify the domain API is in the APIs dict
+        Skip validation if API is None
         """
         for domain in self.domains.values():
             for model in domain.values():
-                if model.API not in self.APIs:
+                # Skip validation if the model's API is None
+                if model.API is not None and model.API not in self.APIs:
                     raise ValueError(f"API '{model.API}' not found in APIs section")
 
         return self
-
+    
     @model_validator(mode="after")
     def merge_model_headers(self) -> Self:
         """
@@ -166,6 +171,8 @@ class DataSourceModel(ConfigurationModel):
         """
         for domain in self.domains.values():
             for model in domain.values():
+                if model.API is None:
+                    continue  # ⬅️ Skip models that don't rely on an API
                 api = self.APIs[model.API]
                 model.merge_headers(api.default_headers)
 

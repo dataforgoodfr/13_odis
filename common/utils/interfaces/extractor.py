@@ -80,20 +80,28 @@ class AbstractSourceExtractor(ABC):
         self.metadata_handler = metadata_handler
         self.model = model
 
+        # Check if model requires an API 
+        if model.API: #Only proceed with API-related logic if an API is defined
+
         # Decompose base API URl
-        base_url = str(self.config.get_api(model).base_url)
-        base_split = urllib.parse.urlsplit(base_url)
+            base_url = str(self.config.get_api(model).base_url)
+            base_split = urllib.parse.urlsplit(base_url)
 
-        # expand the URL endpoint path with the source config
-        if base_split.path == "/":
-            full_path = model.endpoint
+            # expand the URL endpoint path with the source config
+            if base_split.path == "/":
+                full_path = model.endpoint
+            else:
+                full_path = f"{base_split.path}{model.endpoint}"
+
+            # rebuild the full URL with complete path
+            self.url = urllib.parse.urljoin(f"https://{base_split.netloc}", full_path)
+
+            self.api_config = self.config.get_api(model)
         else:
-            full_path = f"{base_split.path}{model.endpoint}"
-
-        # rebuild the full URL with complete path
-        self.url = urllib.parse.urljoin(f"https://{base_split.netloc}", full_path)
-
-        self.api_config = self.config.get_api(model)
+            #Handle cases where datasource is not from an API
+            logger.debug("No API configuration needed for this model.")
+            self.api_config = None
+            self.url = model.url #Direct URL for non-API models
 
     def execute(self) -> None:
         """Method to be called to start the extraction process.
@@ -117,7 +125,11 @@ class AbstractSourceExtractor(ABC):
 
             last_page_downloaded += 1
 
-            storage_info = self.handler.file_dump(self.model, data=result.payload)
+            if self.handler:
+                storage_info = self.handler.file_dump(self.model, data=result.payload)
+            else:
+                # If no handler, set storage_info to None or skip
+                storage_info = None
 
             page_log_info = {
                 "page": last_page_downloaded,
@@ -149,19 +161,19 @@ class AbstractSourceExtractor(ABC):
                 "errors": errors,
                 "model": self.model,
                 "pages": page_logs
-            }
-        ).model_dump( 
-            mode = "json" 
-        ) 
-
-        meta_info = self.metadata_handler.file_dump(
-            self.model,
-            data = extract_metadata
+                }
+                ).model_dump( 
+            mode = "json")
+        
+        if self.metadata_handler:
+            meta_info = self.metadata_handler.file_dump(
+                self.model,
+                data = extract_metadata
             )
 
-        logger.debug(
-            f"Metadata written in: '{meta_info.location}/{meta_info.file_name}'"
-        )
+            logger.debug(
+                f"Metadata written in: '{meta_info.location}/{meta_info.file_name}'"
+                )
 
     @abstractmethod
     def download(self, *args, **kwargs) -> Generator[ExtractionResult, None, None]:

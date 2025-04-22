@@ -344,6 +344,23 @@ domains:
           next: paging.next
           is_last: paging.isLast
 
+      logements_sociaux:
+        type: XlsxExtractDumpS3
+        description: Recuperation des indicateurs des logements sociaux
+        format: xlsx
+        url: "https://www.statistiques.developpement-durable.gouv.fr/media/7970/download?inline"
+
+  testdomain:
+    # TEST ENTRY - DO NOT USE IN PRODUCTION
+    # This domain is used only for testing the XlsxExtractDumpS3 class.
+    # Real URL used for local testing of XlsxExtractDumpS3.
+    # Remove before merging to main.
+      test_xlsx_s3:
+        type: XlsxExtractDumpS3
+        description: Test-only source for validating XlsxExtractDumpS3. Safe to delete.
+        format: xlsx
+        url: https://www.statistiques.developpement-durable.gouv.fr/media/7970/download?inline
+
   education:
 
       moyenne_eleve_commune:
