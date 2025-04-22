@@ -2,7 +2,9 @@ from unittest.mock import mock_open, patch
 
 from typer.testing import CliRunner
 
-from bin.odis import app
+from bin.odis import app, data_sources_from_name
+from common.config import load_config
+from common.data_source_model import DataSourceModel
 
 runner = CliRunner()
 
@@ -191,3 +193,57 @@ def test_load_data():
     assert result.exit_code == 0
     assert "All data loaded successfully" in result.stdout
     mock_create_loader.assert_called_once()
+
+
+def test_data_sources_from_name_with_spaces():
+    # given
+    yaml_config = """
+    APIs:
+        INSEE.Metadonnees:
+            name: Metadonnees INSEE
+            description: INSEE - API des métadonnées
+            base_url: https://api.insee.fr/metadonnees/V1
+            apidoc: https://api.insee.fr/catalogue/site/themes/wso2/subthemes/insee/pages/item-info.jag?name=M%C3%A9tadonn%C3%A9es&version=V1&provider=insee
+
+
+    domains:
+        geographical_references:
+            regions:
+                API: INSEE.Metadonnees
+                description: Référentiel géographique INSEE - niveau régional
+                type: MelodiExtractor
+                endpoint: /geo/regions
+                format: json
+
+            departements:
+                API: INSEE.Metadonnees
+                description: Référentiel géographique INSEE - niveau départemental
+                type: MelodiExtractor
+                endpoint: /geo/departements
+                format: json
+
+            communes:
+                API: INSEE.Metadonnees
+                description: Référentiel géographique GEO - niveau commune
+                type: JsonExtractor
+                endpoint: /communes?fields=code,nom,population,departement,region,centre
+                format: json
+
+    """
+    mocked_open_function = mock_open(read_data=yaml_config)
+
+    # when
+    with patch("builtins.open", mocked_open_function):
+        config_model = load_config(
+            "test.yaml",  # this is just a dummy name, we are using the mocked_open_function
+            response_model=DataSourceModel,
+        )
+        result = data_sources_from_name(
+            config_model,
+            "geographical_references.regions, geographical_references.departements",
+        )
+
+    # then
+    assert len(result) == 2
+    assert result[0].name == "geographical_references.regions"
+    assert result[1].name == "geographical_references.departements"

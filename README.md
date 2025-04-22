@@ -70,7 +70,7 @@ Le script “extract.py” permet de récupérer des jeux de données en ligne d
 poetry run bin/odis.py extract --domain geographical_references
 
 # Extraire seulement les datasets "regions" et "departements du domaine "geographical_references"
-poetry run bin/extract.py --sources geographical_references.regions geographical_references.departements
+poetry run bin/extract.py --sources geographical_references.regions, geographical_references.departements
 ```
 
 Pour comprendre en détail comment ça fonctionne : 
@@ -94,7 +94,7 @@ poetry run bin/odis.py explain --domain geographical_references
 poetry run bin/odis.py explain --api DiDo
 
 # Voir les définitions détaillées de plusieurs API INSEE
-poetry run bin/odis.py explain --api INSEE.Melodi INSEE.Metadonneees
+poetry run bin/odis.py explain --api INSEE.Melodi,INSEE.Metadonneees
 
 # Voir les définitions détaillées d'une source de données et de son API
 poetry run bin/odis.py explain --api DiDo --source logement.dido_catalogue 
