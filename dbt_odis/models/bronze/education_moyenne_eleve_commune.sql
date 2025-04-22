@@ -8,10 +8,8 @@ with eleve_commune as
 (
     select 
         id as id, 
-        {{ generate_flatten_json(
-            model_name = {{ source('bronze', 'education_moyenne_eleve_commune') }},
-            json_column = 'data'
-        ) }}
+        json_value(data, '$.commune') as commune, 
+        json_value(data, '$.moyenne_eleves_par_classe') as moyenne_eleves_par_classe, 
         created_at as created_at
 
     from  {{ source('bronze', 'education_moyenne_eleve_commune') }}
