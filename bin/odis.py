@@ -325,6 +325,9 @@ def extract(
         print(
             "[red]There was an issue in extracting data, please check the logs for more details.[/red]"
         )
+        # exit with a non-zero status code
+        # to indicate that there was an error
+        sys.exit(1)
     else:
         print("\n")
         print("[green]All data extracted successfully[/green]")
@@ -420,6 +423,9 @@ def load(
         print(
             "[red]There was an issue in loading data, please check the logs for more details.[/red]"
         )
+        # exit with a non-zero status code
+        # to indicate that there was an error
+        sys.exit(1)
     else:
         print("\n")
         print("[green]All data loaded successfully[/green]")
