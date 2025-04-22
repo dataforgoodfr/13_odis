@@ -11,6 +11,10 @@ from common.utils.logging_odis import logger
 
 from .file_handler import FileHandler
 
+import os
+import boto3
+import datetime
+
 
 class FileExtractor(AbstractSourceExtractor):
     """Generic extractor for a file dump from an API"""
@@ -128,3 +132,63 @@ class MelodiExtractor(FileExtractor):
             is_last=is_last,
             next_url=next_url
         )
+
+class XlsxExtractDumpS3(AbstractSourceExtractor):
+    """Extractor for XLSX files that:
+    - Downloads from a given URL (defined in YAML)
+    - Dumps the raw XLSX to S3 (e.g., Scaleway)
+    - Uses domain.subdomain from the model name to construct S3 key
+    """
+
+    def __init__(self, config, model, handler=None, metadata_handler=None):
+        super().__init__(config, model, handler, metadata_handler)
+        
+        # Logging for debug
+        logger.debug(f"Initializing XlsxExtractDumpS3 with model: {model}")
+
+        # Extract domain/subdomain
+        domain, subdomain = self.model.name.split(".")
+
+        # S3 setup
+        self.s3_bucket = os.getenv("SCW_BUCKET_NAME")
+        if not self.s3_bucket:
+            raise ValueError("Missing SCW_BUCKET_NAME environment variable")
+        
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.s3_key = f"raw/{domain}/{subdomain}_{timestamp}.xlsx"
+
+        self.s3_client = boto3.client(
+            "s3",
+            endpoint_url=os.getenv("SCW_OBJECT_STORAGE_ENDPOINT"),
+            aws_access_key_id=os.getenv("SCW_ACCESS_KEY"),
+            aws_secret_access_key=os.getenv("SCW_SECRET_KEY"),
+            region_name=os.getenv("SCW_REGION"),
+        )
+
+    def download(self) -> Generator[ExtractionResult, None, None]:
+        """Download the XLSX file and upload it directly to S3."""
+        try:
+            logger.debug(f"Downloading XLSX file from {self.url}")
+            response = requests.get(self.url)
+            response.raise_for_status()
+
+            # Upload to S3 (SCW)
+            self.s3_client.put_object(
+                Bucket=self.s3_bucket,
+                Key=self.s3_key,
+                Body=response.content,
+                ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+
+            logger.debug(f"File uploaded to s3://{self.s3_bucket}/{self.s3_key}")
+
+            # Still yield so execute() can proceed
+            yield ExtractionResult(payload=response.content, is_last=True, success=True)
+
+        except Exception as e:
+            logger.error(f"Failed to download/upload XLSX file: {e}")
+            raise
+    
+    # Overriding get_api to bypass any API lookup
+    def get_api(self, model: DomainModel):
+        return None
