@@ -429,17 +429,16 @@ domains:
 
   education:
 
-      moyenne_eleve_commune:
+      moyenne_eleve_departement:
         API: Data.Gouv.Education
-        description: moyenne d'eleve par classe par commune
+        description: moyenne d'eleve par classe par departement
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
         extract_params:
-          select: commune,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
-          group_by: commune
+          select: rentree_scolaire,region_academique,academie,departement,sum(nombre_total_classes),sum(nombre_total_eleves),sum(nombre_eleves_preelementaire_hors_ulis),sum(nombre_eleves_elementaire_hors_ulis),sum(nombre_eleves_ulis),sum(nombre_eleves_cp_hors_ulis),sum(nombre_eleves_ce1_hors_ulis),sum(nombre_eleves_ce2_hors_ulis),sum(nombre_eleves_cm1_hors_ulis),sum(nombre_eleves_cm2_hors_ulis)
+          group_by: rentree_scolaire,region_academique,academie,departement
           limit: -1
-          refine: rentree_scolaire:2023
           timezone: UTC
 
       moyenne_eleve_region:
@@ -449,25 +448,22 @@ domains:
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
         extract_params:
-          select: region_academique,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
-          group_by: region_academique
+          select: rentree_scolaire,region_academique,sum(nombre_total_classes),sum(nombre_total_eleves),sum(nombre_eleves_preelementaire_hors_ulis),sum(nombre_eleves_elementaire_hors_ulis),sum(nombre_eleves_ulis),sum(nombre_eleves_cp_hors_ulis),sum(nombre_eleves_ce1_hors_ulis),sum(nombre_eleves_ce2_hors_ulis),sum(nombre_eleves_cm1_hors_ulis),sum(nombre_eleves_cm2_hors_ulis)
+          group_by: rentree_scolaire,region_academique
           limit: -1
-          refine: rentree_scolaire:2023
           timezone: UTC
 
-      moyenne_eleve_departement:
+      moyenne_eleve_commune:
         API: Data.Gouv.Education
-        description: moyenne d'eleve par classe par departement
+        description: moyenne d'eleve par classe par commune
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
         extract_params:
-          select: departement,SUM(nombre_total_eleves)/SUM(nombre_total_classes) AS moyenne_eleves_par_classe
-          group_by: departement
+          select: rentree_scolaire,region_academique,academie,departement,commune,code_postal,sum(nombre_total_classes),sum(nombre_total_eleves),sum(nombre_eleves_preelementaire_hors_ulis),sum(nombre_eleves_elementaire_hors_ulis),sum(nombre_eleves_ulis),sum(nombre_eleves_cp_hors_ulis),sum(nombre_eleves_ce1_hors_ulis),sum(nombre_eleves_ce2_hors_ulis),sum(nombre_eleves_cm1_hors_ulis),sum(nombre_eleves_cm2_hors_ulis)
+          group_by: rentree_scolaire,region_academique,academie,departement,commune,code_postal
           limit: -1
-          refine: rentree_scolaire:2023
           timezone: UTC
-
   
   services:
 
