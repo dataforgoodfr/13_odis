@@ -256,7 +256,6 @@ def extract(
 ):
     """
     Extract data from the data sources specified in the config file.
-    This function will extract data from the data sources specified in the config file
     \n
     - if the user specifies the sources, it will extract data from the specified sources\n
     - if the user specifies the domains, it will extract data from the data sources in the specified domains\n
@@ -364,6 +363,15 @@ def load(
         ),
     ] = DEFAULT_CONFIGFILE,
 ):
+    """
+    Load data from the data sources specified in the config file.
+    \n
+    - if the user specifies the sources, it will load data from the specified sources\n
+    - if the user specifies the domains, it will load data from the data sources in the specified domains\n
+    - if the user specifies both, it will load data from the specified sources and domains
+    \n
+    At least one of the two options must be specified.
+    """
 
     if source == OPTION_NONE and domain == OPTION_NONE:
         print(
