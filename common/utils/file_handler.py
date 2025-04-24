@@ -1,5 +1,6 @@
 import datetime
 import json
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
@@ -40,8 +41,17 @@ class ExporterException(Exception):
     pass
 
 
-class Loader:
-    def try_load(self, model: DomainModel): ...
+class FileReader(ABC):
+    """
+    A file reader to load data from a file
+
+    it may be a CSV, JSON, XLSX or any other file format
+    """
+
+    import_path: str
+
+    @abstractmethod
+    def try_load(self, *args, **kwargs): ...
 
     def load(self, model: DomainModel) -> Any:
         try:
@@ -54,7 +64,7 @@ class Loader:
         raise ImporterException(f"Error loading '{self.import_path}'")
 
 
-class CsvLoader(Loader):
+class CsvLoader(FileReader):
     def __init__(self, import_path: str):
         self.import_path = import_path
 
@@ -68,7 +78,7 @@ class CsvLoader(Loader):
         )
 
 
-class JsonLoader(Loader):
+class JsonReader(FileReader):
     def __init__(self, import_path: str):
         self.import_path = import_path
 
@@ -80,7 +90,7 @@ class JsonLoader(Loader):
             return orjson.loads(f.read())
 
 
-class XlsxLoader(Loader):
+class XlsxReader(FileReader):
     def __init__(self, import_path: str):
         self.import_path = import_path
 
@@ -94,7 +104,7 @@ class XlsxLoader(Loader):
         )
 
 
-class MetadataLoader:
+class MetadataReader(FileReader):
     def __init__(self, import_path: str):
         self.import_path = import_path
 
@@ -104,9 +114,16 @@ class MetadataLoader:
             return MetadataInfo(**metadata)
 
 
-class Exporter:
-    def try_dump(self, model: DomainModel, data: Any, suffix=None) -> StorageInfo:
-        pass
+class FileWriter(ABC):
+    """
+    A file writer to save data to a file
+    it may be a CSV, JSON, XLSX or any other file format
+    """
+
+    export_path: str
+
+    @abstractmethod
+    def try_dump(self, model: DomainModel, data: Any, suffix=None) -> StorageInfo: ...
 
     def dump(self, model: DomainModel, data: Any, suffix=None) -> StorageInfo:
         try:
@@ -119,7 +136,7 @@ class Exporter:
         raise ExporterException(f"Error dumping '{self.export_path}'")
 
 
-class JsonExporter(Exporter):
+class JsonWriter(FileWriter):
     def __init__(self, export_path: str):
         self.export_path = export_path
 
@@ -130,17 +147,19 @@ class JsonExporter(Exporter):
             f.write(orjson.dumps(data).decode())
 
 
-class XlsxExporter(Exporter):
+class XlsxWriter(FileWriter):
     def __init__(self, export_path: str):
         self.export_path = export_path
 
-    def try_dump(self, model: DomainModel, data: pd.DataFrame, suffix: str = None) -> StorageInfo:
+    def try_dump(
+        self, model: DomainModel, data: pd.DataFrame, suffix: str = None
+    ) -> StorageInfo:
         with pd.ExcelWriter(path=self.export_path, engine="openpyxl") as writer:
             sheet_name = suffix if suffix else "sheet1"
             return data.to_excel(writer, sheet_name=sheet_name)
 
 
-class FileExporter(Exporter):
+class GenericFileWriter(FileWriter):
     def __init__(self, export_path: str):
         self.export_path = export_path
 
@@ -169,7 +188,9 @@ class FileHandler(IDataHandler):
         """Generate the directory Path where the data will be stored"""
         return Path(f"{self.base_path}/{model.domain_name}")
 
-    def file_name(self, model: DomainModel, suffix: str = None, format: FILE_FORMAT = None) -> str:
+    def file_name(
+        self, model: DomainModel, suffix: str = None, format: FILE_FORMAT = None
+    ) -> str:
         """Generate the file name for the given model and suffix
 
         When a file name is generated, the name pattern is the following:
@@ -229,22 +250,24 @@ class FileHandler(IDataHandler):
         data_dir = self._data_dir(model)
         data_dir.mkdir(parents=True, exist_ok=True)
 
-        file_name = self.file_name(model, suffix=suffix, format=format)  # suffix is optional
+        file_name = self.file_name(
+            model, suffix=suffix, format=format
+        )  # suffix is optional
         # Generate filename from source name
         filepath = data_dir / file_name
 
         # Write payload content to file
         # case where we store a metadata file, the data is a dict although the model may not be json
         if isinstance(data, dict) or format == "json":
-            JsonExporter(filepath).dump(model, data=data, suffix=suffix)
+            JsonWriter(filepath).dump(model, data=data, suffix=suffix)
             success = True
 
         elif isinstance(data, pd.DataFrame) and format == "xlsx":
-            XlsxExporter(filepath).dump(model, data=data, suffix=suffix)
+            XlsxWriter(filepath).dump(model, data=data, suffix=suffix)
             success = True
 
         else:
-            FileExporter(filepath).dump(model, data=data)
+            GenericFileWriter(filepath).dump(model, data=data)
             success = True
 
         logger.info(f"{model.name} -> results saved to : '{filepath}'")
@@ -310,7 +333,7 @@ class FileHandler(IDataHandler):
 
         filepath = Path(storage_info.location) / Path(storage_info.file_name)
 
-        return JsonLoader(filepath).load(model=None)
+        return JsonReader(filepath).load(model=None)
 
     def csv_load(
         self,
@@ -357,17 +380,21 @@ class FileHandler(IDataHandler):
         Raises:
             InvalidCSV: if the file is not found or the CSV is invalid
         """
+        raise NotImplementedError(
+            "XLSX file loading is not implemented yet. Please use CSV or JSON files instead."
+        )
+        # _filepath = Path(storage_info.location) / Path(storage_info.file_name)
 
-        filepath = Path(storage_info.location) / Path(storage_info.file_name)
-
-    def load_metadata(self, model: DomainModel, operation: OperationType) -> MetadataInfo:
+    def load_metadata(
+        self, model: DomainModel, operation: OperationType
+    ) -> MetadataInfo:
         metadata_filepath = self._data_dir(model) / self.file_name(
             model,
             suffix=f"metadata_{operation}",  # always the same pattern
             format="json",  # metadata are always json
         )
 
-        MetadataLoader(metadata_filepath).load(model=model)
+        MetadataReader(metadata_filepath).load(model=model)
 
     def dump_metadata(
         self,
@@ -421,8 +448,12 @@ class FileHandler(IDataHandler):
 
         meta_payload = operation_metadata.model_dump(mode="json")
 
-        meta_dump_info = self.file_dump(model, data=meta_payload, suffix=f"metadata_{operation}", format="json")
+        meta_dump_info = self.file_dump(
+            model, data=meta_payload, suffix=f"metadata_{operation}", format="json"
+        )
 
-        logger.debug(f"Metadata written in: '{meta_dump_info.location}/{meta_dump_info.file_name}'")
+        logger.debug(
+            f"Metadata written in: '{meta_dump_info.location}/{meta_dump_info.file_name}'"
+        )
 
         return operation_metadata
