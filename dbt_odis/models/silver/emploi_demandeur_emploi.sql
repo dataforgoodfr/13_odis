@@ -41,5 +41,3 @@ select * from departements
     union all
 select * from regions
 
- 
-unaccent(upper(code_geo)) as code_geo,

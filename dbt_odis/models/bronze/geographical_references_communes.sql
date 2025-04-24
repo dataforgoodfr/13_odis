@@ -7,18 +7,18 @@
 with communes as 
 (
     select 
-        id as id, 
-        json_value(data, '$.nom') as nom, 
-        json_value(data, '$.code') as code, 
-        json_value(data, '$.centre.type') as geo_type,
-        json_value(data, '$.centre.coordinates[0]') as geo_coordonnees_longitude,
-        json_value(data, '$.centre.coordinates[1]') as geo_coordonnees_lattitude,
-        json_value(data, '$.region.nom') as region_nom,
-        json_value(data, '$.region.code') as region_code,
-        json_value(data, '$.departement.nom') as departement_nom,
-        json_value(data, '$.departement.code') as departement_code,
-        json_value(data, '$.population') as population,        
-        created_at as created_at
+        id, 
+        (data::jsonb) ->> 'nom' as nom, 
+        (data::jsonb) ->> 'code' as code, 
+        (data::jsonb) -> 'centre' ->> 'type' as geo_type,
+        (data::jsonb) -> 'centre' -> 'coordinates'->> 0 as geo_coordonnees_longitude,
+        (data::jsonb) -> 'centre' -> 'coordinates'->> 1 as geo_coordonnees_lattitude,
+        (data::jsonb) -> 'region' ->> 'nom' as region_nom,
+        (data::jsonb) -> 'region' ->> 'code' as region_code,
+        (data::jsonb) -> 'departement' ->> 'nom' as departement_nom,
+        (data::jsonb) -> 'departement' ->> 'code' as departement_code,
+        (data::jsonb) -> 'population' as population,        
+        created_at
     from {{ source('bronze', 'geographical_references_communes') }} 
 )
 
