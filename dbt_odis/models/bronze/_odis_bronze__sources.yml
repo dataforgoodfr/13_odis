@@ -22,6 +22,10 @@ sources:
         freshness :
         warn_after: {count: 1, period : year}
         
+      - name: emploi_bmo_2024_file
+        description: Source CSV 
+        loaded_at_field : created_at
+
       - name: emploi_demandeur_emploi_communes
         description: Source CSV loadée dans le champ data contenant 
         loaded_at_field: created_at
