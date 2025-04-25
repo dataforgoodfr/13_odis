@@ -1,47 +1,15 @@
-import logging
 import time
 import urllib
-from typing import Generator, Optional
+from typing import AsyncGenerator, Generator, Optional
 
 import jmespath
 import nbformat
-import requests
 from nbconvert.preprocessors import ExecutePreprocessor
 from pydantic import BaseModel, Field
-from tenacity import before_log, retry, stop_after_attempt, stop_after_delay
 
 from common.data_source_model import FILE_FORMAT
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
 from common.utils.logging_odis import logger
-
-
-class RobustRequest:
-    """a wrapper around requests to retry on failure"""
-
-    url: str
-    headers: dict
-    params: dict
-
-    def __init__(
-        self,
-        url: str,
-        headers: dict,
-        params: dict,
-    ):
-        self.url = url
-        self.headers = headers
-        self.params = params
-
-    @retry(
-        stop=(stop_after_delay(180) | stop_after_attempt(3)),
-        before=before_log(logger, logging.DEBUG),
-        reraise=True,  # re-raise the last exception
-    )
-    def get(self) -> requests.Response:
-        """send a GET request to the url with the given headers and params"""
-        response = requests.get(self.url, headers=self.headers, params=self.params)
-        response.raise_for_status()
-        return response
 
 
 class FileExtractor(AbstractSourceExtractor):
@@ -49,22 +17,21 @@ class FileExtractor(AbstractSourceExtractor):
 
     is_json: bool = False
 
-    def download(self) -> Generator[ExtractionResult, None, None]:
+    async def download(self) -> AsyncGenerator[ExtractionResult, None]:
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
 
         # Send request to API
-        response = RobustRequest(
+        response = await self.http_client.get(
             self.url,
             headers=self.model.headers.model_dump(mode="json"),
             params=self.model.extract_params,
-        ).get()
-
-        payload = response.json() if self.is_json else response.content
+            as_json=self.is_json,
+        )
 
         # yield the request result
-        yield ExtractionResult(payload=payload, success=True, is_last=True)
+        yield ExtractionResult(payload=response, success=True, is_last=True)
 
 
 class JsonExtractor(FileExtractor):
@@ -76,7 +43,7 @@ class JsonExtractor(FileExtractor):
 class MelodiExtractor(FileExtractor):
     """Extractor for getting JSON data from an API"""
 
-    def download(self) -> Generator[ExtractionResult, None, None]:
+    async def download(self) -> AsyncGenerator[ExtractionResult, None]:
 
         is_last = False
         url = self.url
@@ -84,7 +51,7 @@ class MelodiExtractor(FileExtractor):
         while not is_last:
 
             # yield the request result
-            result = self.download_page(url)
+            result = await self.download_page(url)
 
             is_last = result.is_last
 
@@ -98,7 +65,7 @@ class MelodiExtractor(FileExtractor):
 
             yield result
 
-    def download_page(self, url: str) -> ExtractionResult:
+    async def download_page(self, url: str) -> ExtractionResult:
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
@@ -106,7 +73,7 @@ class MelodiExtractor(FileExtractor):
         # if url has a query string, ignore the dict-defined parameters
         url_querystr = urllib.parse.urlparse(url).query
         passed_params = self.model.extract_params if url_querystr == "" else None
-        logger.info(f"querying '{url}'")
+        # logger.info(f"querying '{url}'")
 
         success = False
         payload = None
@@ -115,13 +82,12 @@ class MelodiExtractor(FileExtractor):
 
         try:
             # Send request to API
-            response = RobustRequest(
+            payload = await self.http_client.get(
                 url,
                 headers=self.model.headers.model_dump(mode="json"),
                 params=passed_params,
-            ).get()
-
-            payload = response.json()
+                as_json=True,
+            )
 
             # Get next page URL
             next_key = self.model.response_map.get("next")
@@ -259,7 +225,7 @@ class NotebookExtractor(FileExtractor):
 
 class OpenDataSoftExtractor(FileExtractor):
 
-    def download(self) -> Generator[ExtractionResult, None, None]:
+    async def download(self) -> AsyncGenerator[ExtractionResult, None]:
 
         is_last = False
         url = self.url
@@ -272,7 +238,7 @@ class OpenDataSoftExtractor(FileExtractor):
         while not is_last:
 
             # yield the request result
-            result = self.download_page(url, offset)
+            result = await self.download_page(url, offset)
 
             is_last = result.is_last
             total_count = result.total_count
@@ -291,7 +257,7 @@ class OpenDataSoftExtractor(FileExtractor):
 
             yield result
 
-    def download_page(self, url, offset) -> ExtractionResult:
+    async def download_page(self, url, offset) -> ExtractionResult:
 
         passed_params = self.model.extract_params
         passed_params["offset"] = offset
@@ -306,13 +272,12 @@ class OpenDataSoftExtractor(FileExtractor):
         try:
             # Send request to API
 
-            response = RobustRequest(
+            raw_data = await self.http_client.get(
                 url,
                 headers=self.model.headers.model_dump(mode="json"),
                 params=passed_params,
-            ).get()
-
-            raw_data = response.json()
+                as_json=True,
+            )
 
             # get payload
             datapath = self.model.response_map.get("data")

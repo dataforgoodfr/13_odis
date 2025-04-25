@@ -149,11 +149,14 @@ class FileHandler(IDataHandler):
                 logger.error(f"Error dumping dataframe to Excel: {str(e)}")
 
         else:
-            with open(filepath, "wb") as f:
+            # TODO: test
+            file_mode = "w" if format in ["json", "csv"] else "wb"
+
+            with open(filepath, file_mode) as f:
                 f.write(data)
                 success = True
 
-        logger.info(f"{model.name} -> results saved to : '{filepath}'")
+        logger.debug(f"{model.name} -> results saved to : '{filepath}'")
 
         if success:
             return StorageInfo(
