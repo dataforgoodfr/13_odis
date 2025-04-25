@@ -1,4 +1,4 @@
-import time
+import asyncio
 import urllib
 from typing import AsyncGenerator, Generator, Optional
 
@@ -57,7 +57,7 @@ class MelodiExtractor(FileExtractor):
 
             if not is_last and result.next_url:
 
-                time.sleep(60 / self.api_config.throttle)
+                await asyncio.sleep(60 / self.api_config.throttle)
 
                 url = result.next_url
 
@@ -249,7 +249,7 @@ class OpenDataSoftExtractor(FileExtractor):
             logger.debug(f"Extracted {page_records_count} from page {pageno}")
             logger.debug(f"Extracted {aggregated_count} out of {total_count} so far.")
 
-            time.sleep(60 / self.api_config.throttle)
+            await asyncio.sleep(60 / self.api_config.throttle)
 
             offset = aggregated_count + 1
 

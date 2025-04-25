@@ -107,6 +107,9 @@ class AbstractSourceExtractor(ABC):
     def download(self) -> AsyncGenerator[ExtractionResult, None]:
         """Method to be implemented by the child class to download data from the API.
         The method should yield a ExtractionResult object for each page of data downloaded.
+
+        NB: the code implemented by the concrete children are async to allow for non-blocking I/O operations.
+            but the abstract method is not declared as async for typing reasons.
         """
         pass
 

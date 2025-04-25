@@ -127,14 +127,15 @@ async def extract_data_sources(
                 handler=FileHandler(),
             )
 
-            tasks.append(extractor.execute())  # download the data)
+            tasks.append(extractor.execute())  # async task
 
         except Exception as e:
 
             is_exception = True
             logger.exception(f"Error extracting data from {ds.name}: {str(e)}")
 
-    # and launch the tasks
+    # launch the tasks in concurrent mode
+    # and wait for them to finish
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     tasks_exceptions = [result for result in results if isinstance(result, Exception)]
