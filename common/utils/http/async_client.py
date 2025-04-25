@@ -69,5 +69,5 @@ class AsyncHttpClient(HttpClient):
                 return await response.json() if as_json else await response.text()
 
             except aiohttp.ContentTypeError as e:
-                logger.error(f"Failed to parse response as JSON: {e}")
+                logger.error(f"Failed to parse response: {e}")
                 raise e
