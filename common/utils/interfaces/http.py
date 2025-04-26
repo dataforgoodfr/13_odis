@@ -1,6 +1,10 @@
 from typing import Protocol
 
 
+class HttpException(Exception):
+    pass
+
+
 class HttpClient(Protocol):
     """
     Protocol for HTTP clients.
@@ -21,5 +25,8 @@ class HttpClient(Protocol):
 
         Returns:
             dict | str: The response data if as_json is True, otherwise the raw response text.
+
+        raises:
+            HttpException: If the request fails or the response cannot be parsed.
         """
         ...

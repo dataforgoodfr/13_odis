@@ -116,7 +116,13 @@ async def extract_data_sources(
     # to avoid creating too many connections
     http_client = AsyncHttpClient(max_connections=max_concurrent_requests)
 
+    logger.info(
+        f"Starting extraction for {len(data_sources)} data sources with {max_concurrent_requests} concurrent requests"
+    )
+
     for ds in data_sources:
+
+        logger.debug(f"Extracting data from {ds.name}")
 
         try:
 
@@ -146,7 +152,7 @@ async def extract_data_sources(
         )
 
         for exc in tasks_exceptions:
-            print(f"[red]Error: {exc}[/red]")
+            logger.error(f"Error: {exc}")
 
         # exit with a non-zero status code
         # to indicate that there was an error

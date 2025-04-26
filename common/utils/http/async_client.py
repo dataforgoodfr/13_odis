@@ -1,9 +1,15 @@
 import logging
 
 import aiohttp
-from tenacity import before_log, retry, stop_after_attempt, stop_after_delay
+from tenacity import (
+    before_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    stop_after_delay,
+)
 
-from common.utils.interfaces.http import HttpClient
+from common.utils.interfaces.http import HttpClient, HttpException
 from common.utils.logging_odis import logger
 
 
@@ -29,6 +35,7 @@ class AsyncHttpClient(HttpClient):
         )
 
     @retry(
+        retry=retry_if_exception_type(aiohttp.ClientError),
         stop=(stop_after_delay(180) | stop_after_attempt(3)),
         before=before_log(logger, logging.DEBUG),
         reraise=True,  # re-raise the last exception
@@ -55,7 +62,6 @@ class AsyncHttpClient(HttpClient):
 
         # fix on booleans values for params:
         # see https://github.com/aio-libs/aiohttp/issues/4874
-        # TODO: test
         params = {
             k: str(v).lower() if isinstance(v, bool) else v
             for k, v in (params or {}).items()
@@ -65,9 +71,7 @@ class AsyncHttpClient(HttpClient):
             response.raise_for_status()
 
             try:
-
                 return await response.json() if as_json else await response.text()
-
             except aiohttp.ContentTypeError as e:
                 logger.error(f"Failed to parse response: {e}")
-                raise e
+                raise HttpException(f"Failed to parse response from {url}: {e}") from e

@@ -139,6 +139,8 @@ class DomainModel(BaseModel):
     )
     ```
 
+    TODO: rename this class to `DataSourceModel` or `DataSourceConfigModel`
+
     """
 
     type: str = Field(
