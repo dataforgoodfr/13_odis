@@ -149,7 +149,8 @@ class FileHandler(IDataHandler):
                 logger.error(f"Error dumping dataframe to Excel: {str(e)}")
 
         else:
-            # TODO: test
+            # for testing purposes, we can dump as non-binary
+            # if the data is a string, we can dump it as text
             file_mode = "w" if format in ["json", "csv"] else "wb"
 
             with open(filepath, file_mode) as f:

@@ -9,7 +9,7 @@ loggers:
 handlers:
   console:
     class: logging.StreamHandler
-    formatter: base
+    formatter: detailed
     stream: ext://sys.stdout
   file:
     class: logging.handlers.TimedRotatingFileHandler
@@ -28,5 +28,7 @@ handlers:
 
 formatters:
   base:
-    format: '%(asctime)s - %(name)s - %(levelname)s :: %(filename)s :: %(message)s'
+    format: '%(asctime)s - %(levelname)s :: %(filename)s :: %(message)s'
+  detailed:
+    format: '%(asctime)s - %(levelname)s :: %(filename)s :: %(funcName)s (%(lineno)d) :: %(message)s'
 

@@ -44,6 +44,10 @@ tox = "^4.4.8"
 docker = "^7.1.0"
 pytest-timeout = "^2.3.1"
 ipykernel = "^6.29.5"
+aioresponses = "^0.7.8"
+anyio = "^4.9.0"
+pytest-asyncio = "0.23.0"
+nest-asyncio = "^1.6.0"
 
 [tool.ruff]
 # Same as Black.
