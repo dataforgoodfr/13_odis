@@ -13,9 +13,11 @@ from common.utils.logging_odis import logger
 class NotebookLoader(AbstractDataLoader):
 
     columns: list[str] = []
-    format: FILE_FORMAT
 
     def create_or_overwrite_table(self):
+        pass
+
+    def list_columns(self):
         pass
 
     def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
