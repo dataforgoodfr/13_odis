@@ -394,7 +394,7 @@ class FileHandler(IDataHandler):
             format="json",  # metadata are always json
         )
 
-        MetadataReader(metadata_filepath).load(model=model)
+        return MetadataReader(metadata_filepath).load(model=model)
 
     def dump_metadata(
         self,
