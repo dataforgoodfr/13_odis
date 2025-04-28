@@ -64,7 +64,7 @@ class FileReader(ABC):
         raise ImporterException(f"Error loading '{self.import_path}'")
 
 
-class CsvLoader(FileReader):
+class CsvReader(FileReader):
     def __init__(self, import_path: str):
         self.import_path = import_path
 
@@ -358,7 +358,7 @@ class FileHandler(IDataHandler):
 
         filepath = Path(storage_info.location) / Path(storage_info.file_name)
 
-        return CsvLoader(filepath).load(model=model)
+        return CsvReader(filepath).load(model=model)
 
     def xlsx_load(
         self,
