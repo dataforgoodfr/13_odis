@@ -1,6 +1,7 @@
-from typing import Generator
+from typing import AsyncGenerator
 
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
+
 from .data_handler import StubDataHandler
 
 
@@ -9,10 +10,10 @@ class StubExtractor(AbstractSourceExtractor):
 
     is_download: bool = False
 
-    def __init__(self, config, model, handler: StubDataHandler):
-        super().__init__(config, model, handler)
+    def __init__(self, config, model, client, handler):
+        super().__init__(config, model, client, handler)
 
-    def download(self) -> Generator[ExtractionResult, None, None]:
+    async def download(self) -> AsyncGenerator[ExtractionResult, None]:
 
         self.is_download = True
         yield ExtractionResult(payload={"test": "test"}, is_last=True, success=True)
@@ -25,10 +26,10 @@ class StubIterationExtractor(AbstractSourceExtractor):
     iteration_count: int = 0
     expected_iterations: int = 10
 
-    def __init__(self, config, model, handler:StubDataHandler):
-        super().__init__(config, model, handler)
+    def __init__(self, config, model, client, handler: StubDataHandler):
+        super().__init__(config, model, client, handler)
 
-    def download(self) -> Generator[ExtractionResult, None, None]:
+    async def download(self) -> AsyncGenerator[ExtractionResult, None]:
 
         self.is_download = True
 
