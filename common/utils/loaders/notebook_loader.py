@@ -4,7 +4,6 @@ from typing import Generator
 
 import papermill as pm
 
-from common.data_source_model import FILE_FORMAT
 from common.utils.interfaces.data_handler import PageLog
 from common.utils.interfaces.loader import AbstractDataLoader
 from common.utils.logging_odis import logger
