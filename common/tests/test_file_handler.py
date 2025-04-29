@@ -6,8 +6,7 @@ from unittest.mock import mock_open, patch
 import pytest
 
 from common.data_source_model import DataSourceModel
-from common.utils.exceptions import InvalidCSV
-from common.utils.file_handler import FileHandler
+from common.utils.file_handler import FileHandler, ImporterException
 from common.utils.interfaces.data_handler import OperationType, PageLog, StorageInfo
 
 
@@ -113,7 +112,6 @@ def test_file_name_increment():
 
 
 def test_dump_metadata_with_csv_format(stub_page_log):
-
     mock_open_func = mock_open()
 
     # given
@@ -372,7 +370,7 @@ def test_load_csv_raises_invalid_csv():
     )
 
     # when
-    with pytest.raises(InvalidCSV) as e:
+    with pytest.raises(ImporterException) as e:
         file_handler.csv_load(page_log.storage_info, model)
 
     # then
