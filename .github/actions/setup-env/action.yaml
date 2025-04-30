@@ -1,0 +1,23 @@
+name: 'Setup Environment'
+description: 'Create .env file with necessary credentials'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create .env file
+      shell: bash
+      run: |
+        cat > .env << EOL
+        # scaleway
+        SCW_OBJECT_STORAGE_ENDPOINT=${{ env.SCW_OBJECT_STORAGE_ENDPOINT }}
+        SCW_REGION=${{ env.SCW_REGION }}
+        SCW_BUCKET_NAME=${{ env.SCW_BUCKET_NAME }}
+        SCW_ACCESS_KEY=${{ env.SCW_ACCESS_KEY }}
+        SCW_SECRET_KEY=${{ env.SCW_SECRET_KEY }}
+        # db
+        PG_DB_NAME=${{ env.DB_NAME }}
+        PG_DB_USER=${{ env.PG_DB_USER }}
+        PG_DB_PWD=${{ env.PG_DB_PWD }}
+        PG_DB_HOST=${{ env.PG_DB_HOST }}
+        PG_DB_PORT=${{ env.PG_DB_PORT }}
+        EOL
