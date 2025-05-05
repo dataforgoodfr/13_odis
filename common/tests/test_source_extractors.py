@@ -1,3 +1,4 @@
+
 import pytest
 
 from common.data_source_model import DataSourceModel
@@ -7,7 +8,7 @@ from .stubs.data_handler import StubDataHandler
 from .stubs.source_extractor_stub import StubExtractor
 
 
-def test_json_extractor_init():
+async def test_json_extractor_init():
     """verify that the JsonExtractor class is correctly initialized"""
 
     # given
@@ -38,16 +39,19 @@ def test_json_extractor_init():
     model = list(config.get_models().values())[0]
 
     stub_handler = StubDataHandler()
-    extractor = StubExtractor(config, model, stub_handler)
+    extractor = StubExtractor(config, model, None, stub_handler)
 
     # when
     # call the next() method to call the generator
-    next(extractor.download())
+    await anext(extractor.download())
 
     # then
     assert extractor.is_download
 
-@pytest.mark.skip( reason = "overkill and I won't meet the deadline if I have to debug this fkn test" )
+
+@pytest.mark.skip(
+    reason="overkill and I won't meet the deadline if I have to debug this fkn test"
+)
 def test_NotebookExtractor_valid():
     """
     the notebook should return a NotebookResult object
@@ -87,7 +91,10 @@ def test_NotebookExtractor_valid():
     # the csv file should be handled by the handler
     assert payload_1 is not None
 
-@pytest.mark.skip( reason = "overkill and I won't meet the deadline if I have to debug this fkn test" )
+
+@pytest.mark.skip(
+    reason="overkill and I won't meet the deadline if I have to debug this fkn test"
+)
 def test_NotebookExtractor_invalid():
     """
     case where the notebook is not valid,

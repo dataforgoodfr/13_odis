@@ -1,25 +1,23 @@
 import datetime
 import json
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
 import orjson
 import pandas as pd
 from bson import ObjectId
-from pydantic import ValidationError
-from openpyxl.utils.exceptions import InvalidFileException
 
 from common.data_source_model import FILE_FORMAT, DomainModel
-from common.utils.exceptions import InvalidCSV, InvalidJson
 from common.utils.logging_odis import logger
 
 from .interfaces.data_handler import (
+    ArtifactLog,
     IDataHandler,
     MetadataInfo,
     OperationType,
     PageLog,
     StorageInfo,
-    ArtifactLog,
 )
 
 DEFAULT_BASE_PATH = "data/imports"
@@ -33,6 +31,141 @@ class bJSONEncoder(json.JSONEncoder):
         if isinstance(o, ObjectId):
             return str(o)
         json.JSONEncoder.default(self, o)
+
+
+class ImporterException(Exception):
+    pass
+
+
+class ExporterException(Exception):
+    pass
+
+
+class FileReader(ABC):
+    """
+    A file reader to load data from a file
+
+    it may be a CSV, JSON, XLSX or any other file format
+    """
+
+    import_path: str
+
+    @abstractmethod
+    def try_load(self, *args, **kwargs): ...
+
+    def load(self, model: DomainModel) -> Any:
+        try:
+            logger.debug(f"loading: {self.import_path}")
+            return self.try_load(model)
+
+        except Exception as e:
+            logger.exception(f"Error loading {self.import_path}: {str(e)}")
+
+        raise ImporterException(f"Error loading '{self.import_path}'")
+
+
+class CsvReader(FileReader):
+    def __init__(self, import_path: str):
+        self.import_path = import_path
+
+    def try_load(self, model: DomainModel) -> pd.DataFrame:
+        return pd.read_csv(
+            self.import_path,
+            header=model.load_params.header,
+            skipfooter=model.load_params.skipfooter,
+            sep=model.load_params.separator,
+            engine="python",  # Required for skipfooter parameter
+        )
+
+
+class JsonReader(FileReader):
+    def __init__(self, import_path: str):
+        self.import_path = import_path
+
+    def try_load(
+        self,
+        model: DomainModel,
+    ) -> dict:
+        with open(self.import_path, "r") as f:
+            return orjson.loads(f.read())
+
+
+class XlsxReader(FileReader):
+    def __init__(self, import_path: str):
+        self.import_path = import_path
+
+    def try_load(self, model: DomainModel) -> pd.DataFrame:
+        return pd.read_excel(
+            self.import_path,
+            header=model.load_params.header,
+            skipfooter=model.load_params.skipfooter,
+            sep=model.load_params.separator,
+            engine="python",  # Required for skipfooter parameter
+        )
+
+
+class MetadataReader(FileReader):
+    def __init__(self, import_path: str):
+        self.import_path = import_path
+
+    def try_load(self, model: DomainModel) -> MetadataInfo:
+        with open(self.import_path, "r") as f:
+            metadata = orjson.loads(f.read())
+            return MetadataInfo(**metadata)
+
+
+class FileWriter(ABC):
+    """
+    A file writer to save data to a file
+    it may be a CSV, JSON, XLSX or any other file format
+    """
+
+    export_path: str
+
+    @abstractmethod
+    def try_dump(self, model: DomainModel, data: Any, suffix=None) -> StorageInfo: ...
+
+    def dump(self, model: DomainModel, data: Any, suffix=None) -> StorageInfo:
+        try:
+            logger.debug(f"dumping: {self.export_path}")
+            return self.try_dump(model, data)
+
+        except Exception as e:
+            logger.exception(f"Error dumping {self.export_path}: {str(e)}")
+
+        raise ExporterException(f"Error dumping '{self.export_path}'")
+
+
+class JsonWriter(FileWriter):
+    def __init__(self, export_path: str):
+        self.export_path = export_path
+
+    def try_dump(self, model: DomainModel, data: Any, suffix=None) -> StorageInfo:
+        with open(self.export_path, "w") as f:
+            if isinstance(data, bytes):
+                data = data.decode()
+            f.write(orjson.dumps(data).decode())
+
+
+class XlsxWriter(FileWriter):
+    def __init__(self, export_path: str):
+        self.export_path = export_path
+
+    def try_dump(
+        self, model: DomainModel, data: pd.DataFrame, suffix: str = None
+    ) -> StorageInfo:
+        with pd.ExcelWriter(path=self.export_path, engine="openpyxl") as writer:
+            sheet_name = suffix if suffix else "sheet1"
+            return data.to_excel(writer, sheet_name=sheet_name)
+
+
+class GenericFileWriter(FileWriter):
+    def __init__(self, export_path: str):
+        self.export_path = export_path
+
+    def try_dump(self, model: DomainModel, data: Any, suffix=None) -> StorageInfo:
+        with open(self.export_path, "wb") as f:
+            f.write(data)
 
 
 class FileHandler(IDataHandler):
@@ -126,55 +259,37 @@ class FileHandler(IDataHandler):
         # Write payload content to file
         # case where we store a metadata file, the data is a dict although the model may not be json
         if isinstance(data, dict) or format == "json":
+            JsonWriter(filepath).dump(model, data=data, suffix=suffix)
+            success = True
 
-            with open(filepath, "w") as f:
-                try:
-                    if isinstance(data, bytes):
-                        data = data.decode()
-                    f.write(orjson.dumps(data).decode())
-                    success = True
-
-                except Exception as e:
-                    logger.error(f"Error encoding JSON data: {str(e)}")
-
-        elif isinstance(data, pd.DataFrame) and format=="xlsx":
-            try:
-                with pd.ExcelWriter(
-                    path = filepath,
-                    engine = 'openpyxl'
-                    ) as writer:
-
-                    sheet_name = suffix if suffix else "sheet1"
-                    data.to_excel(writer, sheet_name = sheet_name)
-                    success = True
-                    
-            except Exception as e:
-                logger.error(f"Error dumping dataframe to Excel: {str(e)}")
+        elif isinstance(data, pd.DataFrame) and format == "xlsx":
+            XlsxWriter(filepath).dump(model, data=data, suffix=suffix)
+            success = True
 
         else:
-            with open(filepath, "wb") as f:
-                f.write(data)
-                success = True
+            GenericFileWriter(filepath).dump(model, data=data)
+            success = True
 
-        logger.info(f"{model.name} -> results saved to : '{filepath}'")
+        logger.debug(f"{model.name} -> results saved to : '{filepath}'")
 
         if success:
             return StorageInfo(
                 location=str(data_dir),
-                format = format,
+                format=format,
                 file_name=filepath.name,
                 encoding="utf-8",
             )
-        else: 
+        else:
             return None
 
-    def artifact_dump(self, 
-                    data: Any, 
-                    name: str, 
-                    model: DomainModel, 
-                    format: FILE_FORMAT = None,
-                    load_to_bronze: bool = True 
-                    ) -> ArtifactLog:
+    def artifact_dump(
+        self,
+        data: Any,
+        name: str,
+        model: DomainModel,
+        format: FILE_FORMAT = None,
+        load_to_bronze: bool = True,
+    ) -> ArtifactLog:
         """Utility function to dump a local file and generate an associated Artifact.
         Returns an ArtifactLog for historicization"""
 
@@ -184,12 +299,7 @@ class FileHandler(IDataHandler):
             format = model.format
 
         try:
-            storage_info = self.file_dump(
-                model, 
-                data, 
-                suffix = name,
-                format = format
-                )
+            storage_info = self.file_dump(model, data, suffix=name, format=format)
             dump_success = True
             load_to_bronze = True
 
@@ -199,11 +309,11 @@ class FileHandler(IDataHandler):
             dump_success = False
 
         return ArtifactLog(
-                name = name,
-                storage_info = storage_info,
-                load_to_bronze = load_to_bronze,
-                success = dump_success
-            )
+            name=name,
+            storage_info=storage_info,
+            load_to_bronze=load_to_bronze,
+            success=dump_success,
+        )
 
     def json_load(
         self,
@@ -221,22 +331,9 @@ class FileHandler(IDataHandler):
 
         """
 
-        filepath = Path(storage_info.location) / Path(
-            storage_info.file_name
-        )
+        filepath = Path(storage_info.location) / Path(storage_info.file_name)
 
-        try:
-            logger.debug(f"loading JSON file : {filepath}")
-            with open(filepath, "r") as f:
-                return orjson.loads(f.read())
-
-        except json.JSONDecodeError as e:
-            logger.exception(f"Invalid JSON format in {filepath}: {str(e)}")
-
-        except Exception as e:
-            logger.exception(f"Error reading file {filepath}: {str(e)}")
-
-        raise InvalidJson(f"Error reading file '{filepath}'")
+        return JsonReader(filepath).load(model=None)
 
     def csv_load(
         self,
@@ -259,24 +356,9 @@ class FileHandler(IDataHandler):
             InvalidCSV: if the file is not found or the CSV is invalid
         """
 
-        filepath = Path(storage_info.location) / Path(
-            storage_info.file_name
-        )
+        filepath = Path(storage_info.location) / Path(storage_info.file_name)
 
-        try:
-            logger.debug(f"loading CSV file : {filepath}")
-            return pd.read_csv(
-                filepath,
-                header=model.load_params.header,
-                skipfooter=model.load_params.skipfooter,
-                sep=model.load_params.separator,
-                engine="python",  # Required for skipfooter parameter
-            )
-
-        except Exception as e:
-            logger.exception(f"Error reading file {filepath}: {str(e)}")
-
-        raise InvalidCSV(f"Error reading file '{filepath}'")
+        return CsvReader(filepath).load(model=model)
 
     def xlsx_load(
         self,
@@ -298,56 +380,21 @@ class FileHandler(IDataHandler):
         Raises:
             InvalidCSV: if the file is not found or the CSV is invalid
         """
-
-        filepath = Path(storage_info.location) / Path(
-            storage_info.file_name
+        raise NotImplementedError(
+            "XLSX file loading is not implemented yet. Please use CSV or JSON files instead."
         )
-
-        try:
-            logger.debug(f"loading XLSX file : {filepath}")
-            return pd.read_excel(
-                filepath,
-                header=model.load_params.header,
-                skipfooter=model.load_params.skipfooter,
-                sep=model.load_params.separator,
-                engine="python",  # Required for skipfooter parameter
-            )
-
-        except Exception as e:
-            logger.exception(f"Error reading file {filepath}: {str(e)}")
-
-        raise InvalidFileException(f"Error reading file '{filepath}'")
-
+        # _filepath = Path(storage_info.location) / Path(storage_info.file_name)
 
     def load_metadata(
         self, model: DomainModel, operation: OperationType
     ) -> MetadataInfo:
-
         metadata_filepath = self._data_dir(model) / self.file_name(
             model,
             suffix=f"metadata_{operation}",  # always the same pattern
             format="json",  # metadata are always json
         )
 
-        try:
-
-            with open(metadata_filepath, "r") as f:
-                metadata = orjson.loads(f.read())
-
-            return MetadataInfo(**metadata)
-
-        except orjson.JSONDecodeError as e:
-            logger.exception(f"Invalid JSON format in {metadata_filepath}: {str(e)}")
-
-        except ValidationError as e:
-            logger.exception(
-                f"Invalid metadata format in {metadata_filepath}: {str(e)}"
-            )
-
-        except Exception as e:
-            logger.exception(f"Error reading file {metadata_filepath}: {str(e)}")
-
-        raise
+        MetadataReader(metadata_filepath).load(model=model)
 
     def dump_metadata(
         self,
@@ -358,7 +405,7 @@ class FileHandler(IDataHandler):
         complete: bool = False,
         errors: int = 0,
         pages: list[PageLog] = None,
-        artifacts: list[ArtifactLog] = None
+        artifacts: list[ArtifactLog] = None,
     ) -> MetadataInfo:
         """Dumps the information about an operation run into a MetadataInfo object and into a file.
 
@@ -395,7 +442,7 @@ class FileHandler(IDataHandler):
                 "errors": errors,
                 "model": model,
                 "pages": pages,
-                "artifacts": artifacts
+                "artifacts": artifacts,
             }
         )
 

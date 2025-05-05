@@ -1,0 +1,16 @@
+name: ODIS Data Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      domains:
+        description: 'Specific domains to run (comma-separated, leave empty for all domains)'
+        required: false
+        default: ''
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say Hello
+        run: echo "Hello World!"
