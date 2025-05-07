@@ -1,15 +1,14 @@
-from unittest.mock import Mock
 
 import pytest
 
 from common.data_source_model import DataSourceModel
-from common.utils.source_extractors import NotebookExtractor, RobustRequest
+from common.utils.source_extractors import NotebookExtractor
 
 from .stubs.data_handler import StubDataHandler
 from .stubs.source_extractor_stub import StubExtractor
 
 
-def test_json_extractor_init():
+async def test_json_extractor_init():
     """verify that the JsonExtractor class is correctly initialized"""
 
     # given
@@ -40,11 +39,11 @@ def test_json_extractor_init():
     model = list(config.get_models().values())[0]
 
     stub_handler = StubDataHandler()
-    extractor = StubExtractor(config, model, stub_handler)
+    extractor = StubExtractor(config, model, None, stub_handler)
 
     # when
     # call the next() method to call the generator
-    next(extractor.download())
+    await anext(extractor.download())
 
     # then
     assert extractor.is_download
@@ -135,89 +134,3 @@ def test_NotebookExtractor_invalid():
 
     # then
     assert True
-
-
-def test_RetriableRequest_succeeds(mocker):
-    """
-    test the RetriableRequestError class
-    """
-
-    # given
-    mocker.patch(
-        "common.utils.source_extractors.requests.get",
-        return_value=Mock(status_code=200, json=lambda: {"key": "value"}),
-    )
-
-    req = RobustRequest(
-        url="https://api1.com",
-        params={},
-        headers={},
-    )
-
-    # when
-    response = req.get()
-
-    # then
-
-    assert response.status_code == 200
-    assert response.json() == {"key": "value"}
-
-
-def test_RetriableRequest_retries_on_err(mocker):
-    """
-    test the RetriableRequestError class
-    """
-
-    call_count = 0
-
-    def raise_on_first_call(*args, **kwargs):
-        nonlocal call_count
-        call_count += 1
-        if call_count == 1:
-            raise Exception("Network error")
-        return Mock(status_code=200, json=lambda: {"key": "value"})
-
-    # given
-    mocker.patch(
-        "common.utils.source_extractors.requests.get",
-        side_effect=raise_on_first_call,
-    )
-
-    req = RobustRequest(
-        url="https://api1.com",
-        params={},
-        headers={},
-    )
-
-    # when
-    response = req.get()
-
-    # then
-
-    assert response.status_code == 200
-    assert response.json() == {"key": "value"}
-    assert call_count == 2
-
-
-def test_RetriableRequest_final_exc_is_reraised(mocker):
-    """
-    test the RetriableRequestError class
-    """
-
-    # given
-    mocker.patch(
-        "common.utils.source_extractors.requests.get",
-        side_effect=Exception("Network error"),
-    )
-
-    req = RobustRequest(
-        url="https://api1.com",
-        params={},
-        headers={},
-    )
-
-    # when
-    with pytest.raises(Exception) as excinfo:
-        req.get()
-
-    assert str(excinfo.value) == "Network error"

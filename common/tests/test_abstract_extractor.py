@@ -4,7 +4,7 @@ from .stubs.data_handler import StubDataHandler
 from .stubs.source_extractor_stub import StubExtractor, StubIterationExtractor
 
 
-def test_execute_writes_data():
+async def test_execute_writes_data():
     # given
     model_dict = {
         "APIs": {
@@ -29,16 +29,16 @@ def test_execute_writes_data():
     model = conf.domains["level1"]["mod1_lvl1"]
 
     stub_handler = StubDataHandler()
-    extractor = StubExtractor(conf, model, stub_handler)
+    extractor = StubExtractor(conf, model, None, stub_handler)
 
     # when
-    extractor.execute()
+    await extractor.execute()
 
     # then
     assert stub_handler.is_handled
 
 
-def test_execute_writes_metadata():
+async def test_execute_writes_metadata():
     # given
     model_dict = {
         "APIs": {
@@ -63,16 +63,16 @@ def test_execute_writes_metadata():
     model = conf.domains["level1"]["mod1_lvl1"]
 
     stub_handler = StubDataHandler()
-    extractor = StubExtractor(conf, model, stub_handler)
+    extractor = StubExtractor(conf, model, None, stub_handler)
 
     # when
-    extractor.execute()
+    await extractor.execute()
 
     # # then
     assert stub_handler.is_handled
 
 
-def test_execute_iterates_on_download():
+async def test_execute_iterates_on_download():
     """verify the method iterates on the download generator"""
     # given
     model_dict = {
@@ -98,10 +98,10 @@ def test_execute_iterates_on_download():
     model = conf.domains["level1"]["mod1_lvl1"]
 
     stub_handler = StubDataHandler()
-    extractor = StubIterationExtractor(conf, model, stub_handler)
+    extractor = StubIterationExtractor(conf, model, None, stub_handler)
 
     # when
-    extractor.execute()
+    await extractor.execute()
 
     # then
     assert extractor.is_download
