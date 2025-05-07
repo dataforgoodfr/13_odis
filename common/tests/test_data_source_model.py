@@ -3,7 +3,13 @@ import tempfile
 import pytest
 from pydantic_core import ValidationError
 
-from ..data_source_model import APIModel, DataSourceModel, DomainModel, HeaderModel, DataProcessingParameters
+from ..data_source_model import (
+    APIModel,
+    DataProcessingParameters,
+    DataSourceModel,
+    DomainModel,
+    HeaderModel,
+)
 
 
 def test_EndPoint_may_be_slash():
@@ -119,17 +125,15 @@ def test_DomainModel_notebook_name_is_mandatory_for_Preprocessor():
 
     # when
     with pytest.raises(ValueError) as e:
-        
-        processor_info = DataProcessingParameters(
-            type = "notebook"
-        )
+
+        processor_info = DataProcessingParameters(type="notebook")
 
         DomainModel(
             type=domain_type,
             API="INSEE.Metadonnees",
             endpoint="/geo/regions",
             description="Référentiel géographique INSEE - niveau régional",
-            preprocessor = processor_info
+            preprocessor=processor_info,
         )
 
     # then
@@ -145,10 +149,9 @@ def test_DomainModel_preprocessor_nominal():
     # to simulate a notebook path
     # and check that the path is valid
     with tempfile.NamedTemporaryFile() as fp:
-        
+
         processor_info = DataProcessingParameters(
-            name = fp.name.split('.')[0],
-            type = "notebook"
+            name=fp.name.split(".")[0], type="notebook"
         )
 
         m = DomainModel(
@@ -156,7 +159,7 @@ def test_DomainModel_preprocessor_nominal():
             API="INSEE.Metadonnees",
             endpoint="/geo/regions",
             description="Référentiel géographique INSEE - niveau régional",
-            preprocessor = processor_info
+            preprocessor=processor_info,
         )
 
     # then
@@ -349,6 +352,7 @@ def test_DomainModel_bad_type():
     # then
     assert "endpoint" in str(e.value)
 
+
 def test_DataSourceModel_domain_api_is_ok():
 
     # given-
@@ -489,6 +493,7 @@ def test_DomainModel_load_params_default_value():
     assert model.load_params.model_dump()["header"] == 0
     assert model.load_params.model_dump()["skipfooter"] == 0
 
+
 def test_DomainModel_preprocessor_params_default_value():
     # given
 
@@ -497,9 +502,7 @@ def test_DomainModel_preprocessor_params_default_value():
         "type": "JsonExtractor",
         "description": "Valid test description",
         "endpoint": "/geo/regions",
-        "preprocessor": {
-            "name": "bmo_2024"
-        }
+        "preprocessor": {"name": "bmo_2024"},
     }
 
     # when
@@ -507,6 +510,7 @@ def test_DomainModel_preprocessor_params_default_value():
 
     # then
     assert model.preprocessor.model_dump()["type"] == "notebook"
+
 
 def test_DomainModel_response_map_is_arbitrary_dict():
     # given

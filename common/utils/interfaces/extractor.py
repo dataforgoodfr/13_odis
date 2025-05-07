@@ -1,16 +1,15 @@
 import datetime
 import urllib
 from abc import ABC, abstractmethod
-from typing import Any, Generator, Optional
+from typing import Any, AsyncGenerator, Optional
 
 from pydantic import BaseModel, Field
 
+from common.utils.interfaces.http import HttpClient
 from common.utils.logging_odis import logger
 
 from ...data_source_model import APIModel, DataSourceModel, DomainModel
 from .data_handler import IDataHandler, OperationType, PageLog
-
-# from common.utils.file_handler import FileHandler
 
 
 class ExtractionResult(BaseModel):
@@ -63,9 +62,14 @@ class AbstractSourceExtractor(ABC):
     handler: IDataHandler
     model: DomainModel
     api_config: APIModel
+    http_client: HttpClient
 
     def __init__(
-        self, config: DataSourceModel, model: DomainModel, handler: IDataHandler = None
+        self,
+        config: DataSourceModel,
+        model: DomainModel,
+        http_client: HttpClient,
+        handler: IDataHandler = None,
     ):
         """
         - populates the extractor with the configuration, the model and the handler
@@ -75,11 +79,13 @@ class AbstractSourceExtractor(ABC):
             config (DataSourceModel): the configuration of the data source
             model (DomainModel): the model of the data source
             handler (FileHandler): the handler used to store the data
+            http_client (HttpClient): the HTTP client used to make requests
         """
 
         self.config = config
         self.model = model
         self.handler = handler
+        self.http_client = http_client
 
         # Decompose base API URl
         api = self.config.get_api(model)
@@ -98,13 +104,16 @@ class AbstractSourceExtractor(ABC):
         self.api_config = self.config.get_api(model)
 
     @abstractmethod
-    def download(self) -> Generator[ExtractionResult, None, None]:
+    def download(self) -> AsyncGenerator[ExtractionResult, None]:
         """Method to be implemented by the child class to download data from the API.
         The method should yield a ExtractionResult object for each page of data downloaded.
+
+        NB: the code implemented by the concrete children are async to allow for non-blocking I/O operations.
+            but the abstract method is not declared as async for typing reasons.
         """
         pass
 
-    def execute(self) -> None:
+    async def execute(self) -> None:
         """Method to be called to start the extraction process.
         This method will download the data and store it in a local file; it will also
         store the metadata of the extraction in a separate file.
@@ -114,7 +123,10 @@ class AbstractSourceExtractor(ABC):
         >>> extractor.execute()
         """
 
-        logger.debug(f"Processing data from {self.url}")
+        logger.info("-" * 80)
+        logger.info(
+            f"Starting extraction for '{self.model.name}' using '{self.__class__.__name__}'"
+        )
 
         start_time = datetime.datetime.now(tz=datetime.timezone.utc)
         last_page_downloaded = 0
@@ -122,24 +134,33 @@ class AbstractSourceExtractor(ABC):
         errors = 0
         complete = False
 
-        for result in self.download():
+        async for result in self.download():
 
-            last_page_downloaded += 1
+            # TODO: test file_dump error handling
+            try:
 
-            storage_info = self.handler.file_dump(self.model, data=result.payload)
+                last_page_downloaded += 1
 
-            page_log_info = {
-                "page": last_page_downloaded,
-                "storage_info": storage_info,
-                "success": result.success,
-                "is_last": result.is_last,
-            }
+                storage_info = self.handler.file_dump(self.model, data=result.payload)
 
-            if not result.success:
+                page_log_info = {
+                    "page": last_page_downloaded,
+                    "storage_info": storage_info,
+                    "success": result.success,
+                    "is_last": result.is_last,
+                }
+
+                if not result.success:
+                    errors += 1
+
+                page_log = PageLog(**page_log_info)
+                page_logs.append(page_log)
+
+            except Exception as e:
+                logger.error(
+                    f"Error dumping page {last_page_downloaded + 1} from {self.url}: {e}"
+                )
                 errors += 1
-
-            page_log = PageLog(**page_log_info)
-            page_logs.append(page_log)
 
         # if the loop completes, extraction is successful
         complete = True
@@ -153,5 +174,10 @@ class AbstractSourceExtractor(ABC):
             complete=complete,
             errors=errors,
             pages=page_logs,
-            artifacts=[]
+            artifacts=[],
         )
+
+        logger.info(
+            f"Extraction completed for '{self.model.name}', Total pages downloaded: {last_page_downloaded}"
+        )
+        logger.info("-" * 80)
