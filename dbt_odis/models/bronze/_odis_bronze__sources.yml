@@ -17,11 +17,15 @@ sources:
         loaded_at_field: created_at
         
       - name: emploi_eff_secteur_prive_gds_secteurs
-        description: Source JSON loadée dans le champ data contenant les Effectifs salariés du secteur privé par grands secteurs
+        description: Source CSV contenant les Effectifs salariés du secteur privé par grands secteurs
         loaded_at_field : created_at
         freshness :
         warn_after: {count: 1, period : year}
         
+      - name: emploi_bmo_2024_file
+        description: Source CSV 
+        loaded_at_field : created_at
+
       - name: emploi_demandeur_emploi_communes
         description: Source CSV loadée dans le champ data contenant 
         loaded_at_field: created_at
@@ -132,3 +136,18 @@ sources:
         description: feuille xlsx transformée en JSON loadée dans le champ data contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par communes
         loaded_at_field : created_at           
 
+      - name: logement_logements_sociaux_region
+        description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
+        loaded_at_field : created_at
+
+      - name: logement_logements_sociaux_departement
+        description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par départements
+        loaded_at_field : created_at
+
+      - name: logement_logements_sociaux_communes
+        description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par communes
+        loaded_at_field : created_at           
+
+      - name: logement_logements_sociaux_epci
+        description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
+        loaded_at_field : created_at

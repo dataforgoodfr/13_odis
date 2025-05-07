@@ -5,17 +5,14 @@ meta {
 }
 
 get {
-  url: https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ecoles-effectifs-nb_classes/exports/json?select=commune%2C%20SUM%28nombre_total_eleves%29%20%2F%20SUM%28nombre_total_classes%29%20AS%20moyenne_eleves_par_classe&group_by=commune&limit=-1&refine=rentree_scolaire%3A2023&timezone=UTC&use_labels=false&epsg=4326
+  url: https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ecoles-effectifs-nb_classes/exports/json?select=rentree_scolaire,region_academique,academie,departement,commune,code_postal,sum(nombre_total_classes),sum(nombre_total_eleves),sum(nombre_eleves_preelementaire_hors_ulis),sum(nombre_eleves_elementaire_hors_ulis),sum(nombre_eleves_ulis),sum(nombre_eleves_cp_hors_ulis),sum(nombre_eleves_ce1_hors_ulis),sum(nombre_eleves_ce2_hors_ulis),sum(nombre_eleves_cm1_hors_ulis),sum(nombre_eleves_cm2_hors_ulis)&group_by=rentree_scolaire,region_academique,academie,departement,commune,code_postal&limit=10&timezone=UTC
   body: none
   auth: none
 }
 
 params:query {
-  select: commune, SUM(nombre_total_eleves) / SUM(nombre_total_classes) AS moyenne_eleves_par_classe
-  group_by: commune
-  limit: -1
-  refine: rentree_scolaire:2023
+  select: rentree_scolaire,region_academique,academie,departement,commune,code_postal,sum(nombre_total_classes),sum(nombre_total_eleves),sum(nombre_eleves_preelementaire_hors_ulis),sum(nombre_eleves_elementaire_hors_ulis),sum(nombre_eleves_ulis),sum(nombre_eleves_cp_hors_ulis),sum(nombre_eleves_ce1_hors_ulis),sum(nombre_eleves_ce2_hors_ulis),sum(nombre_eleves_cm1_hors_ulis),sum(nombre_eleves_cm2_hors_ulis)
+  group_by: rentree_scolaire,region_academique,academie,departement,commune,code_postal
+  limit: 10
   timezone: UTC
-  use_labels: false
-  epsg: 4326
 }
