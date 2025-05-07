@@ -1,5 +1,5 @@
 from common.utils.loaders.notebook_loader import NotebookLoader
 
-class XlsxDataLoader(NotebookLoader):
+class ZipDataLoader(NotebookLoader):
 
     columns: list[str] = []
