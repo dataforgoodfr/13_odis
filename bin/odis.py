@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
 import sys
+import time
 from typing import Annotated
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -17,6 +19,7 @@ from common.data_source_model import APIModel, DataSourceModel, DomainModel
 from common.utils.factory.extractor_factory import create_extractor
 from common.utils.factory.loader_factory import create_loader
 from common.utils.file_handler import FileHandler
+from common.utils.http.async_client import AsyncHttpClient
 from common.utils.logging_odis import logger
 
 # this module is the entry point for the CLI
@@ -28,6 +31,8 @@ DEFAULT_CONFIGFILE = "datasources.yaml"
 # options for the CLI
 OPTION_ALL = "*"
 OPTION_NONE = ""
+
+MAX_CONCURRENT_REQUESTS = 4
 
 app = typer.Typer()
 console = Console()
@@ -73,7 +78,7 @@ def explain_domain(config_model: DataSourceModel, domain: str):
 
 def explain_api(config_model: DataSourceModel, api: str):
 
-    apis_list = apis_from_name(config_model, apis=api)
+    apis_list = apis_from_str(config_model, apis=api)
 
     table = Table("API", "Description", "Used by data source")
     for a in apis_list:
@@ -92,6 +97,77 @@ def explain_api(config_model: DataSourceModel, api: str):
             table.add_section()
 
     console.print(table)
+
+
+async def extract_data_sources(
+    config_model: DataSourceModel,
+    data_sources: list[DomainModel],
+    max_concurrent_requests: int = MAX_CONCURRENT_REQUESTS,
+):
+    """
+    Extract data from the data sources specified in the config file.
+    """
+    start_time = time.time()
+
+    tasks = []
+    is_exception = False
+
+    # share the same http client for all the extractors
+    # to avoid creating too many connections
+    http_client = AsyncHttpClient(max_connections=max_concurrent_requests)
+
+    logger.info(
+        f"Starting extraction for {len(data_sources)} data sources with {max_concurrent_requests} concurrent requests"
+    )
+
+    for ds in data_sources:
+
+        logger.debug(f"Extracting data from {ds.name}")
+
+        try:
+
+            extractor = create_extractor(
+                config_model,
+                ds,
+                http_client=http_client,
+                handler=FileHandler(),
+            )
+
+            tasks.append(extractor.execute())  # async task
+
+        except Exception as e:
+
+            is_exception = True
+            logger.exception(f"Error extracting data from {ds.name}: {str(e)}")
+
+    # launch the tasks in concurrent mode
+    # and wait for them to finish
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    tasks_exceptions = [result for result in results if isinstance(result, Exception)]
+
+    if is_exception or len(tasks_exceptions) > 0:
+        print(
+            "[red]There was an issue in extracting data, please check the logs for more details.[/red]"
+        )
+
+        for exc in tasks_exceptions:
+            logger.error(f"Error: {exc}")
+
+        # exit with a non-zero status code
+        # to indicate that there was an error
+        sys.exit(1)
+    else:
+        print("\n")
+        print("[green]All data extracted successfully[/green]")
+        print("\n")
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    logger.info(
+        f"Extraction completed in {elapsed_time:.2f} seconds for {len(data_sources)} data sources"
+    )
 
 
 @app.command()
@@ -231,10 +307,19 @@ def extract(
         typer.Option(
             "-s",
             "--source",
-            help="comma separated list of data sources to be explained",
+            help="comma separated list of data sources to be extracted, special value '*' for all data sources",
             metavar="source_1,source_2",
         ),
-    ],
+    ] = OPTION_NONE,
+    domain: Annotated[
+        str,
+        typer.Option(
+            "-d",
+            "--domain",
+            help="comma separated list of domains to be extracted, special value '*' for all domains",
+            metavar="domain_1,domain_2",
+        ),
+    ] = OPTION_NONE,
     config: Annotated[
         str | None,
         typer.Option(
@@ -244,47 +329,58 @@ def extract(
             metavar="path",
         ),
     ] = DEFAULT_CONFIGFILE,
+    max_concurrent_requests: Annotated[
+        int,
+        typer.Option(
+            "-m",
+            "--max-concurrent-requests",
+            help="Maximum number of concurrent requests to be made",
+            metavar=f"{MAX_CONCURRENT_REQUESTS}",
+        ),
+    ] = MAX_CONCURRENT_REQUESTS,
 ):
+    """
+    Extract data from the data sources specified in the config file.
+    \n
+    - if the user specifies the sources, it will extract data from the specified sources\n
+    - if the user specifies the domains, it will extract data from the data sources in the specified domains\n
+    - if the user specifies both, it will extract data from the specified sources and domains
+    \n
+    At least one of the two options must be specified.
+    """
+
+    if source == OPTION_NONE and domain == OPTION_NONE:
+        print(
+            "[red]You must specify at least one of the two options: --source or --domain[/red]"
+        )
+        sys.exit(1)
+
     config_model: DataSourceModel = load_config(config, response_model=DataSourceModel)
-    data_sources: list[DomainModel] = data_sources_from_name(
-        config_model, sources=source
+
+    data_sources = []
+
+    # get the data sources from the domains
+    if domain is not None and domain != OPTION_NONE:
+        data_sources = data_sources_from_domains_str(config_model, domains=domain)
+
+    # eventually, get the data sources from the sources
+    # if the user specified the sources, we want to add them to the list
+    if source is not None:
+        data_sources.extend(data_sources_from_str(config_model, sources=source))
+
+    if len(data_sources) == 0:
+        print(
+            "[red]No data sources found, please check the config file and the options provided.[/red]"
+        )
+        sys.exit(1)
+
+    print(
+        f"[green]Extracting data from the following data sources: {[ds.name for ds in data_sources]}[/green]"
     )
 
-    with typer.progressbar(data_sources) as progress:
-
-        is_exception = False
-
-        for ds in progress:
-
-            try:
-
-                print("\n")
-                print("\n[blue]Using data source configuration:[/blue]")
-                explain_data_source(config_model, ds.name)
-                print("\n")
-
-                print(f"\n[blue]Extracting data from {ds.name}[/blue]")
-                print("\n")
-
-                extractor = create_extractor(config_model, ds, handler=FileHandler())
-                extractor.execute()
-
-                print(f"\n[blue]Data extracted from {ds.name}[/blue]")
-                print("\n")
-
-            except Exception as e:
-
-                is_exception = True
-                logger.exception(f"Error extracting data from {ds.name}: {str(e)}")
-
-    if is_exception:
-        print(
-            "[red]There was an issue in extracting data, please check the logs for more details.[/red]"
-        )
-    else:
-        print("\n")
-        print("[green]All data extracted successfully[/green]")
-        print("\n")
+    asyncio.run(
+        extract_data_sources(config_model, data_sources, max_concurrent_requests=max_concurrent_requests)  # type: ignore[call-arg] # noqa: E501
+    )
 
 
 @app.command()
@@ -294,10 +390,19 @@ def load(
         typer.Option(
             "-s",
             "--source",
-            help="comma separated list of data sources to be explained",
-            metavar="source_1",
+            help="comma separated list of data sources to be loaded, special value '*' for all data sources",
+            metavar="source_1,source_2",
         ),
-    ],
+    ] = OPTION_NONE,
+    domain: Annotated[
+        str,
+        typer.Option(
+            "-d",
+            "--domain",
+            help="comma separated list of domains to be loaded, special value '*' for all domains",
+            metavar="domain_1,domain_2",
+        ),
+    ] = OPTION_NONE,
     config: Annotated[
         str | None,
         typer.Option(
@@ -308,9 +413,43 @@ def load(
         ),
     ] = DEFAULT_CONFIGFILE,
 ):
+    """
+    Load data from the data sources specified in the config file.
+    \n
+    - if the user specifies the sources, it will load data from the specified sources\n
+    - if the user specifies the domains, it will load data from the data sources in the specified domains\n
+    - if the user specifies both, it will load data from the specified sources and domains
+    \n
+    At least one of the two options must be specified.
+    """
+
+    if source == OPTION_NONE and domain == OPTION_NONE:
+        print(
+            "[red]You must specify at least one of the two options: --source or --domain[/red]"
+        )
+        sys.exit(1)
+
+    data_sources = []
+
     config_model: DataSourceModel = load_config(config, response_model=DataSourceModel)
-    data_sources: list[DomainModel] = data_sources_from_name(
-        config_model, sources=source
+
+    # get the data sources from the domains
+    if domain is not None:
+        data_sources = data_sources_from_domains_str(config_model, domains=domain)
+
+    # eventually, get the data sources from the sources
+    # if the user specified the sources, we want to add them to the list
+    if source is not None:
+        data_sources.extend(data_sources_from_str(config_model, sources=source))
+
+    if len(data_sources) == 0:
+        print(
+            "[red]No data sources found, please check the config file and the options provided.[/red]"
+        )
+        sys.exit(1)
+
+    print(
+        f"[green]Loading data from the following data sources: {[ds.name for ds in data_sources]}[/green]"
     )
 
     with typer.progressbar(data_sources) as progress:
@@ -342,13 +481,16 @@ def load(
         print(
             "[red]There was an issue in loading data, please check the logs for more details.[/red]"
         )
+        # exit with a non-zero status code
+        # to indicate that there was an error
+        sys.exit(1)
     else:
         print("\n")
         print("[green]All data loaded successfully[/green]")
         print("\n")
 
 
-def apis_from_name(
+def apis_from_str(
     config: DataSourceModel,
     apis: str | None = OPTION_NONE,
 ) -> list[APIModel]:
@@ -387,7 +529,7 @@ def apis_from_name(
     return apis
 
 
-def data_sources_from_name(
+def data_sources_from_str(
     config: DataSourceModel,
     sources: str | None = OPTION_NONE,
 ) -> list[DomainModel]:
@@ -415,6 +557,45 @@ def data_sources_from_name(
     data_sources = list(
         {k: v for k, v in config.get_models().items() if k in sources_list}.values()
     )
+
+    return data_sources
+
+
+def data_sources_from_domains_str(
+    config: DataSourceModel,
+    domains: str | None = OPTION_NONE,
+) -> list[DomainModel]:
+    """
+    Parse the `domains` string and returns a list of corresponding DomainModel objects.
+
+    Args:
+        config (DataSourceModel): The config object containing the sources
+        domains (str | None): A comma separated list of domains
+
+    Returns:
+        list[DomainModel]: A list of DomainModel objects
+
+    """
+
+    if domains is not None and domains != OPTION_ALL:
+
+        # Split the comma separated string into a list
+        domains_list = [domain.strip() for domain in domains.split(",")]
+
+    elif domains == OPTION_ALL:
+        # If the user input is "*", we want all sources
+        domains_list = list(config.domains.keys())
+
+    data_sources = []
+    for d in domains_list:
+        try:
+            data_sources.extend(list(config.domains[d].values()))
+        except KeyError:
+            print("\n")
+            print(
+                f"[bold][red]Domain '{d}' not found in the config file, skipping it[/red][/bold]"
+            )
+            print("\n")
 
     return data_sources
 

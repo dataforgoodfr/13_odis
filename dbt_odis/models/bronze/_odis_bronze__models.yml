@@ -192,3 +192,14 @@ models:
       - name: created_at
         description: "Timestamp when the record was created" 
 
+  - name: logement_logements_sociaux_communes
+    description: CSV contenant les logements sociaux par communes
+
+  - name: logement_logements_sociaux_epci
+    description: CSV contenant les logements sociaux par EPCI
+        
+  - name: logement_logements_sociaux_departement
+    description: CSV contenant les logements sociaux par départements
+        
+  - name: logement_logements_sociaux_region
+    description: CSV contenant les logements sociaux par régions
