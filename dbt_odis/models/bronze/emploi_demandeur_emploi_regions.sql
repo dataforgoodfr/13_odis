@@ -3,77 +3,14 @@
     )
 }}
 
-
-with source as (
-    select * from {{ source('bronze', 'emploi_demandeur_emploi_regions') }}
-),
-renamed as (
-    select
-        {{ adapter.quote("id") }},
-        {{ adapter.quote("mois") }} as region,
-        {{ cast_to_integer("janvier_2020") }} as janvier_2020,
-        {{ cast_to_integer("fevrier_2020") }} as fevrier_2020,
-        {{ cast_to_integer("mars_2020") }} as mars_2020,
-        {{ cast_to_integer("avril_2020") }} as avril_2020,
-        {{ cast_to_integer("mai_2020") }} as mai_2020,
-        {{ cast_to_integer("juin_2020") }} as juin_2020,
-        {{ cast_to_integer("juillet_2020") }} as juillet_2020,
-        {{ cast_to_integer("aout_2020") }} as aout_2020,
-        {{ cast_to_integer("septembre_2020") }} as septembre_2020,
-        {{ cast_to_integer("octobre_2020") }} as octobre_2020,
-        {{ cast_to_integer("novembre_2020") }} as novembre_2020,
-        {{ cast_to_integer("decembre_2020") }} as decembre_2020,
-        {{ cast_to_integer("janvier_2021") }} as janvier_2021,
-        {{ cast_to_integer("fevrier_2021") }} as fevrier_2021,
-        {{ cast_to_integer("mars_2021") }} as mars_2021,
-        {{ cast_to_integer("avril_2021") }} as avril_2021,
-        {{ cast_to_integer("mai_2021") }} as mai_2021,
-        {{ cast_to_integer("juin_2021") }} as juin_2021,
-        {{ cast_to_integer("juillet_2021") }} as juillet_2021,
-        {{ cast_to_integer("aout_2021") }} as aout_2021,
-        {{ cast_to_integer("septembre_2021") }} as septembre_2021,
-        {{ cast_to_integer("octobre_2021") }} as octobre_2021,
-        {{ cast_to_integer("novembre_2021") }} as novembre_2021,
-        {{ cast_to_integer("decembre_2021") }} as decembre_2021,
-        {{ cast_to_integer("janvier_2022") }} as janvier_2022,
-        {{ cast_to_integer("fevrier_2022") }} as fevrier_2022,
-        {{ cast_to_integer("mars_2022") }} as mars_2022,
-        {{ cast_to_integer("avril_2022") }} as avril_2022,
-        {{ cast_to_integer("mai_2022") }} as mai_2022,
-        {{ cast_to_integer("juin_2022") }} as juin_2022,
-        {{ cast_to_integer("juillet_2022") }} as juillet_2022,
-        {{ cast_to_integer("aout_2022") }} as aout_2022,
-        {{ cast_to_integer("septembre_2022") }} as septembre_2022,
-        {{ cast_to_integer("octobre_2022") }} as octobre_2022,
-        {{ cast_to_integer("novembre_2022") }} as novembre_2022,
-        {{ cast_to_integer("decembre_2022") }} as decembre_2022,
-        {{ cast_to_integer("janvier_2023") }} as janvier_2023,
-        {{ cast_to_integer("fevrier_2023") }} as fevrier_2023,
-        {{ cast_to_integer("mars_2023") }} as mars_2023,
-        {{ cast_to_integer("avril_2023") }} as avril_2023,
-        {{ cast_to_integer("mai_2023") }} as mai_2023,
-        {{ cast_to_integer("juin_2023") }} as juin_2023,
-        {{ cast_to_integer("juillet_2023") }} as juillet_2023,
-        {{ cast_to_integer("aout_2023") }} as aout_2023,
-        {{ cast_to_integer("septembre_2023") }} as septembre_2023,
-        {{ cast_to_integer("octobre_2023") }} as octobre_2023,
-        {{ cast_to_integer("novembre_2023") }} as novembre_2023,
-        {{ cast_to_integer("decembre_2023") }} as decembre_2023,
-        {{ cast_to_integer("janvier_2024") }} as janvier_2024,
-        {{ cast_to_integer("fevrier_2024") }} as fevrier_2024,
-        {{ cast_to_integer("mars_2024") }} as mars_2024,
-        {{ cast_to_integer("avril_2024") }} as avril_2024,
-        {{ cast_to_integer("mai_2024") }} as mai_2024,
-        {{ cast_to_integer("juin_2024") }} as juin_2024,
-        {{ cast_to_integer("juillet_2024") }} as juillet_2024,
-        {{ cast_to_integer("aout_2024") }} as aout_2024,
-        {{ cast_to_integer("septembre_2024") }} as septembre_2024,
-        {{ cast_to_integer("octobre_2024") }} as octobre_2024,
-        {{ cast_to_integer("novembre_2024") }} as novembre_2024,
-        {{ cast_to_integer("decembre_2024") }} as decembre_2024,
-        {{ cast_to_integer("janvier_2025") }} as janvier_2025,
-        {{ cast_to_integer("fevrier_2025") }} as fevrier_2025,
-        {{ adapter.quote("created_at") }}
-    from source
-)
-select * from renamed
+select 
+    id,
+    mois as region,
+    {% for column in dbt_utils.get_filtered_columns_in_relation(
+        source('bronze', 'emploi_demandeur_emploi_regions'),
+        ['id', 'mois', 'created_at']
+    ) %}
+        {{cast_to_integer(column)}} as {{ column }},
+    {% endfor %}
+    created_at
+from {{ source('bronze', 'emploi_demandeur_emploi_regions') }}

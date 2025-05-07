@@ -1,10 +1,9 @@
-import time
+import asyncio
 import urllib
-from typing import Generator, Optional
+from typing import AsyncGenerator, Generator, Optional
 
 import jmespath
 import nbformat
-import requests
 from nbconvert.preprocessors import ExecutePreprocessor
 from pydantic import BaseModel, Field
 
@@ -18,22 +17,21 @@ class FileExtractor(AbstractSourceExtractor):
 
     is_json: bool = False
 
-    def download(self) -> Generator[ExtractionResult, None, None]:
+    async def download(self) -> AsyncGenerator[ExtractionResult, None]:
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
 
         # Send request to API
-        response = requests.get(
+        response = await self.http_client.get(
             self.url,
             headers=self.model.headers.model_dump(mode="json"),
             params=self.model.extract_params,
+            as_json=self.is_json,
         )
-        response.raise_for_status()
-        payload = response.json() if self.is_json else response.content
 
         # yield the request result
-        yield ExtractionResult(payload=payload, success=True, is_last=True)
+        yield ExtractionResult(payload=response, success=True, is_last=True)
 
 
 class JsonExtractor(FileExtractor):
@@ -45,7 +43,7 @@ class JsonExtractor(FileExtractor):
 class MelodiExtractor(FileExtractor):
     """Extractor for getting JSON data from an API"""
 
-    def download(self) -> Generator[ExtractionResult, None, None]:
+    async def download(self) -> AsyncGenerator[ExtractionResult, None]:
 
         is_last = False
         url = self.url
@@ -53,13 +51,13 @@ class MelodiExtractor(FileExtractor):
         while not is_last:
 
             # yield the request result
-            result = self.download_page(url)
+            result = await self.download_page(url)
 
             is_last = result.is_last
 
             if not is_last and result.next_url:
 
-                time.sleep(60 / self.api_config.throttle)
+                await asyncio.sleep(60 / self.api_config.throttle)
 
                 url = result.next_url
 
@@ -67,7 +65,7 @@ class MelodiExtractor(FileExtractor):
 
             yield result
 
-    def download_page(self, url: str) -> ExtractionResult:
+    async def download_page(self, url: str) -> ExtractionResult:
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
@@ -75,7 +73,7 @@ class MelodiExtractor(FileExtractor):
         # if url has a query string, ignore the dict-defined parameters
         url_querystr = urllib.parse.urlparse(url).query
         passed_params = self.model.extract_params if url_querystr == "" else None
-        logger.info(f"querying '{url}'")
+        # logger.info(f"querying '{url}'")
 
         success = False
         payload = None
@@ -84,14 +82,12 @@ class MelodiExtractor(FileExtractor):
 
         try:
             # Send request to API
-            response = requests.get(
+            payload = await self.http_client.get(
                 url,
                 headers=self.model.headers.model_dump(mode="json"),
                 params=passed_params,
+                as_json=True,
             )
-            response.raise_for_status()
-
-            payload = response.json()
 
             # Get next page URL
             next_key = self.model.response_map.get("next")
@@ -229,7 +225,7 @@ class NotebookExtractor(FileExtractor):
 
 class OpenDataSoftExtractor(FileExtractor):
 
-    def download(self) -> Generator[ExtractionResult, None, None]:
+    async def download(self) -> AsyncGenerator[ExtractionResult, None]:
 
         is_last = False
         url = self.url
@@ -242,7 +238,7 @@ class OpenDataSoftExtractor(FileExtractor):
         while not is_last:
 
             # yield the request result
-            result = self.download_page(url, offset)
+            result = await self.download_page(url, offset)
 
             is_last = result.is_last
             total_count = result.total_count
@@ -253,7 +249,7 @@ class OpenDataSoftExtractor(FileExtractor):
             logger.debug(f"Extracted {page_records_count} from page {pageno}")
             logger.debug(f"Extracted {aggregated_count} out of {total_count} so far.")
 
-            time.sleep(60 / self.api_config.throttle)
+            await asyncio.sleep(60 / self.api_config.throttle)
 
             offset = aggregated_count + 1
 
@@ -261,7 +257,7 @@ class OpenDataSoftExtractor(FileExtractor):
 
             yield result
 
-    def download_page(self, url, offset) -> ExtractionResult:
+    async def download_page(self, url, offset) -> ExtractionResult:
 
         passed_params = self.model.extract_params
         passed_params["offset"] = offset
@@ -275,14 +271,13 @@ class OpenDataSoftExtractor(FileExtractor):
 
         try:
             # Send request to API
-            response = requests.get(
+
+            raw_data = await self.http_client.get(
                 url,
                 headers=self.model.headers.model_dump(mode="json"),
                 params=passed_params,
+                as_json=True,
             )
-            response.raise_for_status()
-
-            raw_data = response.json()
 
             # get payload
             datapath = self.model.response_map.get("data")

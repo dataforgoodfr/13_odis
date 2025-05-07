@@ -1,6 +1,4 @@
 import csv
-import re
-import unicodedata
 from io import StringIO
 from pathlib import Path
 from typing import Generator
@@ -9,62 +7,11 @@ import pandas as pd
 
 from common.utils.exceptions import InvalidCSV
 from common.utils.interfaces.data_handler import OperationType, PageLog
-from common.utils.interfaces.loader import AbstractDataLoader
+from common.utils.interfaces.loader import AbstractDataLoader, Column, ColumnType
 from common.utils.logging_odis import logger
 
 
 class CsvDataLoader(AbstractDataLoader):
-
-    columns: list[str] = []
-
-    def create_or_overwrite_table(self, suffix:str = None):
-        """Creates the target Bronze table.
-        If exists, drops table to recreate"""
-
-        # append suffix to construct final name if provided
-        table_name = f"{self.model.table_name}_{suffix}" if suffix else self.model.table_name
-
-        # initiate database session
-        logger.info(f"Creating table bronze.{table_name}")
-
-        try:
-
-            self.db_client.connect()
-
-            self.db_client.execute(
-                f"DROP TABLE IF EXISTS bronze.{table_name}"
-            )
-
-            # load actual data from metadata
-            metadata = self.handler.load_metadata(
-                self.model, operation=OperationType.EXTRACT
-            )
-
-            # take 1st page log
-            page_log = metadata.pages[0]
-
-            self.columns = [
-                self._sanitize_column_name(col) for col in self._snif_columns(page_log)
-            ]
-            columns_str = ", ".join([f"{col} TEXT" for col in self.columns])
-
-            self.db_client.execute(
-                f"""
-                CREATE TABLE bronze.{table_name} (
-                    id SERIAL PRIMARY KEY,
-                    {columns_str},
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """
-            )
-
-            self.db_client.commit()
-
-            logger.info(f"Table bronze.{table_name} created successfully")
-
-        finally:
-            # always close the db connection
-            self.db_client.close()
 
     def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """
@@ -82,21 +29,20 @@ class CsvDataLoader(AbstractDataLoader):
 
                 # snif columns if not already done
                 if not self.columns:
-                    self.columns = [
-                        self._sanitize_column_name(col)
-                        for col in self._snif_columns(extract_page_log)
-                    ]
+                    self.columns = self.list_columns()
 
                 self.db_client.connect()
 
                 # Read CSV with specific parameters from config
-                results = self.handler.csv_load(extract_page_log.storage_info, self.model)
+                results = self.handler.csv_load(
+                    extract_page_log.storage_info, self.model
+                )
 
                 for _, row in results.iterrows():
                     # Convert any NaN values to None for database compatibility
                     values = [None if pd.isna(val) else str(val) for val in row]
                     placeholders = ", ".join(["%s"] * len(values))
-                    column_names = ", ".join([f'"{col}"' for col in self.columns])
+                    column_names = ", ".join([f'"{col.name}"' for col in self.columns])
 
                     self.db_client.execute(
                         f"""
@@ -131,47 +77,13 @@ class CsvDataLoader(AbstractDataLoader):
                 is_last=extract_page_log.is_last,
             )
 
-    def _sanitize_column_name(self, column_name: str) -> str:
+    def list_columns(self) -> list[Column]:
         """
-        Sanitize column names by:
-        1. Replacing spaces with underscores
-        2. Removing accents
-        3. Ensuring the name is SQL-friendly
-        4. remove surrounding quotes
-        5. Ensuring the name starts with a letter
-        6. Converting to lowercase
-        7. Removing any non-alphanumeric characters except underscores
-        """
-        # Normalize unicode characters and remove accents
-        normalized = (
-            unicodedata.normalize("NFKD", column_name)
-            .encode("ascii", "ignore")
-            .decode("utf-8")
-        )
-        # Replace spaces with underscores
-        sanitized = normalized.replace(" ", "_")
-        # Remove any non-alphanumeric characters except underscores
-        sanitized = re.sub(r"[^\w]", "", sanitized)
-        # Remove surrounding quotes
-        sanitized = sanitized.strip('"').strip("'")
-        # Remove any leading/trailing whitespace
-        sanitized = sanitized.strip()
-        # Remove any leading/trailing underscores
-        sanitized = sanitized.strip("_")
+        Sniff the first CSV page log file to determine the column names
 
-        # Ensure the name is not empty
-        if not sanitized:
-            raise ValueError(f"Invalid column name: {column_name}")
-        # Ensure the column name starts with a letter
-        if not sanitized[0].isalpha():
-            sanitized = f"col_{sanitized}"
+        All columns are set to TEXT type and nullable.
 
-        return sanitized.lower()
-
-    def _snif_columns(self, page_log: PageLog) -> list[str]:
-        """
-        Sniff the CSV file to determine the column names and types.
-        This method is used to create the table dynamically based on the CSV structure.
+        The dictionary is used to provide a description for each column.
 
         Example:
         ```
@@ -180,9 +92,16 @@ class CsvDataLoader(AbstractDataLoader):
         # "2023";"01";"Ain";"Tous Logements";4586;;409166;
         # "2023";"01";"Ain";"Individuel pur";1273;;159228;
 
-        # The sniffed columns would be: ['ANNEE', 'DEPARTEMENT_CODE', 'DEPARTEMENT_LIBELLE',...]
+        # The sniffed columns would be: ['annee', 'departement_code',...]
         ```
         """
+
+        metadata = self.handler.load_metadata(
+            self.model, operation=OperationType.EXTRACT
+        )
+
+        # take 1st page log
+        page_log = metadata.pages[0]
 
         # load few data in the CSV file
         filepath = Path(page_log.storage_info.location) / Path(
@@ -228,6 +147,14 @@ class CsvDataLoader(AbstractDataLoader):
                     f"Invalid CSV file: No field names found in {filepath}"
                 )
 
-            logger.info(f"Sniffed columns: {csv_reader.fieldnames}")
+            logger.debug(f"Sniffed columns: {csv_reader.fieldnames}")
 
-            return csv_reader.fieldnames
+            return [
+                Column(
+                    name=col,
+                    data_type=ColumnType.TEXT,
+                    description="",  # self.model.dictionary.get(col, ""),
+                )
+                for col in csv_reader.fieldnames
+                # if col not in self.model.load_params.ignore_columns  # TODO: add this to the model
+            ]

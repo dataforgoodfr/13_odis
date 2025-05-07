@@ -4,45 +4,43 @@ import jmespath
 from psycopg2.extras import Json
 from pydantic import validate_call
 
-from common.utils.interfaces.data_handler import PageLog, ArtifactLog
-from common.utils.interfaces.loader import AbstractDataLoader
+from common.utils.interfaces.data_handler import ArtifactLog, PageLog
+from common.utils.interfaces.loader import AbstractDataLoader, Column, ColumnType
 from common.utils.logging_odis import logger
 
 
 class JsonDataLoader(AbstractDataLoader):
 
-    def create_or_overwrite_table(self, suffix:str = None):
-        """Creates the target Bronze table.
-        If exists, drops table to recreate"""
+    def list_columns(self) -> list[Column]:
+        """for json data, we only need a single column to store the jsonb data
 
-        # append suffix to construct final name if provided
-        table_name = f"{self.model.table_name}_{suffix}" if suffix else self.model.table_name
+        the description contains the dictionary of the json data if available
 
-        # initiate database session
-        logger.info(f"Creating table bronze.{table_name}")
+        Example:
+        ```yaml
+        dictionary:
+            my_domain:
+                my_source:
+                    unique_id: id unique
+                    description: description de la donnée
 
-        try:
+        # would generate the following column description
+        # unique_id: id unique, description: description de la donnée
+        ```
+        """
 
-            self.db_client.connect()
+        # description = ", ".join(
+        #     [f"{key}: {value}" for key, value in self.model.dictionary.items()]
+        # )
+        # description = description.replace("'", '"')
 
-            self.db_client.execute(
-                f"DROP TABLE IF EXISTS bronze.{table_name} CASCADE;"
+        return [
+            Column(
+                name="data",
+                data_type=ColumnType.JSON,
+                description="json data",
             )
-            self.db_client.execute(
-                f"""
-                CREATE TABLE bronze.{table_name} (
-                    id SERIAL PRIMARY KEY,
-                    data JSONB,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
-            """
-            )
-            self.db_client.commit()
-
-            logger.info(f"Table bronze.{table_name} created successfully")
-
-        finally:
-            # always close the db connection
-            self.db_client.close()
+        ]
 
     def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """Method to load pages from json files, indexed in a DataProcessLog object.
@@ -102,7 +100,9 @@ class JsonDataLoader(AbstractDataLoader):
                 is_last=extract_page_log.is_last,
             )
 
-    def load_artifacts(self, artifacts: list[ArtifactLog]) -> Generator[ArtifactLog, None, None]:
+    def load_artifacts(
+        self, artifacts: list[ArtifactLog]
+    ) -> Generator[ArtifactLog, None, None]:
         """Method to load pages from json files, indexed in a DataProcessLog object.
         Yields an iterable result with page number (int) and load success information (bool) for each page
         """
@@ -117,7 +117,7 @@ class JsonDataLoader(AbstractDataLoader):
                 load_success = False
 
                 # Drops if exist artifact table
-                self.create_or_overwrite_table(suffix = artifact_log.name)
+                self.create_or_overwrite_table(suffix=artifact_log.name)
 
                 raw_data = self.handler.json_load(artifact_log.storage_info)
 
@@ -142,7 +142,7 @@ class JsonDataLoader(AbstractDataLoader):
                 if isinstance(payload, dict):
                     payload = [payload]
 
-                load_success = self.load_to_db(payload, suffix = artifact_log.name)
+                load_success = self.load_to_db(payload, suffix=artifact_log.name)
 
                 logger.info(
                     f"Page {artifact_log.name} loaded successfully: {load_success}"
@@ -155,17 +155,17 @@ class JsonDataLoader(AbstractDataLoader):
 
             # yield a new page log, with the db load result info
             yield ArtifactLog(
-                name = artifact_log.name,
-                storage_info = artifact_log.storage_info,
-                success = load_success,
-                load_to_bronze = artifact_log.load_to_bronze,
+                name=artifact_log.name,
+                storage_info=artifact_log.storage_info,
+                success=load_success,
+                load_to_bronze=artifact_log.load_to_bronze,
             )
-    
+
         # close db connection
         self.db_client.close()
 
     @validate_call
-    def load_to_db(self, rows: list[dict], suffix:str = None) -> bool:
+    def load_to_db(self, rows: list[dict], suffix: str = None) -> bool:
         """
         Load list(dict) data records into the model table in the database
 
@@ -176,7 +176,9 @@ class JsonDataLoader(AbstractDataLoader):
 
         """
         # append suffix to construct final name if provided
-        table_name = f"{self.model.table_name}_{suffix}" if suffix else self.model.table_name
+        table_name = (
+            f"{self.model.table_name}_{suffix}" if suffix else self.model.table_name
+        )
         # insert Data
         insert_query = f"INSERT INTO bronze.{table_name} (data) VALUES (%s)"
 
@@ -185,8 +187,6 @@ class JsonDataLoader(AbstractDataLoader):
         self.db_client.executemany(insert_query, [(Json(row),) for row in rows])
         self.db_client.commit()
 
-        logger.info(
-            f"Successfully Loaded {len(rows)} data into '{table_name}'"
-        )
+        logger.info(f"Successfully Loaded {len(rows)} data into '{table_name}'")
 
         return True
