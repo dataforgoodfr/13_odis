@@ -192,3 +192,7 @@ models:
       - name: created_at
         description: "Timestamp when the record was created" 
 
+  - name: population_categorie_socio_pro
+    columns:
+      - name: id
+        description: id
