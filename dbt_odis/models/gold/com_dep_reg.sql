@@ -9,3 +9,4 @@ select
     departement_code as CODDEP,
     nom as LIBGEO
 from {{ ref('geographical_references') }} 
+

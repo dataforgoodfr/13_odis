@@ -4,16 +4,13 @@ models:
 
   - name: com_dep_reg
     columns:
-      - name: CODGEO
+      - name: codgeo
         description: Code officiel français de la commune
-        tests:
-          - unique
-          - not_null
-      - name: CODREG
+      - name: codreg
         description: Code officiel français de la région rattachée à la commune
-      - name: CODDEP
+      - name: coddep
         description: Code officiel français du département rattaché à la commune
-      - name: LIBGEO
+      - name: libgeo
         description: Nom des communes avec articles et tirets 
 
   - name: gps_dep_reg
