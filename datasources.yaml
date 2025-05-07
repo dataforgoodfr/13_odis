@@ -171,7 +171,7 @@ domains:
       endpoint: /datasets/r/4319f5e8-a8e6-476c-8da0-c0d3439ebb55
       type: FileExtractor
       format: zip
-      peprocessor:
+      preprocessor:
         name: bmo_2024
 
   presentation:
