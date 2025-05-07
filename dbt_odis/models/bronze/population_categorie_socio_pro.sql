@@ -1,5 +1,5 @@
 {{ config(
-    alias = 'vw_geographical_references_departements'
+    alias = 'vw_population_categorie_socio_pro'
     )
 }}
 
@@ -18,7 +18,8 @@ with departments as
         json_value(data, '$.intituleSansArticle') as intitule_sans_article,
         created_at as created_at
 
-    from {{ source('bronze', 'geographical_references_departements') }}  
+    from {{ source('bronze', 'population_categorie_socio_pro') }}  
 )
 
 select * from departments
+

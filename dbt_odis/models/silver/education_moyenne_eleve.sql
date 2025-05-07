@@ -4,61 +4,109 @@
 }}
 
 
+Select * FROM {{ ref('geographical_references') }} 
+Select * FROM {{ ref('education_moyenne_eleve_commune') }} AS B ORDER BY commune ASC
+Select * FROM {{ ref('education_moyenne_eleve_departement') }} AS C
+Select * FROM {{ ref('education_moyenne_eleve_region') }} AS D
+
+
 
 WITH geo AS (
-    SELECT
-    UPPER(REPLACE(nom, ' ', '-')) AS commune_formate,
-    UPPER(REPLACE(departement_nom, ' ', '-')) AS departement_formate,
-    UPPER(REPLACE(region_nom, ' ', '-')) AS region_formate
-    FROM {{ ref('geographical_references') }} AS A
+    SELECT 
+        code,
+        UPPER(TRANSLATE(nom, 'àâäáãåçéèêëíìîïñóòôöõúùûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy')) AS commune
+    FROM {{ ref('geographical_references') }}
 ),
 
-commune AS (
+union_c_d_r AS (
     SELECT 
-        B.id,
-        REPLACE(commune, ' ', '-') AS commune_formate,
-        B.moyenne_eleves_par_classe AS moyenne_eleves_par_classe_commune
-    FROM {{ ref('education_moyenne_eleve_commune') }} AS B
-),
+        id,
+        code_postal,
+        commune,
+        departement,
+        academie,
+        region_academique,
+        rentree_scolaire,
+        nombre_total_eleves,
+        nombre_total_classes,
+        nombre_eleves_ulis,
+        nombre_eleves_cp_hors_ulis,
+        nombre_eleves_ce1_hors_ulis,
+        nombre_eleves_ce2_hors_ulis,
+        nombre_eleves_cm1_hors_ulis,
+        nombre_eleves_cm2_hors_ulis,
+        nombre_eleves_elementaire_hors_ulis,
+        nombre_eleves_preelementaire_hors_ulis,
+        created_at
+    FROM {{ ref('education_moyenne_eleve_commune') }}
 
-departement AS (
-    SELECT 
-    REPLACE(departement, ' ', '-') AS departement_formate,
-    moyenne_eleves_par_classe AS moyenne_eleves_par_classe_departement
-    FROM {{ ref('education_moyenne_eleve_departement') }} AS C
-),
+    UNION ALL
 
-region AS (
     SELECT 
-    REPLACE(region_academique, ' ', '-') AS region_formate,
-    moyenne_eleves_par_classe AS moyenne_eleves_par_classe_region
-    FROM {{ ref('education_moyenne_eleve_region') }} AS D
+        id,
+        NULL AS code_postal,
+        NULL AS commune,
+        departement,
+        academie,
+        region_academique,
+        rentree_scolaire,
+        nombre_total_eleves,
+        nombre_total_classes,
+        nombre_eleves_ulis,
+        nombre_eleves_cp_hors_ulis,
+        nombre_eleves_ce1_hors_ulis,
+        nombre_eleves_ce2_hors_ulis,
+        nombre_eleves_cm1_hors_ulis,
+        nombre_eleves_cm2_hors_ulis,
+        nombre_eleves_elementaire_hors_ulis,
+        nombre_eleves_preelementaire_hors_ulis,
+        created_at
+    FROM {{ ref('education_moyenne_eleve_departement') }}
+
+    UNION ALL
+
+    SELECT 
+        id,
+        NULL AS code_postal,
+        NULL AS commune,
+        NULL AS departement,
+        NULL AS academie,
+        region_academique,
+        rentree_scolaire,
+        nombre_total_eleves,
+        nombre_total_classes,
+        nombre_eleves_ulis,
+        nombre_eleves_cp_hors_ulis,
+        nombre_eleves_ce1_hors_ulis,
+        nombre_eleves_ce2_hors_ulis,
+        nombre_eleves_cm1_hors_ulis,
+        nombre_eleves_cm2_hors_ulis,
+        nombre_eleves_elementaire_hors_ulis,
+        nombre_eleves_preelementaire_hors_ulis,
+        created_at
+    FROM {{ ref('education_moyenne_eleve_region') }}
 )
 
-
 SELECT 
-    c.id,
-    g.region_formate,
-    ROUND(r.moyenne_eleves_par_classe_region::numeric, 2) AS moyenne_eleves_par_classe_region,
-    g.departement_formate,
-    ROUND(d.moyenne_eleves_par_classe_departement::numeric, 2) AS moyenne_eleves_par_classe_departement,
-    g.commune_formate,
-    ROUND(c.moyenne_eleves_par_classe_commune::numeric, 2) AS moyenne_eleves_par_classe_commune
-FROM commune AS c
-LEFT JOIN geo AS g 
-    ON g.commune_formate COLLATE "C" = c.commune_formate
-LEFT JOIN departement AS d 
-    ON g.departement_formate COLLATE "C" = d.departement_formate
-LEFT JOIN region AS r 
-    ON g.region_formate COLLATE "C" = r.region_formate
-
-;
-
-#probleme dans la table geo il y a des accents c'est pour ça qu'il manque des valeurs
-
-
-
-
-
-
-
+    G.code AS code_insee,
+    F.id,
+    F.code_postal,
+    F.commune,
+    F.departement,
+    F.academie,
+    F.region_academique,
+    F.rentree_scolaire,
+    F.nombre_total_eleves,
+    F.nombre_total_classes,
+    F.nombre_eleves_ulis,
+    F.nombre_eleves_cp_hors_ulis,
+    F.nombre_eleves_ce1_hors_ulis,
+    F.nombre_eleves_ce2_hors_ulis,
+    F.nombre_eleves_cm1_hors_ulis,
+    F.nombre_eleves_cm2_hors_ulis,
+    F.nombre_eleves_elementaire_hors_ulis,
+    F.nombre_eleves_preelementaire_hors_ulis,
+    F.created_at
+FROM union_c_d_r AS F
+LEFT JOIN geo AS G
+    ON G.commune = UPPER(TRANSLATE(F.commune, 'àâäáãåçéèêëíìîïñóòôöõúùûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy'))
