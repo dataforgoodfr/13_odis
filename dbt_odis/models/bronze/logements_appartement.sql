@@ -7,21 +7,25 @@
 with appartement as 
 (
     select 
-        id as id, 
-        json_value(data, '$.measures.OBS_VALUE_NIVEAU.value') as value, 
-        json_value(data, '$.dimensions.GEO') as GEO, 
-        json_value(data, '$.dimensions.NOR') as NOR,
-        json_value(data, '$.dimensions.OCS') as OCS,
-        json_value(data, '$.dimensions.TDW') as TDW,
-        json_value(data, '$.dimensions.TOH') as TOH,
-        json_value(data, '$.dimensions.TSH') as TSH,
-        json_value(data, '$.dimensions.CARS') as CARS,
-        json_value(data, '$.dimensions.L_STAY') as L_STAY,
-        json_value(data, '$.dimensions.CARPARK') as CARPARK,
-        json_value(data, '$.dimensions.BUILD_END') as BUILD_END,      
-        json_value(data, '$.dimensions.RP_MEASURE') as RP_MEASURE,
-        json_value(data, '$.dimensions.TIME_PERIOD') as TIME_PERIOD,
-        created_at as created_at
+        id,
+        {# {{ extract_json_keys_recursive(
+            table_ref = source('bronze', 'logement_logements_appartement_et_residences_principales'),
+            json_column = 'data'
+        ) }}, #}
+        (data::jsonb)->'dimensions'->>'GEO'::text                        as dimensions_GEO,
+        (data::jsonb)->'dimensions'->>'NOR'::text                        as dimensions_NOR,
+        (data::jsonb)->'dimensions'->>'OCS'::text                        as dimensions_OCS,
+        (data::jsonb)->'dimensions'->>'TDW'::text                        as dimensions_TDW,
+        (data::jsonb)->'dimensions'->>'TOH'::text                        as dimensions_TOH,
+        (data::jsonb)->'dimensions'->>'TSH'::text                        as dimensions_TSH,
+        (data::jsonb)->'dimensions'->>'CARS'::text                       as dimensions_CARS,
+        (data::jsonb)->'dimensions'->>'L_STAY'::text                     as dimensions_L_STAY,
+        (data::jsonb)->'dimensions'->>'CARPARK'::text                    as dimensions_CARPARK,
+        (data::jsonb)->'dimensions'->>'BUILD_END'::text                  as dimensions_BUILD_END,
+        (data::jsonb)->'dimensions'->>'RP_MEASURE'::text                 as dimensions_RP_MEASURE,
+        (data::jsonb)->'dimensions'->>'TIME_PERIOD'::text                as dimensions_TIME_PERIOD,
+        (data::jsonb)->'measures'->'OBS_VALUE_NIVEAU'->>'value'::text as measures_OBS_VALUE_NIVEAU_value,
+        created_at
     from {{ source('bronze', 'logement_logements_appartement') }} 
 )
 

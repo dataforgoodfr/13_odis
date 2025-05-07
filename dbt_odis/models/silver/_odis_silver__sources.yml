@@ -40,6 +40,10 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
+      - name: vw_emploi_eff_secteur_prive_gds_secteurs
+        description: View contenant
+        loaded_at_field: created_at
+
       - name: vw_logement_annuel_dept_data
         description: View contenants
         loaded_at_field: created_at
@@ -84,5 +88,16 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
+      - name: vw_logement_rpls_commune
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_logement_rpls_departement
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_logement_rpls_region
+        description: View contenant
+        loaded_at_field: created_at
 
       
