@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
 import sys
+import time
 from typing import Annotated
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -17,6 +19,7 @@ from common.data_source_model import APIModel, DataSourceModel, DomainModel
 from common.utils.factory.extractor_factory import create_extractor
 from common.utils.factory.loader_factory import create_loader
 from common.utils.file_handler import FileHandler
+from common.utils.http.async_client import AsyncHttpClient
 from common.utils.logging_odis import logger
 
 # this module is the entry point for the CLI
@@ -28,6 +31,8 @@ DEFAULT_CONFIGFILE = "datasources.yaml"
 # options for the CLI
 OPTION_ALL = "*"
 OPTION_NONE = ""
+
+MAX_CONCURRENT_REQUESTS = 4
 
 app = typer.Typer()
 console = Console()
@@ -92,6 +97,77 @@ def explain_api(config_model: DataSourceModel, api: str):
             table.add_section()
 
     console.print(table)
+
+
+async def extract_data_sources(
+    config_model: DataSourceModel,
+    data_sources: list[DomainModel],
+    max_concurrent_requests: int = MAX_CONCURRENT_REQUESTS,
+):
+    """
+    Extract data from the data sources specified in the config file.
+    """
+    start_time = time.time()
+
+    tasks = []
+    is_exception = False
+
+    # share the same http client for all the extractors
+    # to avoid creating too many connections
+    http_client = AsyncHttpClient(max_connections=max_concurrent_requests)
+
+    logger.info(
+        f"Starting extraction for {len(data_sources)} data sources with {max_concurrent_requests} concurrent requests"
+    )
+
+    for ds in data_sources:
+
+        logger.debug(f"Extracting data from {ds.name}")
+
+        try:
+
+            extractor = create_extractor(
+                config_model,
+                ds,
+                http_client=http_client,
+                handler=FileHandler(),
+            )
+
+            tasks.append(extractor.execute())  # async task
+
+        except Exception as e:
+
+            is_exception = True
+            logger.exception(f"Error extracting data from {ds.name}: {str(e)}")
+
+    # launch the tasks in concurrent mode
+    # and wait for them to finish
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    tasks_exceptions = [result for result in results if isinstance(result, Exception)]
+
+    if is_exception or len(tasks_exceptions) > 0:
+        print(
+            "[red]There was an issue in extracting data, please check the logs for more details.[/red]"
+        )
+
+        for exc in tasks_exceptions:
+            logger.error(f"Error: {exc}")
+
+        # exit with a non-zero status code
+        # to indicate that there was an error
+        sys.exit(1)
+    else:
+        print("\n")
+        print("[green]All data extracted successfully[/green]")
+        print("\n")
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    logger.info(
+        f"Extraction completed in {elapsed_time:.2f} seconds for {len(data_sources)} data sources"
+    )
 
 
 @app.command()
@@ -253,6 +329,15 @@ def extract(
             metavar="path",
         ),
     ] = DEFAULT_CONFIGFILE,
+    max_concurrent_requests: Annotated[
+        int,
+        typer.Option(
+            "-m",
+            "--max-concurrent-requests",
+            help="Maximum number of concurrent requests to be made",
+            metavar=f"{MAX_CONCURRENT_REQUESTS}",
+        ),
+    ] = MAX_CONCURRENT_REQUESTS,
 ):
     """
     Extract data from the data sources specified in the config file.
@@ -275,7 +360,7 @@ def extract(
     data_sources = []
 
     # get the data sources from the domains
-    if domain is not None:
+    if domain is not None and domain != OPTION_NONE:
         data_sources = data_sources_from_domains_str(config_model, domains=domain)
 
     # eventually, get the data sources from the sources
@@ -293,44 +378,9 @@ def extract(
         f"[green]Extracting data from the following data sources: {[ds.name for ds in data_sources]}[/green]"
     )
 
-    with typer.progressbar(data_sources) as progress:
-
-        is_exception = False
-
-        for ds in progress:
-
-            try:
-
-                print("\n")
-                print("\n[blue]Using data source configuration:[/blue]")
-                explain_data_source(config_model, ds.name)
-                print("\n")
-
-                print(f"\n[blue]Extracting data from {ds.name}[/blue]")
-                print("\n")
-
-                extractor = create_extractor(config_model, ds, handler=FileHandler())
-                extractor.execute()
-
-                print(f"\n[blue]Data extracted from {ds.name}[/blue]")
-                print("\n")
-
-            except Exception as e:
-
-                is_exception = True
-                logger.exception(f"Error extracting data from {ds.name}: {str(e)}")
-
-    if is_exception:
-        print(
-            "[red]There was an issue in extracting data, please check the logs for more details.[/red]"
-        )
-        # exit with a non-zero status code
-        # to indicate that there was an error
-        sys.exit(1)
-    else:
-        print("\n")
-        print("[green]All data extracted successfully[/green]")
-        print("\n")
+    asyncio.run(
+        extract_data_sources(config_model, data_sources, max_concurrent_requests=max_concurrent_requests)  # type: ignore[call-arg] # noqa: E501
+    )
 
 
 @app.command()

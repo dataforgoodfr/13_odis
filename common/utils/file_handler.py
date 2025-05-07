@@ -270,7 +270,7 @@ class FileHandler(IDataHandler):
             GenericFileWriter(filepath).dump(model, data=data)
             success = True
 
-        logger.info(f"{model.name} -> results saved to : '{filepath}'")
+        logger.debug(f"{model.name} -> results saved to : '{filepath}'")
 
         if success:
             return StorageInfo(

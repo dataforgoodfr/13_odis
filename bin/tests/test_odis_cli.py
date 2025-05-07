@@ -1,10 +1,13 @@
-from unittest.mock import mock_open, patch
+from unittest.mock import AsyncMock, Mock, mock_open, patch
 
 from typer.testing import CliRunner
 
 from bin.odis import app, data_sources_from_domains_str, data_sources_from_str
+from bin.tests.stubs.data_handler import StubDataHandler
+from bin.tests.stubs.extractor import StubExtractor
 from common.config import load_config
 from common.data_source_model import DataSourceModel
+from common.utils.interfaces.extractor import ExtractionResult
 
 runner = CliRunner()
 
@@ -132,18 +135,40 @@ def test_extract_by_source():
     """
     mocked_open_function = mock_open(read_data=yaml_config)
 
-    # when
-    with patch("builtins.open", mocked_open_function), patch(
-        "bin.odis.create_extractor"
-    ) as mock_create_extractor:
-
-        # when
-        result = runner.invoke(
-            # nevermind the name of the datasource, we are using the patch
-            # we just make sure not to load the default config
-            app,
-            ["extract", "-s", "geographical_references.regions", "-c", "test.yaml"],
+    with patch("builtins.open", mocked_open_function):
+        config_model = load_config(
+            "test.yaml",  # this is just a dummy name, we are using the mocked_open_function
+            response_model=DataSourceModel,
         )
+        ds = data_sources_from_str(
+            config_model,
+            "geographical_references.regions",
+        )
+        http_client = AsyncMock()
+        handler = Mock()
+
+        with patch(
+            "bin.odis.create_extractor",
+            return_value=StubExtractor(
+                return_value=ExtractionResult(
+                    success=True,
+                    payload={"data": "mocked data"},
+                    is_last=True,
+                ),
+                config=config_model,
+                model=ds[0],
+                http_client=http_client,
+                handler=handler,
+            ),
+        ) as mock_create_extractor:
+
+            # when
+            result = runner.invoke(
+                # nevermind the name of the datasource, we are using the patch
+                # we just make sure not to load the default config
+                app,
+                ["extract", "-s", "geographical_references.regions"],
+            )
 
     # then
     # no exception raised but handler is not called
@@ -181,24 +206,45 @@ def test_extract_by_domain():
     """
     mocked_open_function = mock_open(read_data=yaml_config)
 
-    # when
-    with patch("builtins.open", mocked_open_function), patch(
-        "bin.odis.create_extractor"
-    ) as mock_create_extractor:
-
-        # when
-        result = runner.invoke(
-            # nevermind the name of the datasource, we are using the patch
-            # we just make sure not to load the default config
-            app,
-            ["extract", "-d", "geographical_references", "-c", "test.yaml"],
+    with patch("builtins.open", mocked_open_function):
+        config_model = load_config(
+            "test.yaml",  # this is just a dummy name, we are using the mocked_open_function
+            response_model=DataSourceModel,
         )
+
+        http_client = AsyncMock()
+        handler = StubDataHandler(
+            config_model.get_model("geographical_references.regions")
+        )
+
+        with patch(
+            "bin.odis.create_extractor",
+            return_value=StubExtractor(
+                return_value=ExtractionResult(
+                    success=True,
+                    payload={"data": "mocked data"},
+                    is_last=True,
+                ),
+                config=config_model,
+                model=config_model.get_model("geographical_references.regions"),
+                http_client=http_client,
+                handler=handler,
+            ),
+        ) as mock_create_extractor:
+
+            # when
+            result = runner.invoke(
+                # nevermind the name of the datasource, we are using the patch
+                # we just make sure not to load the default config
+                app,
+                ["extract", "-d", "geographical_references"],
+            )
 
     # then
     # no exception raised but handler is not called
     assert result.exit_code == 0
     assert "All data extracted successfully" in result.stdout
-    assert mock_create_extractor.call_count == 2  # one for each domain
+    assert mock_create_extractor.call_count == 2  # there are 2 endpoints in the domain
 
 
 def test_extract_all_domains():
@@ -235,17 +281,39 @@ def test_extract_all_domains():
     mocked_open_function = mock_open(read_data=yaml_config)
 
     # when
-    with patch("builtins.open", mocked_open_function), patch(
-        "bin.odis.create_extractor"
-    ) as mock_create_extractor:
-
-        # when
-        result = runner.invoke(
-            # nevermind the name of the datasource, we are using the patch
-            # we just make sure not to load the default config
-            app,
-            ["extract", "-d", "*", "-c", "test.yaml"],
+    with patch("builtins.open", mocked_open_function):
+        config_model = load_config(
+            "test.yaml",  # this is just a dummy name, we are using the mocked_open_function
+            response_model=DataSourceModel,
         )
+
+        http_client = AsyncMock()
+        handler = StubDataHandler(
+            config_model.get_model("geographical_references.regions")
+        )
+
+        with patch(
+            "bin.odis.create_extractor",
+            return_value=StubExtractor(
+                return_value=ExtractionResult(
+                    success=True,
+                    payload={"data": "mocked data"},
+                    is_last=True,
+                ),
+                config=config_model,
+                model=config_model.get_model("geographical_references.regions"),
+                http_client=http_client,
+                handler=handler,
+            ),
+        ) as mock_create_extractor:
+
+            # when
+            result = runner.invoke(
+                # nevermind the name of the datasource, we are using the patch
+                # we just make sure not to load the default config
+                app,
+                ["extract", "-d", "*", "-c", "test.yaml"],
+            )
 
     # then
     # no exception raised but handler is not called

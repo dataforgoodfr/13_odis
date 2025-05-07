@@ -20,7 +20,7 @@ def test_create_extractor_nominal():
                     "API": "INSEE.Metadonnees",
                     "type": "JsonExtractor",
                     "endpoint": "/geo/regions",
-                    "description": "Valid test description"
+                    "description": "Valid test description",
                 }
             }
         },
@@ -29,7 +29,7 @@ def test_create_extractor_nominal():
     model = list(config.get_models().values())[0]
 
     # when
-    extractor = create_extractor(config, model)
+    extractor = create_extractor(config, model, None)
 
     # then
     assert extractor is not None
@@ -51,7 +51,7 @@ def test_create_extractor_with_error():
                     "API": "INSEE.Metadonnees",
                     "type": "DummyExtractor",  # wrong type
                     "endpoint": "/geo/regions",
-                    "description": "Valid test description"
+                    "description": "Valid test description",
                 }
             }
         },
@@ -61,7 +61,7 @@ def test_create_extractor_with_error():
 
     # when
     with pytest.raises(ValueError) as e:
-        create_extractor(config, model)
+        create_extractor(config, model, None)
 
     # then
     assert "DummyExtractor" in str(e)
