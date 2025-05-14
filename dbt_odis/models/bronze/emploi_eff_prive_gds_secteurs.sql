@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['bronze', 'emploi'],
     alias='vw_emploi_eff_secteur_prive_gds_secteurs'
     )
 }}

@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['bronze', 'presentation'],
     alias = 'vw_presentation_page_population_communes'
     )
 }}

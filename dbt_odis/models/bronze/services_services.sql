@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['bronze', 'services'],
     alias = 'vw_services_services'
     )
 }}

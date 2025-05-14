@@ -1,8 +1,8 @@
 {{ config(
+    tags = ['bronze', 'education'],
     alias = 'vw_education_moyenne_eleve_commune'
     )
 }}
-
 
 with eleve_commune as 
 (
