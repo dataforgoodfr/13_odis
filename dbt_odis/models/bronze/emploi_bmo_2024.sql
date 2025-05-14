@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['bronze', 'emploi'],
     alias='vw_emploi_bmo_2024'
     )
 }}

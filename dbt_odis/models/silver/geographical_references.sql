@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['silver', 'geographical_references'],
     alias = 'silver_geographical_references'
     )
 }}

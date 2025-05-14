@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['silver', 'emploi'],
     alias='silver_emploi_eff_secteur_prive_gds_secteurs'
     )
 }}
