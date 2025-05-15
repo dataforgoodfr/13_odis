@@ -186,14 +186,106 @@ models:
         description: date d'axtraction des données
 
   - name: education_moyenne_eleve_departement
+    description: Extraction du JSON source education nombre d'élèves par département
     columns:
       - name: id
-        description: id
+        description: index
+        data_type: integer
+      - name: departement
+        description: nom du département
+        data_type: text
+      - name: academie
+        description: nom de l'académie de rattachement du département
+        data_type: text
+      - name: region_academique
+        description: nom de la région académique de rattachement du département
+        data_type: text
+      - name: rentree_scolaire
+        data_type: text
+        description: période temporelle en année de la mesure du nombre d'élèves
+        data_tests:
+          - not_null
+      - name: nombre_total_eleves
+        data_type: text
+        description: nombre total d'élèves dans toutes les classes de toutes les écoles du département
+      - name: nombre_total_classes
+        data_type: text
+        description: nombre total de classes de toutes les écoles du département
+      - name: nombre_eleves_ulis
+        data_type: text
+        description: nombre d'élèves en dispositif ulis dans les écoles du département
+      - name: nombre_eleves_cp_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CP : cours préparatoire, hors dispositif ulis, dans les écoles du département"
+      - name: nombre_eleves_ce1_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CE1 : cours élémentaire première année, hors dispositif ulis, dans les écoles du département"
+      - name: nombre_eleves_ce2_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CE2 : cours élémentaire deuxième année, hors dispositif ulis, dans les écoles du département"
+      - name: nombre_eleves_cm1_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CM1 : cours moyen première année, hors dispositif ulis, dans les écoles du département"
+      - name: nombre_eleves_cm2_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CM2 : cours moyen deuxième année, hors dispositif ulis, dans les écoles du département"
+      - name: nombre_eleves_elementaire_hors_ulis
+        data_type: text
+        description: nombre total d'élèves hors dispositif ulis dans les écoles primaires / élémentaires du département
+      - name: nombre_eleves_preelementaire_hors_ulis
+        data_type: text
+        description: nombre total d'élèves hors dispositif ulis dans les écoles maternelles / pré-élémentaires du département
+      - name: created_at
+        data_type: timestamp without time zone
+        description: date d'axtraction des données
 
   - name: education_moyenne_eleve_region
+    description: Extraction du JSON source education nombre d'élèves par région académmique
     columns:
       - name: id
-        description: id
+        description: index
+        data_type: integer
+      - name: region_academique
+        description: nom de la région académique
+        data_type: text
+      - name: rentree_scolaire
+        data_type: text
+        description: période temporelle en année de la mesure du nombre d'élèves
+        data_tests:
+          - not_null
+      - name: nombre_total_eleves
+        data_type: text
+        description: nombre total d'élèves dans toutes les classes de toutes les écoles de la région
+      - name: nombre_total_classes
+        data_type: text
+        description: nombre total de classes de toutes les écoles de la région
+      - name: nombre_eleves_ulis
+        data_type: text
+        description: nombre d'élèves en dispositif ulis dans les écoles de la région
+      - name: nombre_eleves_cp_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CP : cours préparatoire, hors dispositif ulis, dans les écoles de la région"
+      - name: nombre_eleves_ce1_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CE1 : cours élémentaire première année, hors dispositif ulis, dans les écoles de la région"
+      - name: nombre_eleves_ce2_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CE2 : cours élémentaire deuxième année, hors dispositif ulis, dans les écoles de la région"
+      - name: nombre_eleves_cm1_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CM1 : cours moyen première année, hors dispositif ulis, dans les écoles de la région"
+      - name: nombre_eleves_cm2_hors_ulis
+        data_type: text
+        description: "nombre d'élèves en CM2 : cours moyen deuxième année, hors dispositif ulis, dans les écoles de la région"
+      - name: nombre_eleves_elementaire_hors_ulis
+        data_type: text
+        description: nombre total d'élèves hors dispositif ulis dans les écoles primaires / élémentaires de la région
+      - name: nombre_eleves_preelementaire_hors_ulis
+        data_type: text
+        description: nombre total d'élèves hors dispositif ulis dans les écoles maternelles / pré-élémentaires de la région
+      - name: created_at
+        data_type: timestamp without time zone
+        description: date d'axtraction des données
 
   - name: emploi_demandeur_emploi_communes
     columns:
