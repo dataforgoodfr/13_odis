@@ -1,126 +1,7 @@
 version: 2
 
 models:
-
-  - name: geographical_references_communes
-    columns:
-      - name: nom
-        description: Nom des communes avec articles et tirets
-      - name: code
-        description: Code officiel français des communes, string pour garder 01...
-        tests:
-          - unique
-          - not_null
-      - name: geo_type
-        description: Type de coordonnées géographiques
-        tests:
-          - accepted_values:
-              values: [ 'Point' ]
-      - name: geo_coordonnes_longitude
-        description: Coordonnées longitudinales, string pour données en -01.00
-      - name: geo_coordonnees_lattitude
-        description: Coordonnées lattitudinales string pour éviter les arrondis
-      - name: region_nom
-        description: Nom de la région rattachée à la commune, avec tirets
-      - name: region_code
-        description: Code officiel français de la région rattachée à la commune, string pour garder 01
-      - name: departement_nom
-        description: Nom du département rattaché à la commune, avec tirets
-      - name: departement_code
-        description: Code officiel français du département rattaché à la commune, string pour garder 01
-      - name: population
-        description: Nombre d'habitants dans la commune
-
-  - name: geographical_references_departements
-    columns:
-      - name: code
-        description: Code officiel français du département, string pour garder 01
-      - name: type
-        description: Niveau de collectivité
-        tests:
-          - accepted_values:
-              values: [ 'Departement' ]
-      - name: chef_lieu
-        description: Code officiel français des communes/préfecture du département, string pour garder 01...
-        tests:
-          - unique
-          - not_null
-      - name: intitule
-        description: Nom du département avec articles et tirets
-
-  - name: geographical_references_regions
-    columns:
-      - name: code
-        description: Code officiel français de la région, string pour garder 01
-      - name: type
-        description: Niveau de collectivité
-        tests:
-          - accepted_values:
-              values: [ 'Region' ]
-      - name: chef_lieu
-        description: Code officiel français des communes/préfectures de la région, string pour garder 01...
-        tests:
-          - unique
-          - not_null
-      - name: intitule
-        description: Nom de la région avec articles et tirets
-
-  #Logements
-  - name: logements_appartement
-    columns:
-      - name: id
-        description: id
-
-  - name: logements_appartement_et_residences_principales
-    columns:
-      - name: id
-        description: id
-
-  - name: logements_maison
-    columns:
-      - name: id
-        description: id
-
-  - name: logements_maison_et_residences_principales
-    columns:
-      - name: id
-        description: id
-
-  - name: logements_pieces
-    columns:
-      - name: id
-        description: id
-
-  - name: logements_annuel_dept_data
-    columns:
-      - name: id
-        description: id
-
-  - name: logements_dido_catalogue
-    columns:
-      - name: id
-        description: id
-
-  - name: services_services
-    columns:
-      - name: id
-        description: id
-
-  - name: presentation_page_elus_communes
-    columns:
-      - name: id
-        description: id
-
-  - name: presentation_page_epci
-    columns:
-      - name: id
-        description: id
-
-  - name: presentation_page_population_communes
-    columns:
-      - name: id
-        description: id
-
+  # Education
   - name: education_moyenne_eleve_commune
     description: Extraction du JSON source education nombre d'élèves par commune, granularité fine au niveau du code postal
     columns:
@@ -287,56 +168,429 @@ models:
         data_type: timestamp without time zone
         description: date d'axtraction des données
 
+  # Emploi
   - name: emploi_demandeur_emploi_communes
-    columns:
-      - name: id
-        description: id
 
   - name: emploi_demandeur_emploi_departements
-    columns:
-      - name: id
-        description: id
 
   - name: emploi_demandeur_emploi_regions
-    columns:
-      - name: id
-        description: id
 
-  - name: logement_rpls_region
-    description: "Flattened view of logement_rpls_region from the bronze layer"
+  # Geographical references
+  - name: geographical_references_communes
+    description: Extraction du JSON source geographical references par commune, granularité fine au niveau du code INSEE (unique) de la commune
     columns:
-      - name: id
-        description: "Unique identifier"
+      - name: nom
+        description: Nom des communes avec articles et tirets
+        data_type: text
+      - name: code
+        description: Code officiel français des communes, string pour garder 01...
         tests:
           - not_null
           - unique
-
+        data_type: text
+      - name: geo_type
+        description: Type de coordonnées géographiques
+        tests:
+          - accepted_values:
+              values:
+                - Point
+        data_type: text
+      - name: geo_coordonnes_longitude
+        description: Coordonnées longitudinales, string pour données en -01.00
+        data_type: text
+      - name: geo_coordonnees_lattitude
+        description: Coordonnées lattitudinales, string pour éviter les arrondis
+        data_type: text
+      - name: region_nom
+        description: Nom de la région rattachée à la commune, avec tirets
+        data_type: text
+      - name: region_code
+        description: Code officiel français de la région rattachée à la commune, string pour garder 01
+        data_type: text
+      - name: departement_nom
+        description: Nom du département rattaché à la commune, avec tirets
+        data_type: text
+      - name: departement_code
+        description: Code officiel français du département rattaché à la commune, string pour garder 01
+        data_type: text
+      - name: population
+        description: Nombre d'habitants dans la commune
+        data_type: jsonb
+      - name: id
+        description: index
+        data_type: integer
+      - name: geo_coordonnees_longitude
+        description: Coordonnées longitudinales, string pour données en -01.00
+        data_type: text
       - name: created_at
-        description: "Timestamp when the record was created"
+        description: date d'extraction des données
+        data_type: timestamp without time zone
+
+  - name: geographical_references_departements
+    description: Extraction du JSON source geographical references par département, avec codes postaux des départements et territoires d'outre-mer
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: uri
+        description: lien uri de la source INSEE
+        data_type: text
+      - name: code
+        description: Code officiel français du département, string pour garder 01, 2A
+        data_type: text
+      - name: type
+        description: Niveau de collectivité
+        tests:
+          - accepted_values:
+              values:
+                - Departement
+        data_type: text
+      - name: chef_lieu
+        description: Code INSEE officiel français des communes/préfecture du département, string pour garder 01...
+        tests:
+          - not_null
+          - unique
+        data_type: text
+      - name: intitule
+        description: Nom du département avec articles et tirets
+        data_type: text
+      - name: type_article
+        data_type: text
+      - name: date_creation
+        data_type: text
+      - name: intitule_sans_article
+        description: Nom du département sans articles
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  - name: geographical_references_regions
+    description: Extraction du JSON source geographical references par région, avec codes postaux des régions et régions d'outre-mer
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: uri
+        description: lien uri de la source INSEE
+        data_type: text
+      - name: code
+        description: Code officiel français de la région, string pour garder 01
+        data_type: text
+      - name: type
+        description: Niveau de collectivité
+        tests:
+          - accepted_values:
+              values:
+                - Region
+        data_type: text
+      - name: chef_lieu
+        description: Code INSEE officiel français des communes/préfecture du département, string pour garder 01...
+        tests:
+          - not_null
+          - unique
+        data_type: text
+      - name: intitule
+        description: Nom de la région avec articles et tirets
+        data_type: text
+      - name: type_article
+        data_type: text
+      - name: date_creation
+        data_type: text
+      - name: intitule_sans_article
+        description: Nom de la région sans articles
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  # Logement
+  - name: logements_appartement
+    description: Extraction du JSON source logement nombre d'appartements par zone géographique
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: dimensions_geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+        tests:
+          - not_null
+          - unique
+      - name: dimensions_nor
+        data_type: text
+      - name: dimensions_ocs
+        data_type: text
+      - name: dimensions_tdw
+        description: "Type d'habitation : 1 = Maison, 2 = Appartement"
+        data_type: text
+      - name: dimensions_toh
+        data_type: text
+      - name: dimensions_tsh
+        data_type: text
+      - name: dimensions_cars
+        data_type: text
+      - name: dimensions_l_stay
+        data_type: text
+      - name: dimensions_carpark
+        data_type: text
+      - name: dimensions_build_end
+        data_type: text
+      - name: dimensions_rp_measure
+        description: DWELLINGS = Habitation
+        data_type: text
+      - name: dimensions_time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: measures_obs_value_niveau_value
+        description: nombre mesuré du type d'habitation = appartement par zone géographique et par année
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  - name: logements_appartement_et_residences_principales
+    description: Extraction du JSON source logement nombre d'appartements qui sont des résidences principales par zone géographique
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: dimensions_geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+        tests:
+          - not_null
+          - unique
+      - name: dimensions_nor
+        data_type: text
+      - name: dimensions_ocs
+        description: DW_MAIN = résidence principale
+        data_type: text
+      - name: dimensions_tdw
+        description: "Type d'habitation : 1 = Maison, 2 = Appartement"
+        data_type: text
+      - name: dimensions_toh
+        data_type: text
+      - name: dimensions_tsh
+        data_type: text
+      - name: dimensions_cars
+        data_type: text
+      - name: dimensions_l_stay
+        data_type: text
+      - name: dimensions_carpark
+        data_type: text
+      - name: dimensions_build_end
+        data_type: text
+      - name: dimensions_rp_measure
+        description: DWELLINGS = Habitation
+        data_type: text
+      - name: dimensions_time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: measures_obs_value_niveau_value
+        description: nombre mesuré du type d'habitation = appartement résidence principale par zone géographique et par année
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  - name: logements_maison
+    description: Extraction du JSON source logement nombre de maisons par zone géographique
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: dimensions_geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+        tests:
+          - not_null
+          - unique
+      - name: dimensions_nor
+        data_type: text
+      - name: dimensions_ocs
+        description: DW_MAIN = résidence principale
+        data_type: text
+      - name: dimensions_tdw
+        description: "Type d'habitation : 1 = Maison, 2 = Appartement"
+        data_type: text
+      - name: dimensions_toh
+        data_type: text
+      - name: dimensions_tsh
+        data_type: text
+      - name: dimensions_cars
+        data_type: text
+      - name: dimensions_l_stay
+        data_type: text
+      - name: dimensions_carpark
+        data_type: text
+      - name: dimensions_build_end
+        data_type: text
+      - name: dimensions_rp_measure
+        description: DWELLINGS = Habitation
+        data_type: text
+      - name: dimensions_time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: measures_obs_value_niveau_value
+        description: nombre mesuré du type d'habitation = maison par zone géographique et par année
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  - name: logements_maison_et_residences_principales
+    description: Extraction du JSON source logement nombre de maisons qui sont des résidences principales par zone géographique
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: dimensions_geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+        tests:
+          - not_null
+          - unique
+      - name: dimensions_nor
+        data_type: text
+      - name: dimensions_ocs
+        data_type: text
+      - name: dimensions_tdw
+        description: "Type d'habitation : 1 = Maison, 2 = Appartement"
+        data_type: text
+      - name: dimensions_toh
+        data_type: text
+      - name: dimensions_tsh
+        data_type: text
+      - name: dimensions_cars
+        data_type: text
+      - name: dimensions_l_stay
+        data_type: text
+      - name: dimensions_carpark
+        data_type: text
+      - name: dimensions_build_end
+        data_type: text
+      - name: dimensions_rp_measure
+        description: DWELLINGS = Habitation
+        data_type: text
+      - name: dimensions_time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: measures_obs_value_niveau_value
+        description: nombre mesuré du type d'habitation = maison résidence principale par zone géographique et par année
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  - name: logements_pieces
+    description: Extraction du JSON source logement nombre de pièces d'habitation par zone géographique
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: dimensions_geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+        tests:
+          - not_null
+          - unique
+      - name: dimensions_nor
+        data_type: text
+      - name: dimensions_ocs
+        data_type: text
+        description: DW_MAIN = résidence principale
+      - name: dimensions_tdw
+        description: "Tous types d'habitation"
+        data_type: text
+      - name: dimensions_toh
+        data_type: text
+      - name: dimensions_tsh
+        data_type: text
+      - name: dimensions_cars
+        data_type: text
+      - name: dimensions_l_stay
+        data_type: text
+      - name: dimensions_carpark
+        data_type: text
+      - name: dimensions_build_end
+        data_type: text
+      - name: dimensions_rp_measure
+        description: DWELLINGS_ROOMS = Pièces habitables
+        data_type: text
+      - name: dimensions_time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: measures_obs_value_niveau_value
+        description: nombre mesuré du type d'habitation = pièce habitable par zone géographique et par année
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  - name: logements_total
+    description: Extraction du JSON source logement nombre de logements totaux par zone géographique
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: dimensions_geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+        tests:
+          - not_null
+          - unique
+      - name: dimensions_nor
+        data_type: text
+      - name: dimensions_ocs
+        data_type: text
+      - name: dimensions_tdw
+        description: "Type d'habitation : tous"
+        data_type: text
+      - name: dimensions_toh
+        data_type: text
+      - name: dimensions_tsh
+        data_type: text
+      - name: dimensions_cars
+        data_type: text
+      - name: dimensions_l_stay
+        data_type: text
+      - name: dimensions_carpark
+        data_type: text
+      - name: dimensions_build_end
+        data_type: text
+      - name: dimensions_rp_measure
+        description: DWELLINGS = Habitation
+        data_type: text
+      - name: dimensions_time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: measures_obs_value_niveau_value
+        description: nombre mesuré du total de logements par zone géographique et par année
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  - name: logements_annuel_dept_data
+    columns:
+      - name: id
+        description: id
+
+  - name: logements_dido_catalogue
+    columns:
+      - name: id
+        description: id
+
+  # Logement_social
+  - name: logement_rpls_region
+    description: "Flattened view of logement_rpls_region from the bronze layer"
 
   - name: logement_rpls_departement
     description: "Flattened view of logement_rpls_departement from the bronze layer"
-    columns:
-      - name: id
-        description: "Unique identifier"
-        tests:
-          - not_null
-          - unique
-
-      - name: created_at
-        description: "Timestamp when the record was created"
 
   - name: logement_rpls_commune
     description: "Flattened view of logement_rpls_commune from the bronze layer"
-    columns:
-      - name: id
-        description: "Unique identifier"
-        tests:
-          - not_null
-          - unique
-
-      - name: created_at
-        description: "Timestamp when the record was created"
 
   - name: logement_logements_sociaux_communes
     description: CSV contenant les logements sociaux par communes
@@ -349,3 +603,63 @@ models:
 
   - name: logement_logements_sociaux_region
     description: CSV contenant les logements sociaux par régions
+
+  # Services
+  - name: services_services
+    description: |-
+      Extraction du JSON source logement nombre de logements totaux par zone géographique, granularité fine au niveau du code INSEE
+      Les indicateurs ne concernent que certains types de services inclus dans la requête, les facility_type suivants :
+      Réseau de proximité Pôle emploi: A122
+      Implantations France services: A128
+      Banques, caisses d'épargne: A203
+      Bureau de poste: A206
+      Agence postale: A208
+      École de conduite: A304
+      Salon de Coiffure: A501
+      Agence de travail temporaire: A503
+      Restaurant ou Restauration rapide: A504
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: value
+        description: nombre mesuré du total de services par type, par zone géographique et par année
+        data_type: text
+      - name: geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+      - name: bpe_measure
+        description: FACILITIES = services
+        data_type: text
+      - name: time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: facility_dom
+        description: 1er niveau de classification de service
+        data_type: text
+      - name: facility_sdom
+        description: 2eme niveau de classification de service
+        data_type: text
+      - name: facility_type
+        description: |-
+          3eme niveau de classification de service
+          A122 = Réseau de proximité Pôle emploi
+          A128 = Implantations France services
+          A203 = Banques, caisses d'épargne
+          A206 = Bureau de poste
+          A208 = Agence postale
+          A304 = École de conduite
+          A501 = Salon de Coiffure
+          A503 = Agence de travail temporaire
+          A504 = Restaurant ou Restauration rapide
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  # Presentation
+  - name: presentation_page_elus_communes
+
+  - name: presentation_page_epci
+
+  - name: presentation_page_population_communes
