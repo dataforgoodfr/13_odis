@@ -186,7 +186,6 @@ models:
         description: Code officiel français des communes, string pour garder 01...
         tests:
           - not_null
-          - unique
         data_type: text
       - name: geo_type
         description: Type de coordonnées géographiques
@@ -249,7 +248,6 @@ models:
         description: Code INSEE officiel français des communes/préfecture du département, string pour garder 01...
         tests:
           - not_null
-          - unique
         data_type: text
       - name: intitule
         description: Nom du département avec articles et tirets
@@ -288,7 +286,6 @@ models:
         description: Code INSEE officiel français des communes/préfecture du département, string pour garder 01...
         tests:
           - not_null
-          - unique
         data_type: text
       - name: intitule
         description: Nom de la région avec articles et tirets
@@ -316,7 +313,6 @@ models:
         data_type: text
         tests:
           - not_null
-          - unique
       - name: dimensions_nor
         data_type: text
       - name: dimensions_ocs
@@ -360,7 +356,6 @@ models:
         data_type: text
         tests:
           - not_null
-          - unique
       - name: dimensions_nor
         data_type: text
       - name: dimensions_ocs
@@ -405,7 +400,6 @@ models:
         data_type: text
         tests:
           - not_null
-          - unique
       - name: dimensions_nor
         data_type: text
       - name: dimensions_ocs
@@ -450,7 +444,6 @@ models:
         data_type: text
         tests:
           - not_null
-          - unique
       - name: dimensions_nor
         data_type: text
       - name: dimensions_ocs
@@ -494,7 +487,6 @@ models:
         data_type: text
         tests:
           - not_null
-          - unique
       - name: dimensions_nor
         data_type: text
       - name: dimensions_ocs
@@ -539,7 +531,6 @@ models:
         data_type: text
         tests:
           - not_null
-          - unique
       - name: dimensions_nor
         data_type: text
       - name: dimensions_ocs

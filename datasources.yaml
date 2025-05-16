@@ -103,14 +103,14 @@ domains:
       description : Effectifs salariés du secteur privé par grands secteurs
       type: FileExtractor
       endpoint: /catalog/datasets/etablissements-et-effectifs-salaries-au-niveau-commune-x-ape-last/exports/csv
-      format: json
+      format: csv
     
     demandeur_emploi_regions:
       API: statistiques.francetravail.org
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par régions
       endpoint: /stmt/defmexp?li=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
-      format: json
+      format: csv
       load_params:
         separator: ;
         header: 3
@@ -121,7 +121,7 @@ domains:
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par départements
       endpoint: /stmt/defmexp?lj=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
-      format: json
+      format: csv
       load_params:
         separator: ;
         header: 3
@@ -132,7 +132,7 @@ domains:
       description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par communes de plus de 5000 hab
       endpoint: /stmt/defmexp?lk=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
-      format: json
+      format: csv
       load_params:
         separator: ;
         header: 3
