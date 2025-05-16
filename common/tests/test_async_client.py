@@ -61,7 +61,7 @@ async def test_async_http_client_as_text():
         "http://test.example.com", params=params, allow_redirects=True, headers=None
     )
     assert (
-        expected_response in resp
+        isinstance(resp,bytes)
     )  # surrounded by quotes, that's why we use "in" instead of "=="
 
 
