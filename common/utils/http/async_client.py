@@ -46,7 +46,7 @@ class AsyncHttpClient(HttpClient):
         params: dict = None,
         headers: dict = None,
         as_json: bool = False,
-    ) -> dict | str:
+    ) -> dict | bytes:
         """
         Send a GET request.
 
@@ -71,7 +71,7 @@ class AsyncHttpClient(HttpClient):
             response.raise_for_status()
 
             try:
-                return await response.json() if as_json else await response.text()
+                return await response.json() if as_json else await response.read()
             except aiohttp.ContentTypeError as e:
                 logger.error(f"Failed to parse response: {e}")
                 raise HttpException(f"Failed to parse response from {url}: {e}") from e
