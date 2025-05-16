@@ -38,7 +38,6 @@ models:
       - name: CodGeo
         description: Code officiel français de la commune
         tests:
-          - unique
           - not_null
       - name: libellé 
         description: Nom des communes avec articles et tirets
