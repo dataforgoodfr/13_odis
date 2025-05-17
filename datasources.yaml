@@ -146,6 +146,9 @@ domains:
       format: zip
       headers:
         accept: application/zip, application/octet-stream
+      preprocessor:
+        type: notebook
+        name: emploi_salaire_median
 
     etablissements_employeurs_secteur_prive:
       API: INSEE.Melodi
