@@ -155,6 +155,9 @@ domains:
       format: zip
       headers:
         accept: application/zip, application/octet-stream
+      preprocessor:
+        type: notebook
+        name: emploi_salaire_median
 
     deplacement_domicile_travail:
       API: INSEE.Melodi
@@ -164,6 +167,9 @@ domains:
       format: zip
       headers:
         accept: application/zip, application/octet-stream
+      preprocessor:
+        type: notebook
+        name: emploi_salaire_median
 
     bmo_2024:
       API: data.gouv.fr
