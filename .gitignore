@@ -178,5 +178,7 @@ notebooks/*_processed.ipynb
 # ignore .env files for Bruno to avoid sharing secrets
 common/collections/** */.env
 
-#jacques CSV repo
-eda/csv/
+#jacques CSV repos
+#eda/csv/
+eda/csv_large/
+eda/csv_not_used/
