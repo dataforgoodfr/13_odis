@@ -1180,14 +1180,6 @@ models:
         description: id
 
   # Logement_social
-  - name: logement_rpls_region
-    description: "Flattened view of logement_rpls_region from the bronze layer"
-
-  - name: logement_rpls_departement
-    description: "Flattened view of logement_rpls_departement from the bronze layer"
-
-  - name: logement_rpls_commune
-    description: "Flattened view of logement_rpls_commune from the bronze layer"
 
   - name: logement_logements_sociaux_communes
     description: CSV contenant les logements sociaux par communes

@@ -98,56 +98,18 @@ sources:
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 
-      # - name: 
-      #   description: Source JSON loadée dans le champ data contenant 
-      #   loaded_at_field: created_at
-
-      # - name: 
-      #   description: Source JSON loadée dans le champ data contenant 
-      #   loaded_at_field: created_at
-
-      # - name: 
-      #   description: Source JSON loadée dans le champ data contenant 
-      #   loaded_at_field: created_at
-
-      # - name: 
-      #   description: Source JSON loadée dans le champ data contenant 
-      #   loaded_at_field: created_at
-
-      # - name: 
-      #   description: Source JSON loadée dans le champ data contenant 
-      #   loaded_at_field: created_at
-
-      # - name: 
-      #   description: Source JSON loadée dans le champ data contenant 
-      #   loaded_at_field: created_at
-        #freshness :
-        #  warn_after: {count: 1, period : year}
-
-      - name: logement_rpls_region
-        description: feuille xlsx transformée en JSON loadée dans le champ data contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
-        loaded_at_field : created_at
-
-      - name: logement_rpls_departement
-        description: feuille xlsx transformée en JSON loadée dans le champ data contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par départements
-        loaded_at_field : created_at
-
-      - name: logement_rpls_commune
-        description: feuille xlsx transformée en JSON loadée dans le champ data contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par communes
-        loaded_at_field : created_at           
-
-      - name: logement_logements_sociaux_region
+      - name: logement_social_logements_sociaux_region
         description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
         loaded_at_field : created_at
 
-      - name: logement_logements_sociaux_departement
+      - name: logement_social_logements_sociaux_departement
         description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par départements
         loaded_at_field : created_at
 
-      - name: logement_logements_sociaux_communes
+      - name: logement_social_logements_sociaux_communes
         description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par communes
         loaded_at_field : created_at           
 
-      - name: logement_logements_sociaux_epci
+      - name: logement_social_logements_sociaux_epci
         description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
         loaded_at_field : created_at
