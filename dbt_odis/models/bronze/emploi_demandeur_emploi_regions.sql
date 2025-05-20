@@ -6,7 +6,7 @@
 
 select 
     id,
-    mois as region,
+    mois as zone_geo,
     {% for column in dbt_utils.get_filtered_columns_in_relation(
         source('bronze', 'emploi_demandeur_emploi_regions'),
         ['id', 'mois', 'created_at']
