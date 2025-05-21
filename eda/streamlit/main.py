@@ -14,11 +14,9 @@ exec(open("./jacques-scoring.py").read())
 
 # Sidebar  
 #st.sidebar.write("Odis App")
-#Default for list items
-liste_metiers_adult1=[]
-liste_metiers_adult2=[]
-liste_formations_adult1=[]
-liste_formations_adult2=[]
+st.set_page_config(layout="wide", page_title='Odis Stream2 Prototype')
+
+#liste_formations_adult2=[]
 st.session_state['show_adult2_metiers'] = False
 st.session_state['show_adult2_formations'] = False
 
@@ -35,20 +33,9 @@ commune_actuelle = st.sidebar.selectbox("Commune", communes, index=communes.inde
 commune_codgeo = odis[(odis.dep_code==departement_actuel) & (odis.libgeo==commune_actuelle)].codgeo.item()
 loc_distance_km = st.sidebar.select_slider("Distance Max Relocalisation", range(0,51), value=5)
 
-#Metiers
-libfap = sorted(set(codfap_index['Intitulé FAP 341']))
-libform = sorted(set(codformations_index['libformation']))
-liste_metiers_adult1 = st.sidebar.multiselect("Métiers ciblés P1",libfap)
-st.session_state['show_adult2_metiers'] = st.sidebar.checkbox('Ajouter Adulte',value=False, key='ajout_adult_metiers')
-if st.session_state['show_adult2_metiers']:
-    liste_metiers_adult2 = st.sidebar.multiselect("Métiers ciblés P2",libfap)
-#Formations
-
-
-liste_formations_adult1 = st.sidebar.multiselect("Formations ciblées P1",libform)
-st.session_state['show_adult2_formations'] = st.sidebar.checkbox('Ajouter Adulte', key='ajout_adult_formations')
-if st.session_state['show_adult2_formations']:
-    liste_formations_adult2 = st.sidebar.multiselect("Formations ciblées P2",libform)
+#Foyer
+nb_adultes = st.sidebar.select_slider("Nombre d'adultes", range(1,3), value=1)
+nb_enfants = st.sidebar.select_slider("Nombre d'enfants", range(0,6), value=1)
 
 #Poids
 poids_emploi = st.sidebar.select_slider("Pondération Emploi", range(0,5), value=1)
@@ -56,6 +43,48 @@ poids_logement = st.sidebar.select_slider("Pondération Logement", range(0,5), v
 poids_education = st.sidebar.select_slider("Pondération Education", range(0,5), value=1)
 poids_soutien = st.sidebar.select_slider("Pondération Soutien", range(0,5), value=1)
 poids_mobilité = st.sidebar.select_slider("Pondération Mobilité", range(0,5), value=1)
+
+
+
+with st.container(border=True):
+    col_emploi, col_formation, col_logement, col_edu, col_sante = st.columns(5)
+
+    #Metiers
+    with col_emploi:
+        with st.popover("Emploi"):
+            #Default for list items
+            liste_metiers_adult=[[],[]]
+            libfap = sorted(set(codfap_index['Intitulé FAP 341']))
+            libform = sorted(set(codformations_index['libformation']))
+            for adult in range(0,nb_adultes):
+                liste_metiers_adult[adult] = st.multiselect("Métiers ciblés Adulte "+str(adult+1),libfap)
+
+    #Formations
+    with col_formation:
+        with st.popover("Formations"):
+            liste_formations_adult=[[],[]]
+            for adult in range(0,nb_adultes):
+                liste_formations_adult[adult] = st.multiselect("Formations ciblées Adulte "+str(adult+1),libform)
+
+    # Logement
+    with col_logement:
+        with st.popover("Logement"):
+            st.radio('Quel logement à court terme',["Chez l'habitant", 'Location', "Logement Social"])
+            st.radio('Quel logement à long terme',['Location', "Logement Social"])
+
+    #Education
+    with col_edu:
+        with st.popover("Éducation"):
+            liste_age_enfants=[[],[],[],[],[],]
+            for enfant in range(0,nb_enfants):
+                liste_age_enfants[enfant] =st.select_slider('Age enfant '+str(enfant+1),range(0,19), value=None)
+            # st.write(liste_age_enfants)
+
+    #Santé
+    with col_sante:
+        with st.popover("Santé"):
+            st.radio('upport médical à proximité',["Hopital", 'Maternité', "Centre Addictions"])
+
 
 #Bouton Pour lancer le scoring + affichage de la carte
 submitted = st.button("Afficher la carte")
@@ -69,12 +98,12 @@ prefs = {
     'commune_actuelle':commune_codgeo,
     'loc_distance_km':loc_distance_km,
     'codes_metiers':{
-        'codes_metiers_adulte1':liste_metiers_adult1,
-        'codes_metiers_adulte2':liste_metiers_adult2
+        'codes_metiers_adulte1':liste_metiers_adult[0],
+        'codes_metiers_adulte2':liste_metiers_adult[1]
     },
     'codes_formations':{
-        'codes_formations_adulte1':liste_formations_adult1,
-        'codes_formations_adulte2':liste_formations_adult2
+        'codes_formations_adulte1':liste_formations_adult[0],
+        'codes_formations_adulte2':liste_formations_adult[1]
     },
     'age_enfants':{
         'age_enfant1':4,
@@ -86,33 +115,48 @@ prefs = {
     'binome_penalty':penalite
 }
 
-COM_LIMITROPHE_PENALTY = 0.8 #0.1 = décote de 10% pour les communes limitrophes vs commune cible 
 
-if "data_processed" not in st.session_state:
+if submitted: #st.button("Afficher la carte"):
     st.session_state["data_processed"] = False
-if "processed_gdf" not in st.session_state:
-    st.session_state["processed_gdf"] = None
-if "folium_map_object" not in st.session_state:
     st.session_state["folium_map_object"] = None
-if "selected_geo" not in st.session_state:
     st.session_state["selected_geo"] = None
+    st.session_state["selected_binome"] = None
+    # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
+    st.session_state["processed_gdf"] = compute_odis_score(odis, scores_cat=scores_cat, prefs=prefs)
 
-def draw_folium_map(df, current_codgeo):
-    df.to_crs(epsg=4326, inplace=True) #4326
-    lat = df[df.codgeo == current_codgeo].centroid.y
-    lon = df[df.codgeo == current_codgeo].centroid.x
-    score_weights_dict = df.set_index("codgeo")["weighted_score"]
-    colormap = linear.YlGn_09.scale(
-        df['weighted_score'].min(), df['weighted_score'].max()
-    )
+col_results, col_map = st.columns(2)
 
-    m = flm.Map(location=[lat,lon], zoom_start=10)
-    communes = gpd.GeoDataFrame(df[['codgeo','polygon','weighted_score']])
-    #communes_json = communes.to_json()
-    communes_json = flm.GeoJson(data=communes, style_function=lambda feature: {"fillOpacity":0, "fillColor": colormap(score_weights_dict[feature["properties"]['codgeo']])})
-    fg_results.add_child(communes_json)
-    #communes_json.add_to(m)
-    return m
+with col_results:
+    st.header("Meilleurs résultats")
+    if "data_processed" not in st.session_state:
+        st.session_state["data_processed"] = False
+    if "processed_gdf" not in st.session_state:
+        st.session_state["processed_gdf"] = None
+    if "folium_map_object" not in st.session_state:
+        st.session_state["folium_map_object"] = None
+    if "selected_geo" not in st.session_state:
+        st.session_state["selected_geo"] = None
+    
+    st.write(st.session_state["processed_gdf"].sort_values('weighted_score', ascending=False).head(5))
+
+with col_map:
+    st.header("Carte")
+    def draw_folium_map(df, current_codgeo):
+        df.to_crs(epsg=4326, inplace=True) #4326
+        lat = df[df.codgeo == current_codgeo].centroid.y
+        lon = df[df.codgeo == current_codgeo].centroid.x
+        score_weights_dict = df.set_index("codgeo")["weighted_score"]
+        colormap = linear.YlGn_09.scale(
+            df['weighted_score'].min(), df['weighted_score'].max()
+        )
+
+        m = flm.Map(location=[lat,lon], zoom_start=10)
+        communes = gpd.GeoDataFrame(df[['codgeo','polygon','weighted_score']])
+        #communes_json = communes.to_json()
+        communes_json = flm.GeoJson(data=communes, style_function=lambda feature: {"fillOpacity":0, "fillColor": colormap(score_weights_dict[feature["properties"]['codgeo']])})
+        fg_results.add_child(communes_json)
+        #communes_json.add_to(m)
+        return m
 
 # folium.Choropleth(
 #     geo_data=state_geo,
@@ -126,68 +170,52 @@ def draw_folium_map(df, current_codgeo):
 #     legend_name="Unemployment Rate (%)",
 # ).add_to(m)
 
-if submitted: #st.button("Afficher la carte"):
-    st.session_state["data_processed"] = False
-    st.session_state["folium_map_object"] = None
-    st.session_state["selected_geo"] = None
-    st.session_state["selected_binome"] = None
-    # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
-    st.session_state["processed_gdf"] = compute_odis_score(odis, scores_cat=scores_cat, prefs=prefs)
+    if st.session_state["processed_gdf"] is not None:
+        #Let's draw the map
+        fg_results = flm.FeatureGroup(name="results")
+        fg_binome = flm.FeatureGroup(name="binome")
+        st.write(st.session_state["processed_gdf"][st.session_state["processed_gdf"].codgeo=='33281'])
 
-
-
-
-if st.session_state["processed_gdf"] is not None:
-    #Let's draw the map
-    fg_results = flm.FeatureGroup(name="results")
-    fg_binome = flm.FeatureGroup(name="binome")
-    st.write(st.session_state["processed_gdf"][st.session_state["processed_gdf"].codgeo=='33281'])
-
-    m = draw_folium_map(st.session_state["processed_gdf"], current_codgeo=commune_codgeo)
-    
-    # st.session_state["processed_gdf"].polygon_binome = st.session_state["processed_gdf"].polygon_binome.apply(shp.from_wkb) 
-    binome = gpd.GeoDataFrame(
-        st.session_state["processed_gdf"][st.session_state["processed_gdf"].codgeo =='33234'][['codgeo','polygon_binome']],
-        geometry='polygon_binome', crs='EPSG:4326')
-    # binome = binome.set_geometry('polygon_binome', crs='EPSG:4326')
-    binome = binome.to_crs(epsg=4326)
-    st.write(binome)
-    binome_json = flm.GeoJson(data=binome, style_function=lambda x: {"stroke":True, 'fillColor':'red', 'fillOpacity':1.0, "color":"red"})
-    fg_binome.add_child(binome_json)
-
-    st_data=st_folium(
-        m,
-        feature_group_to_add=[fg_results, fg_binome],
-        width=700,
-        height=500,
-        key="odis_scored_map",
-        layer_control=flm.LayerControl(collapsed=False)
-        )
-    
-
-
-    
-
-    if st_data['last_object_clicked'] is not None:
-        clicked_point = shp.Point(st_data['last_object_clicked']['lng'], st_data['last_object_clicked']['lat'])
-        st.session_state["selected_geo"] = (st.session_state['processed_gdf'])[st.session_state["processed_gdf"].contains(clicked_point)]
-        st.session_state["selected_binome"] = st.session_state["selected_geo"][['codgeo_binome','libgeo_binome','polygon_binome']]
-        st.session_state["selected_binome"].polygon_binome = st.session_state["selected_binome"].polygon_binome.apply(loads)
-        st.write(st.session_state["selected_binome"])
-
-        # binome = gpd.GeoDataFrame(st.session_state["selected_binome"])
-        # st.write(binome)
+        m = draw_folium_map(st.session_state["processed_gdf"], current_codgeo=commune_codgeo)
+        
+        # st.session_state["processed_gdf"].polygon_binome = st.session_state["processed_gdf"].polygon_binome.apply(shp.from_wkb) 
+        binome = gpd.GeoDataFrame(
+            st.session_state["processed_gdf"][st.session_state["processed_gdf"].codgeo =='33234'][['codgeo','polygon_binome']],
+            geometry='polygon_binome', crs='EPSG:4326')
         # binome = binome.set_geometry('polygon_binome', crs='EPSG:4326')
-        # binome = binome.to_crs(epsg=4326)
-        # binome_json = flm.GeoJson(data=binome, style_function=lambda x: {"stroke":True,'fillColor':'red', 'fillOpacity':1, "color":"red"})
-        # st.write(binome_json)
-        # fg_binome.add_child(binome_json)
+        binome = binome.to_crs(epsg=4326)
+        st.write(binome)
+        binome_json = flm.GeoJson(data=binome, style_function=lambda x: {"stroke":True, 'fillColor':'red', 'fillOpacity':1.0, "color":"red"})
+        fg_binome.add_child(binome_json)
 
-            
-        with st.popover('Details'):
-            pitch = st.session_state["selected_geo"].apply(produce_pitch, axis=1).iloc[0]
-            for row in pitch:
-                st.write(row)
+        st_data=st_folium(
+            m,
+            feature_group_to_add=[fg_results, fg_binome],
+            width=700,
+            height=500,
+            key="odis_scored_map",
+            layer_control=flm.LayerControl(collapsed=False)
+            )
+        if st_data['last_object_clicked'] is not None:
+            clicked_point = shp.Point(st_data['last_object_clicked']['lng'], st_data['last_object_clicked']['lat'])
+            st.session_state["selected_geo"] = (st.session_state['processed_gdf'])[st.session_state["processed_gdf"].contains(clicked_point)]
+            st.session_state["selected_binome"] = st.session_state["selected_geo"][['codgeo_binome','libgeo_binome','polygon_binome']]
+            st.session_state["selected_binome"].polygon_binome = st.session_state["selected_binome"].polygon_binome.apply(loads)
+            st.write(st.session_state["selected_binome"])
+
+            # binome = gpd.GeoDataFrame(st.session_state["selected_binome"])
+            # st.write(binome)
+            # binome = binome.set_geometry('polygon_binome', crs='EPSG:4326')
+            # binome = binome.to_crs(epsg=4326)
+            # binome_json = flm.GeoJson(data=binome, style_function=lambda x: {"stroke":True,'fillColor':'red', 'fillOpacity':1, "color":"red"})
+            # st.write(binome_json)
+            # fg_binome.add_child(binome_json)
+
+                
+            with st.popover('Details'):
+                pitch = st.session_state["selected_geo"].apply(produce_pitch, axis=1).iloc[0]
+                for row in pitch:
+                    st.write(row)
 
 
 
