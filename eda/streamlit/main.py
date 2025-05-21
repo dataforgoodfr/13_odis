@@ -16,42 +16,39 @@ exec(open("./jacques-scoring.py").read())
 #st.sidebar.write("Odis App")
 st.set_page_config(layout="wide", page_title='Odis Stream2 Prototype')
 
-#liste_formations_adult2=[]
-st.session_state['show_adult2_metiers'] = False
-st.session_state['show_adult2_formations'] = False
-
-
 # Subject preferences weighted score computation
 #with st.sidebar.form("preferences", border=False):
 penalite = 0.1
 
-#Mobilité
-departements = sorted(set(odis['dep_code']))
-departement_actuel = st.sidebar.selectbox("Département", departements, index=departements.index('33'))
-communes = sorted(set(odis[odis.dep_code==departement_actuel]['libgeo']))
-commune_actuelle = st.sidebar.selectbox("Commune", communes, index=communes.index('Bordeaux'))
-commune_codgeo = odis[(odis.dep_code==departement_actuel) & (odis.libgeo==commune_actuelle)].codgeo.item()
-loc_distance_km = st.sidebar.select_slider("Distance Max Relocalisation", range(0,51), value=5)
+# Sidebar
+with st.sidebar:
+    #Mobilité
+    departements = sorted(set(odis['dep_code']))
+    departement_actuel = st.sidebar.selectbox("Département", departements, index=departements.index('33'))
+    communes = sorted(set(odis[odis.dep_code==departement_actuel]['libgeo']))
+    commune_actuelle = st.sidebar.selectbox("Commune", communes, index=communes.index('Bordeaux'))
+    commune_codgeo = odis[(odis.dep_code==departement_actuel) & (odis.libgeo==commune_actuelle)].codgeo.item()
+    loc_distance_km = st.sidebar.select_slider("Distance Max Relocalisation", range(0,51), value=5)
 
-#Foyer
-nb_adultes = st.sidebar.select_slider("Nombre d'adultes", range(1,3), value=1)
-nb_enfants = st.sidebar.select_slider("Nombre d'enfants", range(0,6), value=1)
+    #Foyer
+    nb_adultes = st.sidebar.select_slider("Nombre d'adultes", range(1,3), value=1)
+    nb_enfants = st.sidebar.select_slider("Nombre d'enfants", range(0,6), value=1)
 
-#Poids
-poids_emploi = st.sidebar.select_slider("Pondération Emploi", range(0,5), value=1)
-poids_logement = st.sidebar.select_slider("Pondération Logement", range(0,5), value=1)
-poids_education = st.sidebar.select_slider("Pondération Education", range(0,5), value=1)
-poids_soutien = st.sidebar.select_slider("Pondération Soutien", range(0,5), value=1)
-poids_mobilité = st.sidebar.select_slider("Pondération Mobilité", range(0,5), value=1)
+    #Poids
+    with st.sidebar.expander("Weighths", expanded=False):
+        poids_emploi = st.select_slider("Pondération Emploi", range(0,5), value=1)
+        poids_logement = st.select_slider("Pondération Logement", range(0,5), value=1)
+        poids_education = st.select_slider("Pondération Education", range(0,5), value=1)
+        poids_soutien = st.select_slider("Pondération Soutien", range(0,5), value=1)
+        poids_mobilité = st.select_slider("Pondération Mobilité", range(0,5), value=1)
 
-
-
-with st.container(border=True):
+#Top filter container
+with st.container(border=False):
     col_emploi, col_formation, col_logement, col_edu, col_sante = st.columns(5)
 
     #Metiers
     with col_emploi:
-        with st.popover("Emploi"):
+        with st.popover("Emploi", use_container_width=True):
             #Default for list items
             liste_metiers_adult=[[],[]]
             libfap = sorted(set(codfap_index['Intitulé FAP 341']))
@@ -61,20 +58,20 @@ with st.container(border=True):
 
     #Formations
     with col_formation:
-        with st.popover("Formations"):
+        with st.popover("Formations", use_container_width=True):
             liste_formations_adult=[[],[]]
             for adult in range(0,nb_adultes):
                 liste_formations_adult[adult] = st.multiselect("Formations ciblées Adulte "+str(adult+1),libform)
 
     # Logement
     with col_logement:
-        with st.popover("Logement"):
+        with st.popover("Logement", use_container_width=True):
             st.radio('Quel logement à court terme',["Chez l'habitant", 'Location', "Logement Social"])
             st.radio('Quel logement à long terme',['Location', "Logement Social"])
 
     #Education
     with col_edu:
-        with st.popover("Éducation"):
+        with st.popover("Éducation", use_container_width=True):
             liste_age_enfants=[[],[],[],[],[],]
             for enfant in range(0,nb_enfants):
                 liste_age_enfants[enfant] =st.select_slider('Age enfant '+str(enfant+1),range(0,19), value=None)
@@ -82,9 +79,8 @@ with st.container(border=True):
 
     #Santé
     with col_sante:
-        with st.popover("Santé"):
+        with st.popover("Santé", use_container_width=True):
             st.radio('upport médical à proximité',["Hopital", 'Maternité', "Centre Addictions"])
-
 
 #Bouton Pour lancer le scoring + affichage de la carte
 submitted = st.button("Afficher la carte")
@@ -115,7 +111,6 @@ prefs = {
     'binome_penalty':penalite
 }
 
-
 if submitted: #st.button("Afficher la carte"):
     st.session_state["data_processed"] = False
     st.session_state["folium_map_object"] = None
@@ -124,8 +119,8 @@ if submitted: #st.button("Afficher la carte"):
     # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
     st.session_state["processed_gdf"] = compute_odis_score(odis, scores_cat=scores_cat, prefs=prefs)
 
+# Main 2 sections with results and map
 col_results, col_map = st.columns(2)
-
 with col_results:
     st.header("Meilleurs résultats")
     if "data_processed" not in st.session_state:
@@ -137,7 +132,11 @@ with col_results:
     if "selected_geo" not in st.session_state:
         st.session_state["selected_geo"] = None
     
-    st.write(st.session_state["processed_gdf"].sort_values('weighted_score', ascending=False).head(5))
+    if st.session_state["processed_gdf"] is not None:
+        for index, row in st.session_state["processed_gdf"].sort_values('weighted_score', ascending=False).head(5).iterrows():
+            title = "Top " + str(index+1)
+            with st.expander(title, expanded=False):
+                st.write(produce_pitch(row))
 
 with col_map:
     st.header("Carte")
