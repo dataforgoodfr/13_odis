@@ -1182,16 +1182,2260 @@ models:
   # Logement_social
 
   - name: logement_logements_sociaux_communes
-    description: CSV contenant les logements sociaux par communes
+    description: CSV contenant le nombre de logements sociaux déclarés par communes
+    columns:
+      - name: DEPCOM_ARM
+        description: Code INSEE de la commune et arrondissement
+        data_type: text
+        quote: true
+      - name: REG
+        description: Code de la région rattachée à la commune
+        data_type: bigint
+        quote: true
+      - name: DEP
+        description: Code du épartement rattaché à la commune
+        data_type: text
+        quote: true
+      - name: LIBCOM_DEP
+        description: Nom de la commune et numéro de département
+        data_type: text
+        quote: true
+      - name: LIBCOM
+        description: Nom de la commune
+        data_type: text
+        quote: true
+      - name: nb_loues
+        description: nombre de logements sociaux proposés à la location dans la commune, qui sont loués
+        data_type: double precision
+      - name: nb_vacants
+        description: nombre de logements sociaux proposés à la location dans la commune, qui sont vacants
+        data_type: double precision
+      - name: nb_vides
+        description: nombre de logements sociaux dans la commune, qui sont vides
+        data_type: double precision
+      - name: nb_asso
+        description: nombre de logements sociaux dans la commune, qui sont pris en charge par une association
+        data_type: double precision
+      - name: nb_occup_finan
+        description: nombre de logements sociaux dans la commune, qui sont occupés avec ou sans contrepartie financière
+        data_type: double precision
+      - name: nb_occup_temp
+        description: nombre de logements sociaux dans la commune, qui sont occupés pour de l'hébergement temporaire
+        data_type: double precision
+      - name: nb_ls
+        description: "Ensemble du parc social : nombre total de logements sociaux dans la commune"
+        data_type: bigint
+      - name: parc_non_conv
+        description: Parc non conventionné des SEM
+        data_type: bigint
+      - name: nb_lgt_tot
+        description: Ensemble du parc locatif des bailleurs sociaux
+        data_type: bigint
+      - name: densite
+        description: "Densité pour 100 résidences principales (source : RP 2021)"
+        data_type: double precision
+      - name: nb_ls_en_qpv
+        description: Nombre de logements en QPV
+        data_type: bigint
+      - name: nb_ls_individuels
+        description: nombre de logements sociaux dans la commune en construction individuelle
+        data_type: bigint
+      - name: nb_ls_collectifs
+        description: nombre de logements sociaux dans la commune en construction collective
+        data_type: bigint
+      - name: nb_ls_1piece
+        description: nombre de logements sociaux 1 pièce
+        data_type: bigint
+      - name: nb_ls_2piece
+        description: nombre de logements sociaux 2 pièces
+        data_type: bigint
+      - name: nb_ls_3piece
+        description: nombre de logements sociaux 3 pièces
+        data_type: bigint
+      - name: nb_ls_4piece
+        description: nombre de logements sociaux 4 pièces
+        data_type: bigint
+      - name: nb_ls_5piece_plus
+        description: nombre de logements sociaux 5 pièces et plus
+        data_type: bigint
+      - name: nb_ls_plai
+        data_type: bigint
+      - name: nb_ls_plus_ap_77
+        data_type: bigint
+      - name: nb_ls_plus_av_77
+        data_type: bigint
+      - name: nb_ls_pls
+        data_type: bigint
+      - name: nb_ls_pli
+        data_type: bigint
+      - name: nb_ls2023
+        description: Ensemble du parc social 2023
+        data_type: bigint
+      - name: nb_ls2023.1
+        data_type: bigint
+        quote: true
+      - name: nb_ls2022
+        description: Ensemble du parc social 2022
+        data_type: bigint
+      - name: nb_ls2021
+        description: Ensemble du parc social 2021
+        data_type: bigint
+      - name: nb_ls2020
+        description: Ensemble du parc social 2020
+        data_type: bigint
+      - name: nb_ls2019
+        description: Ensemble du parc social 2019
+        data_type: bigint
+      - name: nb_ls2018
+        description: Ensemble du parc social 2018
+        data_type: bigint
+      - name: nb_ls2017
+        description: Ensemble du parc social 2017
+        data_type: bigint
+      - name: nb_ls2016
+        description: Ensemble du parc social 2016
+        data_type: bigint
+      - name: nb_ls2015
+        description: Ensemble du parc social 2015
+        data_type: bigint
+      - name: nb_ls2014
+        description: Ensemble du parc social 2014
+        data_type: bigint
+      - name: nb_ls2013
+        description: Ensemble du parc social 2013
+        data_type: bigint
+      - name: evol_2023
+        description: Evolution du parc social de 2023 à 2024
+        data_type: double precision
+      - name: evol_2022
+        description: Evolution du parc social de 2022 à 2023
+        data_type: double precision
+      - name: evol_2022.1
+        data_type: double precision
+        quote: true
+      - name: evol_2021
+        description: Evolution du parc social de 2021 à 2022
+        data_type: double precision
+      - name: evol_2020
+        description: Evolution du parc social de 2020 à 2021
+        data_type: double precision
+      - name: evol_2019
+        description: Evolution du parc social de 2019 à 2020
+        data_type: double precision
+      - name: evol_2018
+        description: Evolution du parc social de 2018 à 2019
+        data_type: double precision
+      - name: evol_2017
+        description: Evolution du parc social de 2017 à 2018
+        data_type: double precision
+      - name: evol_2016
+        description: Evolution du parc social de 2016 à 2017
+        data_type: double precision
+      - name: evol_2015
+        description: Evolution du parc social de 2015 à 2016
+        data_type: double precision
+      - name: evol_2014
+        description: Evolution du parc social de 2014 à 2015
+        data_type: double precision
+      - name: evol_2013
+        description: Evolution du parc social de 2013 à 2014
+        data_type: double precision
+      - name: nv_mes
+        description: Mises en service au 1er janvier 2024
+        data_type: bigint
+      - name: nv_mes_2023
+        description: Mises en service au 1er janvier 2023
+        data_type: bigint
+      - name: nv_mes_2023.1
+        data_type: bigint
+        quote: true
+      - name: nv_mes_2022
+        description: Mises en service au 1er janvier 2022
+        data_type: bigint
+      - name: nv_mes_2021
+        description: Mises en service au 1er janvier 2021
+        data_type: bigint
+      - name: nv_mes_2020
+        description: Mises en service au 1er janvier 2020
+        data_type: bigint
+      - name: nv_mes_2019
+        description: Mises en service au 1er janvier 2019
+        data_type: bigint
+      - name: nv_mes_2018
+        description: Mises en service au 1er janvier 2018
+        data_type: bigint
+      - name: nv_mes_2017
+        description: Mises en service au 1er janvier 2017
+        data_type: bigint
+      - name: nv_mes_2016
+        description: Mises en service au 1er janvier 2016
+        data_type: bigint
+      - name: nv_mes_2015
+        description: Mises en service au 1er janvier 2015
+        data_type: bigint
+      - name: nv_mes_2014
+        description: Mises en service au 1er janvier 2014
+        data_type: bigint
+      - name: nv_mes_2013
+        description: Mises en service au 1er janvier 2013
+        data_type: bigint
+      - name: nb_ls_const_org
+        data_type: bigint
+      - name: nb_ls_av_trav
+        data_type: bigint
+      - name: nb_ls_ss_trav
+        data_type: bigint
+      - name: nb_ls_vefa
+        data_type: bigint
+      - name: nb_ls_vendu_occupant
+        data_type: double precision
+      - name: nb_ls_vendu_autre_bailleur
+        data_type: double precision
+      - name: nb_ls_autre_vente
+        data_type: double precision
+      - name: nb_ls_demolition
+        data_type: double precision
+      - name: nb_ls_sortie_autre_motif
+        data_type: double precision
+      - name: nb_ls_chgt_usage
+        data_type: double precision
+      - name: nb_ls_fusion_scission
+        data_type: double precision
+      - name: age
+        description: Age moyen du parc social (année de construction)
+        data_type: double precision
+      - name: age_inf_5
+        data_type: bigint
+      - name: age_5_10
+        data_type: bigint
+      - name: age_10_20
+        data_type: bigint
+      - name: age_20_40
+        data_type: bigint
+      - name: age_40_60
+        data_type: bigint
+      - name: age_60_plus
+        data_type: bigint
+      - name: "2019"
+        data_type: bigint
+        quote: true
+      - name: "2020"
+        data_type: bigint
+        quote: true
+      - name: "2021"
+        data_type: bigint
+        quote: true
+      - name: "2022"
+        data_type: bigint
+        quote: true
+      - name: "2023"
+        data_type: bigint
+        quote: true
+      - name: nb_ls_individuels_recent
+        data_type: bigint
+      - name: nb_ls_collectifs_recent
+        data_type: bigint
+      - name: nb_neuf
+        data_type: bigint
+      - name: nb_ls_1piece_recent
+        data_type: bigint
+      - name: nb_ls_2piece_recent
+        data_type: bigint
+      - name: nb_ls_3piece_recent
+        data_type: bigint
+      - name: nb_ls_4piece_recent
+        data_type: bigint
+      - name: nb_ls_5piece_plus_recent
+        data_type: bigint
+      - name: nb_ls_en_qpv_recent
+        data_type: bigint
+      - name: nb_ls_plai_recent
+        data_type: bigint
+      - name: nb_ls_plus_recent
+        data_type: bigint
+      - name: nb_ls_pls_recent
+        data_type: bigint
+      - name: nb_ls_pli_recent
+        data_type: bigint
+      - name: ener_AB
+        data_type: bigint
+        quote: true
+      - name: serre_AB
+        data_type: bigint
+        quote: true
+      - name: nb_loues_vacant
+        data_type: bigint
+      - name: tx_vac
+        description: Taux de vacance du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_vac_2023
+        description: Taux de vacance du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_vac_2022
+        description: Taux de vacance du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_vac_2021
+        description: Taux de vacance du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_vac_2020
+        description: Taux de vacance du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_vac_2019
+        description: Taux de vacance du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_vac_2018
+        description: Taux de vacance du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_vac_2017
+        description: Taux de vacance du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_vac_2016
+        description: Taux de vacance du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_vac_2015
+        description: Taux de vacance du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_vac_2014
+        description: Taux de vacance du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_vac_2013
+        description: Taux de vacance du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_vac_3_2023
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_vac_3_2022
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_vac_3_2021
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_vac_3_2020
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_vac_3_2019
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_vac_3_2018
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_vac_3_2017
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_vac_3_2016
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_vac_3_2015
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_vac_3_2014
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_vac_3_2013
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: tx_mob
+        description: Taux de mobilité du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_mob_2023
+        description: Taux de mobilité du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_mob_2022
+        description: Taux de mobilité du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_mob_2021
+        description: Taux de mobilité du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_mob_2020
+        description: Taux de mobilité du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_mob_2019
+        description: Taux de mobilité du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_mob_2018
+        description: Taux de mobilité du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_mob_2017
+        description: Taux de mobilité du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_mob_2016
+        description: Taux de mobilité du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_mob_2015
+        description: Taux de mobilité du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_mob_2014
+        description: Taux de mobilité du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_mob_2013
+        description: Taux de mobilité du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: loymoy
+        description: Loyer moyen au mètre carré du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: loymoy_2023
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: loymoy_2023.1
+        data_type: double precision
+        quote: true
+      - name: loymoy_2022
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: loymoy_2021
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: loymoy_2020
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: loymoy_2019
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: loymoy_2018
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: loymoy_2017
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: loymoy_2016
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: loymoy_2015
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: loymoy_2014
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: loymoy_2013
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: evol_loyer2023
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2023 à 2024
+        data_type: double precision
+      - name: evol_loyer2022
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2022 à 2023
+        data_type: double precision
+      - name: evol_loyer2022.1
+        data_type: double precision
+        quote: true
+      - name: evol_loyer2021
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2021 à 2022
+        data_type: double precision
+      - name: evol_loyer2020
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2020 à 2021
+        data_type: double precision
+      - name: evol_loyer2019
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2019 à 2020
+        data_type: double precision
+      - name: evol_loyer2018
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2018 à 2019
+        data_type: double precision
+      - name: evol_loyer2017
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2017 à 2018
+        data_type: double precision
+      - name: evol_loyer2016
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2016 à 2017
+        data_type: double precision
+      - name: evol_loyer2015
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2015 à 2016
+        data_type: double precision
+      - name: evol_loyer2014
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2014 à 2015
+        data_type: double precision
+      - name: evol_loyer2013
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2013 à 2014
+        data_type: double precision
+      - name: loymoy_q2
+        data_type: double precision
+      - name: loymoy_q4
+        data_type: double precision
+      - name: loymoy_r
+        data_type: double precision
+      - name: loymoy_plai
+        data_type: double precision
+      - name: loymoy_plus_av
+        data_type: double precision
+      - name: loymoy_plus_ap
+        data_type: double precision
+      - name: loymoy_pls
+        data_type: double precision
+      - name: loymoy_pli
+        data_type: double precision
+      - name: loymoy_inf_5
+        data_type: double precision
+      - name: loymoy_5_10
+        data_type: double precision
+      - name: loymoy_10_20
+        data_type: double precision
+      - name: loymoy_20_40
+        data_type: double precision
+      - name: loymoy_40_60
+        data_type: double precision
+      - name: loymoy_60_plus
+        data_type: double precision
+      - name: serre_A
+        data_type: bigint
+        quote: true
+      - name: serre_B
+        data_type: bigint
+        quote: true
+      - name: serre_C
+        data_type: bigint
+        quote: true
+      - name: serre_D
+        data_type: bigint
+        quote: true
+      - name: serre_E
+        data_type: bigint
+        quote: true
+      - name: serre_F
+        data_type: bigint
+        quote: true
+      - name: serre_G
+        data_type: bigint
+        quote: true
+      - name: serre_NR
+        data_type: bigint
+        quote: true
+      - name: ener_A
+        data_type: bigint
+        quote: true
+      - name: ener_B
+        data_type: bigint
+        quote: true
+      - name: ener_C
+        data_type: bigint
+        quote: true
+      - name: ener_D
+        data_type: bigint
+        quote: true
+      - name: ener_E
+        data_type: bigint
+        quote: true
+      - name: ener_F
+        data_type: bigint
+        quote: true
+      - name: ener_G
+        data_type: bigint
+        quote: true
+      - name: ener_NR
+        data_type: bigint
+        quote: true
+      - name: ener_A_new
+        data_type: bigint
+        quote: true
+      - name: ener_B_new
+        data_type: bigint
+        quote: true
+      - name: ener_C_new
+        data_type: bigint
+        quote: true
+      - name: ener_D_new
+        data_type: bigint
+        quote: true
+      - name: ener_E_new
+        data_type: bigint
+        quote: true
+      - name: ener_F_new
+        data_type: bigint
+        quote: true
+      - name: ener_G_new
+        data_type: bigint
+        quote: true
+      - name: ener_NR_new
+        data_type: bigint
+        quote: true
+      - name: nb_dpe_realise
+        data_type: bigint
+      - name: perc_dpe_realise
+        data_type: double precision
 
   - name: logement_logements_sociaux_epci
-    description: CSV contenant les logements sociaux par EPCI
+    description: CSV contenant les logements sociaux déclarés par EPCI
+    columns:
+      - name: EPCI_DEP
+        description: Nom de l'EPCI et numéro de département
+        data_type: text
+        quote: true
+      - name: DEP
+        description: Code du département rattaché à l'EPCI
+        data_type: text
+        quote: true
+      - name: LIBEPCI
+        description: Nom de l'EPCI
+        data_type: text
+        quote: true
+      - name: nb_loues
+        description: nombre de logements sociaux proposés à la location dans la commune, qui sont loués
+        data_type: double precision
+      - name: nb_vacants
+        description: nombre de logements sociaux proposés à la location dans la commune, qui sont vacants
+        data_type: double precision
+      - name: nb_vides
+        description: nombre de logements sociaux dans la commune, qui sont vides
+        data_type: double precision
+      - name: nb_asso
+        description: nombre de logements sociaux dans la commune, qui sont pris en charge par une association
+        data_type: double precision
+      - name: nb_occup_finan
+        description: nombre de logements sociaux dans la commune, qui sont occupés avec ou sans contrepartie financière
+        data_type: double precision
+      - name: nb_occup_temp
+        description: nombre de logements sociaux dans la commune, qui sont occupés pour de l'hébergement temporaire
+        data_type: double precision
+      - name: nb_ls
+        description: "Ensemble du parc social : nombre total de logements sociaux dans la commune"
+        data_type: bigint
+      - name: parc_non_conv
+        description: Parc non conventionné des SEM
+        data_type: bigint
+      - name: nb_lgt_tot
+        description: Ensemble du parc locatif des bailleurs sociaux
+        data_type: bigint
+      - name: densite
+        description: "Densité pour 100 résidences principales (source : RP 2021)"
+        data_type: double precision
+      - name: nb_ls_en_qpv
+        description: Nombre de logements en QPV
+        data_type: bigint
+      - name: nb_ls_individuels
+        description: nombre de logements sociaux dans la commune en construction individuelle
+        data_type: bigint
+      - name: nb_ls_collectifs
+        description: nombre de logements sociaux dans la commune en construction collective
+        data_type: bigint
+      - name: nb_ls_1piece
+        description: nombre de logements sociaux 1 pièce
+        data_type: bigint
+      - name: nb_ls_2piece
+        description: nombre de logements sociaux 2 pièces
+        data_type: bigint
+      - name: nb_ls_3piece
+        description: nombre de logements sociaux 3 pièces
+        data_type: bigint
+      - name: nb_ls_4piece
+        description: nombre de logements sociaux 4 pièces
+        data_type: bigint
+      - name: nb_ls_5piece_plus
+        description: nombre de logements sociaux 5 pièces et plus
+        data_type: bigint
+      - name: nb_ls_plai
+        data_type: bigint
+      - name: nb_ls_plus_ap_77
+        data_type: bigint
+      - name: nb_ls_plus_av_77
+        data_type: bigint
+      - name: nb_ls_pls
+        data_type: bigint
+      - name: nb_ls_pli
+        data_type: bigint
+      - name: nb_ls2023
+        description: Ensemble du parc social 2023
+        data_type: bigint
+      - name: nb_ls2023.1
+        data_type: bigint
+        quote: true
+      - name: nb_ls2022
+        description: Ensemble du parc social 2022
+        data_type: bigint
+      - name: nb_ls2021
+        description: Ensemble du parc social 2021
+        data_type: bigint
+      - name: nb_ls2020
+        description: Ensemble du parc social 2020
+        data_type: bigint
+      - name: nb_ls2019
+        description: Ensemble du parc social 2019
+        data_type: bigint
+      - name: nb_ls2018
+        description: Ensemble du parc social 2018
+        data_type: bigint
+      - name: nb_ls2017
+        description: Ensemble du parc social 2017
+        data_type: bigint
+      - name: nb_ls2016
+        description: Ensemble du parc social 2016
+        data_type: bigint
+      - name: nb_ls2015
+        description: Ensemble du parc social 2015
+        data_type: bigint
+      - name: nb_ls2014
+        description: Ensemble du parc social 2014
+        data_type: bigint
+      - name: nb_ls2013
+        description: Ensemble du parc social 2013
+        data_type: bigint
+      - name: evol_2023
+        description: Evolution du parc social de 2023 à 2024
+        data_type: double precision
+      - name: evol_2022
+        description: Evolution du parc social de 2022 à 2023
+        data_type: double precision
+      - name: evol_2022.1
+        data_type: double precision
+        quote: true
+      - name: evol_2021
+        description: Evolution du parc social de 2021 à 2022
+        data_type: double precision
+      - name: evol_2020
+        description: Evolution du parc social de 2020 à 2021
+        data_type: double precision
+      - name: evol_2019
+        description: Evolution du parc social de 2019 à 2020
+        data_type: double precision
+      - name: evol_2018
+        description: Evolution du parc social de 2018 à 2019
+        data_type: double precision
+      - name: evol_2017
+        description: Evolution du parc social de 2017 à 2018
+        data_type: double precision
+      - name: evol_2016
+        description: Evolution du parc social de 2016 à 2017
+        data_type: double precision
+      - name: evol_2015
+        description: Evolution du parc social de 2015 à 2016
+        data_type: double precision
+      - name: evol_2014
+        description: Evolution du parc social de 2014 à 2015
+        data_type: double precision
+      - name: evol_2013
+        description: Evolution du parc social de 2013 à 2014
+        data_type: double precision
+      - name: nv_mes
+        description: Mises en service au 1er janvier 2024
+        data_type: bigint
+      - name: nv_mes_2023
+        description: Mises en service au 1er janvier 2023
+        data_type: bigint
+      - name: nv_mes_2023.1
+        data_type: bigint
+        quote: true
+      - name: nv_mes_2022
+        description: Mises en service au 1er janvier 2022
+        data_type: bigint
+      - name: nv_mes_2021
+        description: Mises en service au 1er janvier 2021
+        data_type: bigint
+      - name: nv_mes_2020
+        description: Mises en service au 1er janvier 2020
+        data_type: bigint
+      - name: nv_mes_2019
+        description: Mises en service au 1er janvier 2019
+        data_type: bigint
+      - name: nv_mes_2018
+        description: Mises en service au 1er janvier 2018
+        data_type: bigint
+      - name: nv_mes_2017
+        description: Mises en service au 1er janvier 2017
+        data_type: bigint
+      - name: nv_mes_2016
+        description: Mises en service au 1er janvier 2016
+        data_type: bigint
+      - name: nv_mes_2015
+        description: Mises en service au 1er janvier 2015
+        data_type: bigint
+      - name: nv_mes_2014
+        description: Mises en service au 1er janvier 2014
+        data_type: bigint
+      - name: nv_mes_2013
+        description: Mises en service au 1er janvier 2013
+        data_type: bigint
+      - name: nb_ls_const_org
+        data_type: bigint
+      - name: nb_ls_av_trav
+        data_type: bigint
+      - name: nb_ls_ss_trav
+        data_type: bigint
+      - name: nb_ls_vefa
+        data_type: bigint
+      - name: nb_ls_vendu_occupant
+        data_type: double precision
+      - name: nb_ls_vendu_autre_bailleur
+        data_type: double precision
+      - name: nb_ls_autre_vente
+        data_type: double precision
+      - name: nb_ls_demolition
+        data_type: double precision
+      - name: nb_ls_sortie_autre_motif
+        data_type: double precision
+      - name: nb_ls_chgt_usage
+        data_type: double precision
+      - name: nb_ls_fusion_scission
+        data_type: double precision
+      - name: age
+        description: Age moyen du parc social (année de construction)
+        data_type: double precision
+      - name: age_inf_5
+        data_type: bigint
+      - name: age_5_10
+        data_type: bigint
+      - name: age_10_20
+        data_type: bigint
+      - name: age_20_40
+        data_type: bigint
+      - name: age_40_60
+        data_type: bigint
+      - name: age_60_plus
+        data_type: bigint
+      - name: "2019"
+        data_type: bigint
+        quote: true
+      - name: "2020"
+        data_type: bigint
+        quote: true
+      - name: "2021"
+        data_type: bigint
+        quote: true
+      - name: "2022"
+        data_type: bigint
+        quote: true
+      - name: "2023"
+        data_type: bigint
+        quote: true
+      - name: nb_ls_individuels_recent
+        data_type: bigint
+      - name: nb_ls_collectifs_recent
+        data_type: bigint
+      - name: nb_neuf
+        data_type: bigint
+      - name: nb_ls_1piece_recent
+        data_type: bigint
+      - name: nb_ls_2piece_recent
+        data_type: bigint
+      - name: nb_ls_3piece_recent
+        data_type: bigint
+      - name: nb_ls_4piece_recent
+        data_type: bigint
+      - name: nb_ls_5piece_plus_recent
+        data_type: bigint
+      - name: nb_ls_en_qpv_recent
+        data_type: bigint
+      - name: nb_ls_plai_recent
+        data_type: bigint
+      - name: nb_ls_plus_recent
+        data_type: bigint
+      - name: nb_ls_pls_recent
+        data_type: bigint
+      - name: nb_ls_pli_recent
+        data_type: bigint
+      - name: ener_AB
+        data_type: bigint
+        quote: true
+      - name: serre_AB
+        data_type: bigint
+        quote: true
+      - name: nb_loues_vacant
+        data_type: bigint
+      - name: tx_vac
+        description: Taux de vacance du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_vac_2023
+        description: Taux de vacance du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_vac_2022
+        description: Taux de vacance du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_vac_2021
+        description: Taux de vacance du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_vac_2020
+        description: Taux de vacance du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_vac_2019
+        description: Taux de vacance du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_vac_2018
+        description: Taux de vacance du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_vac_2017
+        description: Taux de vacance du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_vac_2016
+        description: Taux de vacance du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_vac_2015
+        description: Taux de vacance du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_vac_2014
+        description: Taux de vacance du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_vac_2013
+        description: Taux de vacance du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_vac_3_2023
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_vac_3_2022
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_vac_3_2021
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_vac_3_2020
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_vac_3_2019
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_vac_3_2018
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_vac_3_2017
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_vac_3_2016
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_vac_3_2015
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_vac_3_2014
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_vac_3_2013
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: tx_mob
+        description: Taux de mobilité du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_mob_2023
+        description: Taux de mobilité du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_mob_2022
+        description: Taux de mobilité du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_mob_2021
+        description: Taux de mobilité du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_mob_2020
+        description: Taux de mobilité du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_mob_2019
+        description: Taux de mobilité du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_mob_2018
+        description: Taux de mobilité du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_mob_2017
+        description: Taux de mobilité du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_mob_2016
+        description: Taux de mobilité du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_mob_2015
+        description: Taux de mobilité du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_mob_2014
+        description: Taux de mobilité du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_mob_2013
+        description: Taux de mobilité du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: loymoy
+        description: Loyer moyen au mètre carré du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: loymoy_2023
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: loymoy_2023.1
+        data_type: double precision
+        quote: true
+      - name: loymoy_2022
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: loymoy_2021
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: loymoy_2020
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: loymoy_2019
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: loymoy_2018
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: loymoy_2017
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: loymoy_2016
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: loymoy_2015
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: loymoy_2014
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: loymoy_2013
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: evol_loyer2023
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2023 à 2024
+        data_type: double precision
+      - name: evol_loyer2022
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2022 à 2023
+        data_type: double precision
+      - name: evol_loyer2022.1
+        data_type: double precision
+        quote: true
+      - name: evol_loyer2021
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2021 à 2022
+        data_type: double precision
+      - name: evol_loyer2020
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2020 à 2021
+        data_type: double precision
+      - name: evol_loyer2019
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2019 à 2020
+        data_type: double precision
+      - name: evol_loyer2018
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2018 à 2019
+        data_type: double precision
+      - name: evol_loyer2017
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2017 à 2018
+        data_type: double precision
+      - name: evol_loyer2016
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2016 à 2017
+        data_type: double precision
+      - name: evol_loyer2015
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2015 à 2016
+        data_type: double precision
+      - name: evol_loyer2014
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2014 à 2015
+        data_type: double precision
+      - name: evol_loyer2013
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2013 à 2014
+        data_type: double precision
+      - name: loymoy_q2
+        data_type: double precision
+      - name: loymoy_q4
+        data_type: double precision
+      - name: loymoy_r
+        data_type: double precision
+      - name: loymoy_plai
+        data_type: double precision
+      - name: loymoy_plus_av
+        data_type: double precision
+      - name: loymoy_plus_ap
+        data_type: double precision
+      - name: loymoy_pls
+        data_type: double precision
+      - name: loymoy_pli
+        data_type: double precision
+      - name: loymoy_inf_5
+        data_type: double precision
+      - name: loymoy_5_10
+        data_type: double precision
+      - name: loymoy_10_20
+        data_type: double precision
+      - name: loymoy_20_40
+        data_type: double precision
+      - name: loymoy_40_60
+        data_type: double precision
+      - name: loymoy_60_plus
+        data_type: double precision
+      - name: serre_A
+        data_type: bigint
+        quote: true
+      - name: serre_B
+        data_type: bigint
+        quote: true
+      - name: serre_C
+        data_type: bigint
+        quote: true
+      - name: serre_D
+        data_type: bigint
+        quote: true
+      - name: serre_E
+        data_type: bigint
+        quote: true
+      - name: serre_F
+        data_type: bigint
+        quote: true
+      - name: serre_G
+        data_type: bigint
+        quote: true
+      - name: serre_NR
+        data_type: bigint
+        quote: true
+      - name: ener_A
+        data_type: bigint
+        quote: true
+      - name: ener_B
+        data_type: bigint
+        quote: true
+      - name: ener_C
+        data_type: bigint
+        quote: true
+      - name: ener_D
+        data_type: bigint
+        quote: true
+      - name: ener_E
+        data_type: bigint
+        quote: true
+      - name: ener_F
+        data_type: bigint
+        quote: true
+      - name: ener_G
+        data_type: bigint
+        quote: true
+      - name: ener_NR
+        data_type: bigint
+        quote: true
+      - name: ener_A_new
+        data_type: bigint
+        quote: true
+      - name: ener_B_new
+        data_type: bigint
+        quote: true
+      - name: ener_C_new
+        data_type: bigint
+        quote: true
+      - name: ener_D_new
+        data_type: bigint
+        quote: true
+      - name: ener_E_new
+        data_type: bigint
+        quote: true
+      - name: ener_F_new
+        data_type: bigint
+        quote: true
+      - name: ener_G_new
+        data_type: bigint
+        quote: true
+      - name: ener_NR_new
+        data_type: bigint
+        quote: true
+      - name: nb_dpe_realise
+        data_type: bigint
+      - name: perc_dpe_realise
+        data_type: double precision
 
   - name: logement_logements_sociaux_departement
-    description: CSV contenant les logements sociaux par départements
+    description: CSV contenant les logements sociaux déclarés par départements
+    columns:
+      - name: DEP
+        description: Code du département
+        data_type: text
+        quote: true
+      - name: "Unnamed: 1"
+        description: Nom du département
+        data_type: text
+        quote: true
+      - name: nb_loues
+        description: nombre de logements sociaux proposés à la location dans la commune, qui sont loués
+        data_type: double precision
+      - name: nb_vacants
+        description: nombre de logements sociaux proposés à la location dans la commune, qui sont vacants
+        data_type: double precision
+      - name: nb_vides
+        description: nombre de logements sociaux dans la commune, qui sont vides
+        data_type: double precision
+      - name: nb_asso
+        description: nombre de logements sociaux dans la commune, qui sont pris en charge par une association
+        data_type: double precision
+      - name: nb_occup_finan
+        description: nombre de logements sociaux dans la commune, qui sont occupés avec ou sans contrepartie financière
+        data_type: double precision
+      - name: nb_occup_temp
+        description: nombre de logements sociaux dans la commune, qui sont occupés pour de l'hébergement temporaire
+        data_type: double precision
+      - name: nb_ls
+        description: "Ensemble du parc social : nombre total de logements sociaux dans la commune"
+        data_type: bigint
+      - name: parc_non_conv
+        description: Parc non conventionné des SEM
+        data_type: bigint
+      - name: nb_lgt_tot
+        description: Ensemble du parc locatif des bailleurs sociaux
+        data_type: bigint
+      - name: densite
+        description: "Densité pour 100 résidences principales (source : RP 2021)"
+        data_type: double precision
+      - name: nb_ls_en_qpv
+        description: Nombre de logements en QPV
+        data_type: bigint
+      - name: nb_ls_individuels
+        description: nombre de logements sociaux dans la commune en construction individuelle
+        data_type: bigint
+      - name: nb_ls_collectifs
+        description: nombre de logements sociaux dans la commune en construction collective
+        data_type: bigint
+      - name: nb_ls_1piece
+        description: nombre de logements sociaux 1 pièce
+        data_type: bigint
+      - name: nb_ls_2piece
+        description: nombre de logements sociaux 2 pièces
+        data_type: bigint
+      - name: nb_ls_3piece
+        description: nombre de logements sociaux 3 pièces
+        data_type: bigint
+      - name: nb_ls_4piece
+        description: nombre de logements sociaux 4 pièces
+        data_type: bigint
+      - name: nb_ls_5piece_plus
+        description: nombre de logements sociaux 5 pièces et plus
+        data_type: bigint
+      - name: nb_ls_plai
+        data_type: bigint
+      - name: nb_ls_plus_ap_77
+        data_type: bigint
+      - name: nb_ls_plus_av_77
+        data_type: bigint
+      - name: nb_ls_pls
+        data_type: bigint
+      - name: nb_ls_pli
+        data_type: bigint
+      - name: nb_ls2023
+        description: Ensemble du parc social 2023
+        data_type: bigint
+      - name: nb_ls2023.1
+        data_type: bigint
+        quote: true
+      - name: nb_ls2022
+        description: Ensemble du parc social 2022
+        data_type: bigint
+      - name: nb_ls2021
+        description: Ensemble du parc social 2021
+        data_type: bigint
+      - name: nb_ls2020
+        description: Ensemble du parc social 2020
+        data_type: bigint
+      - name: nb_ls2019
+        description: Ensemble du parc social 2019
+        data_type: bigint
+      - name: nb_ls2018
+        description: Ensemble du parc social 2018
+        data_type: bigint
+      - name: nb_ls2017
+        description: Ensemble du parc social 2017
+        data_type: bigint
+      - name: nb_ls2016
+        description: Ensemble du parc social 2016
+        data_type: bigint
+      - name: nb_ls2015
+        description: Ensemble du parc social 2015
+        data_type: bigint
+      - name: nb_ls2014
+        description: Ensemble du parc social 2014
+        data_type: bigint
+      - name: nb_ls2013
+        description: Ensemble du parc social 2013
+        data_type: bigint
+      - name: evol_2023
+        description: Evolution du parc social de 2023 à 2024
+        data_type: double precision
+      - name: evol_2022
+        description: Evolution du parc social de 2022 à 2023
+        data_type: double precision
+      - name: evol_2022.1
+        data_type: double precision
+        quote: true
+      - name: evol_2021
+        description: Evolution du parc social de 2021 à 2022
+        data_type: double precision
+      - name: evol_2020
+        description: Evolution du parc social de 2020 à 2021
+        data_type: double precision
+      - name: evol_2019
+        description: Evolution du parc social de 2019 à 2020
+        data_type: double precision
+      - name: evol_2018
+        description: Evolution du parc social de 2018 à 2019
+        data_type: double precision
+      - name: evol_2017
+        description: Evolution du parc social de 2017 à 2018
+        data_type: double precision
+      - name: evol_2016
+        description: Evolution du parc social de 2016 à 2017
+        data_type: double precision
+      - name: evol_2015
+        description: Evolution du parc social de 2015 à 2016
+        data_type: double precision
+      - name: evol_2014
+        description: Evolution du parc social de 2014 à 2015
+        data_type: double precision
+      - name: evol_2013
+        description: Evolution du parc social de 2013 à 2014
+        data_type: double precision
+      - name: nv_mes
+        description: Mises en service au 1er janvier 2024
+        data_type: bigint
+      - name: nv_mes_2023
+        description: Mises en service au 1er janvier 2023
+        data_type: bigint
+      - name: nv_mes_2023.1
+        data_type: bigint
+        quote: true
+      - name: nv_mes_2022
+        description: Mises en service au 1er janvier 2022
+        data_type: bigint
+      - name: nv_mes_2021
+        description: Mises en service au 1er janvier 2021
+        data_type: bigint
+      - name: nv_mes_2020
+        description: Mises en service au 1er janvier 2020
+        data_type: bigint
+      - name: nv_mes_2019
+        description: Mises en service au 1er janvier 2019
+        data_type: bigint
+      - name: nv_mes_2018
+        description: Mises en service au 1er janvier 2018
+        data_type: bigint
+      - name: nv_mes_2017
+        description: Mises en service au 1er janvier 2017
+        data_type: bigint
+      - name: nv_mes_2016
+        description: Mises en service au 1er janvier 2016
+        data_type: bigint
+      - name: nv_mes_2015
+        description: Mises en service au 1er janvier 2015
+        data_type: bigint
+      - name: nv_mes_2014
+        description: Mises en service au 1er janvier 2014
+        data_type: bigint
+      - name: nv_mes_2013
+        description: Mises en service au 1er janvier 2013
+        data_type: bigint
+      - name: nb_ls_const_org
+        data_type: bigint
+      - name: nb_ls_av_trav
+        data_type: bigint
+      - name: nb_ls_ss_trav
+        data_type: bigint
+      - name: nb_ls_vefa
+        data_type: bigint
+      - name: nb_ls_vendu_occupant
+        data_type: double precision
+      - name: nb_ls_vendu_autre_bailleur
+        data_type: double precision
+      - name: nb_ls_autre_vente
+        data_type: double precision
+      - name: nb_ls_demolition
+        data_type: double precision
+      - name: nb_ls_sortie_autre_motif
+        data_type: double precision
+      - name: nb_ls_chgt_usage
+        data_type: double precision
+      - name: nb_ls_fusion_scission
+        data_type: double precision
+      - name: age
+        description: Age moyen du parc social (année de construction)
+        data_type: double precision
+      - name: age_inf_5
+        data_type: bigint
+      - name: age_5_10
+        data_type: bigint
+      - name: age_10_20
+        data_type: bigint
+      - name: age_20_40
+        data_type: bigint
+      - name: age_40_60
+        data_type: bigint
+      - name: age_60_plus
+        data_type: bigint
+      - name: "2019"
+        data_type: bigint
+        quote: true
+      - name: "2020"
+        data_type: bigint
+        quote: true
+      - name: "2021"
+        data_type: bigint
+        quote: true
+      - name: "2022"
+        data_type: bigint
+        quote: true
+      - name: "2023"
+        data_type: bigint
+        quote: true
+      - name: nb_ls_individuels_recent
+        data_type: bigint
+      - name: nb_ls_collectifs_recent
+        data_type: bigint
+      - name: nb_neuf
+        data_type: bigint
+      - name: nb_ls_1piece_recent
+        data_type: bigint
+      - name: nb_ls_2piece_recent
+        data_type: bigint
+      - name: nb_ls_3piece_recent
+        data_type: bigint
+      - name: nb_ls_4piece_recent
+        data_type: bigint
+      - name: nb_ls_5piece_plus_recent
+        data_type: bigint
+      - name: nb_ls_en_qpv_recent
+        data_type: bigint
+      - name: nb_ls_plai_recent
+        data_type: bigint
+      - name: nb_ls_plus_recent
+        data_type: bigint
+      - name: nb_ls_pls_recent
+        data_type: bigint
+      - name: nb_ls_pli_recent
+        data_type: bigint
+      - name: ener_AB
+        data_type: bigint
+        quote: true
+      - name: serre_AB
+        data_type: bigint
+        quote: true
+      - name: nb_loues_vacant
+        data_type: bigint
+      - name: tx_vac
+        description: Taux de vacance du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_vac_2023
+        description: Taux de vacance du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_vac_2022
+        description: Taux de vacance du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_vac_2021
+        description: Taux de vacance du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_vac_2020
+        description: Taux de vacance du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_vac_2019
+        description: Taux de vacance du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_vac_2018
+        description: Taux de vacance du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_vac_2017
+        description: Taux de vacance du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_vac_2016
+        description: Taux de vacance du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_vac_2015
+        description: Taux de vacance du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_vac_2014
+        description: Taux de vacance du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_vac_2013
+        description: Taux de vacance du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_vac_3_2023
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_vac_3_2022
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_vac_3_2021
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_vac_3_2020
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_vac_3_2019
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_vac_3_2018
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_vac_3_2017
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_vac_3_2016
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_vac_3_2015
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_vac_3_2014
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_vac_3_2013
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: tx_mob
+        description: Taux de mobilité du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_mob_2023
+        description: Taux de mobilité du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_mob_2022
+        description: Taux de mobilité du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_mob_2021
+        description: Taux de mobilité du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_mob_2020
+        description: Taux de mobilité du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_mob_2019
+        description: Taux de mobilité du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_mob_2018
+        description: Taux de mobilité du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_mob_2017
+        description: Taux de mobilité du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_mob_2016
+        description: Taux de mobilité du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_mob_2015
+        description: Taux de mobilité du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_mob_2014
+        description: Taux de mobilité du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_mob_2013
+        description: Taux de mobilité du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: loymoy
+        description: Loyer moyen au mètre carré du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: loymoy_2023
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: loymoy_2023.1
+        data_type: double precision
+        quote: true
+      - name: loymoy_2022
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: loymoy_2021
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: loymoy_2020
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: loymoy_2019
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: loymoy_2018
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: loymoy_2017
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: loymoy_2016
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: loymoy_2015
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: loymoy_2014
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: loymoy_2013
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: evol_loyer2023
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2023 à 2024
+        data_type: double precision
+      - name: evol_loyer2022
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2022 à 2023
+        data_type: double precision
+      - name: evol_loyer2022.1
+        data_type: double precision
+        quote: true
+      - name: evol_loyer2021
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2021 à 2022
+        data_type: double precision
+      - name: evol_loyer2020
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2020 à 2021
+        data_type: double precision
+      - name: evol_loyer2019
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2019 à 2020
+        data_type: double precision
+      - name: evol_loyer2018
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2018 à 2019
+        data_type: double precision
+      - name: evol_loyer2017
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2017 à 2018
+        data_type: double precision
+      - name: evol_loyer2016
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2016 à 2017
+        data_type: double precision
+      - name: evol_loyer2015
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2015 à 2016
+        data_type: double precision
+      - name: evol_loyer2014
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2014 à 2015
+        data_type: double precision
+      - name: evol_loyer2013
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2013 à 2014
+        data_type: double precision
+      - name: loymoy_q2
+        data_type: double precision
+      - name: loymoy_q4
+        data_type: double precision
+      - name: loymoy_r
+        data_type: double precision
+      - name: loymoy_plai
+        data_type: double precision
+      - name: loymoy_plus_av
+        data_type: double precision
+      - name: loymoy_plus_ap
+        data_type: double precision
+      - name: loymoy_pls
+        data_type: double precision
+      - name: loymoy_pli
+        data_type: double precision
+      - name: loymoy_inf_5
+        data_type: double precision
+      - name: loymoy_5_10
+        data_type: double precision
+      - name: loymoy_10_20
+        data_type: double precision
+      - name: loymoy_20_40
+        data_type: double precision
+      - name: loymoy_40_60
+        data_type: double precision
+      - name: loymoy_60_plus
+        data_type: double precision
+      - name: serre_A
+        data_type: bigint
+        quote: true
+      - name: serre_B
+        data_type: bigint
+        quote: true
+      - name: serre_C
+        data_type: bigint
+        quote: true
+      - name: serre_D
+        data_type: bigint
+        quote: true
+      - name: serre_E
+        data_type: bigint
+        quote: true
+      - name: serre_F
+        data_type: bigint
+        quote: true
+      - name: serre_G
+        data_type: bigint
+        quote: true
+      - name: serre_NR
+        data_type: bigint
+        quote: true
+      - name: ener_A
+        data_type: bigint
+        quote: true
+      - name: ener_B
+        data_type: bigint
+        quote: true
+      - name: ener_C
+        data_type: bigint
+        quote: true
+      - name: ener_D
+        data_type: bigint
+        quote: true
+      - name: ener_E
+        data_type: bigint
+        quote: true
+      - name: ener_F
+        data_type: bigint
+        quote: true
+      - name: ener_G
+        data_type: bigint
+        quote: true
+      - name: ener_NR
+        data_type: bigint
+        quote: true
+      - name: ener_A_new
+        data_type: bigint
+        quote: true
+      - name: ener_B_new
+        data_type: bigint
+        quote: true
+      - name: ener_C_new
+        data_type: bigint
+        quote: true
+      - name: ener_D_new
+        data_type: bigint
+        quote: true
+      - name: ener_E_new
+        data_type: bigint
+        quote: true
+      - name: ener_F_new
+        data_type: bigint
+        quote: true
+      - name: ener_G_new
+        data_type: bigint
+        quote: true
+      - name: ener_NR_new
+        data_type: bigint
+        quote: true
+      - name: nb_dpe_realise
+        data_type: bigint
+      - name: perc_dpe_realise
+        data_type: double precision
 
   - name: logement_logements_sociaux_region
-    description: CSV contenant les logements sociaux par régions
+    description: CSV contenant les logements sociaux déclarés par régions
+    columns:
+      - name: REG
+        description: Code de la région
+        data_type: bigint
+        quote: true
+      - name: LIBREG
+        description: Nom de la région
+        data_type: text
+        quote: true
+      - name: nb_loues
+        description: nombre de logements sociaux proposés à la location dans la commune, qui sont loués
+        data_type: double precision
+      - name: nb_vacants
+        description: nombre de logements sociaux proposés à la location dans la commune, qui sont vacants
+        data_type: double precision
+      - name: nb_vides
+        description: nombre de logements sociaux dans la commune, qui sont vides
+        data_type: double precision
+      - name: nb_asso
+        description: nombre de logements sociaux dans la commune, qui sont pris en charge par une association
+        data_type: double precision
+      - name: nb_occup_finan
+        description: nombre de logements sociaux dans la commune, qui sont occupés avec ou sans contrepartie financière
+        data_type: double precision
+      - name: nb_occup_temp
+        description: nombre de logements sociaux dans la commune, qui sont occupés pour de l'hébergement temporaire
+        data_type: double precision
+      - name: nb_ls
+        description: "Ensemble du parc social : nombre total de logements sociaux dans la commune"
+        data_type: bigint
+      - name: parc_non_conv
+        description: Parc non conventionné des SEM
+        data_type: bigint
+      - name: nb_lgt_tot
+        description: Ensemble du parc locatif des bailleurs sociaux
+        data_type: bigint
+      - name: densite
+        description: "Densité pour 100 résidences principales (source : RP 2021)"
+        data_type: double precision
+      - name: nb_ls_en_qpv
+        description: Nombre de logements en QPV
+        data_type: bigint
+      - name: nb_ls_individuels
+        description: nombre de logements sociaux dans la commune en construction individuelle
+        data_type: bigint
+      - name: nb_ls_collectifs
+        description: nombre de logements sociaux dans la commune en construction collective
+        data_type: bigint
+      - name: nb_ls_1piece
+        description: nombre de logements sociaux 1 pièce
+        data_type: bigint
+      - name: nb_ls_2piece
+        description: nombre de logements sociaux 2 pièces
+        data_type: bigint
+      - name: nb_ls_3piece
+        description: nombre de logements sociaux 3 pièces
+        data_type: bigint
+      - name: nb_ls_4piece
+        description: nombre de logements sociaux 4 pièces
+        data_type: bigint
+      - name: nb_ls_5piece_plus
+        description: nombre de logements sociaux 5 pièces et plus
+        data_type: bigint
+      - name: nb_ls_plai
+        data_type: bigint
+      - name: nb_ls_plus_ap_77
+        data_type: bigint
+      - name: nb_ls_plus_av_77
+        data_type: bigint
+      - name: nb_ls_pls
+        data_type: bigint
+      - name: nb_ls_pli
+        data_type: bigint
+      - name: nb_ls2023
+        description: Ensemble du parc social 2023
+        data_type: bigint
+      - name: nb_ls2023.1
+        data_type: bigint
+        quote: true
+      - name: nb_ls2022
+        description: Ensemble du parc social 2022
+        data_type: bigint
+      - name: nb_ls2021
+        description: Ensemble du parc social 2021
+        data_type: bigint
+      - name: nb_ls2020
+        description: Ensemble du parc social 2020
+        data_type: bigint
+      - name: nb_ls2019
+        description: Ensemble du parc social 2019
+        data_type: bigint
+      - name: nb_ls2018
+        description: Ensemble du parc social 2018
+        data_type: bigint
+      - name: nb_ls2017
+        description: Ensemble du parc social 2017
+        data_type: bigint
+      - name: nb_ls2016
+        description: Ensemble du parc social 2016
+        data_type: bigint
+      - name: nb_ls2015
+        description: Ensemble du parc social 2015
+        data_type: bigint
+      - name: nb_ls2014
+        description: Ensemble du parc social 2014
+        data_type: bigint
+      - name: nb_ls2013
+        description: Ensemble du parc social 2013
+        data_type: bigint
+      - name: evol_2023
+        description: Evolution du parc social de 2023 à 2024
+        data_type: double precision
+      - name: evol_2022
+        description: Evolution du parc social de 2022 à 2023
+        data_type: double precision
+      - name: evol_2022.1
+        data_type: double precision
+        quote: true
+      - name: evol_2021
+        description: Evolution du parc social de 2021 à 2022
+        data_type: double precision
+      - name: evol_2020
+        description: Evolution du parc social de 2020 à 2021
+        data_type: double precision
+      - name: evol_2019
+        description: Evolution du parc social de 2019 à 2020
+        data_type: double precision
+      - name: evol_2018
+        description: Evolution du parc social de 2018 à 2019
+        data_type: double precision
+      - name: evol_2017
+        description: Evolution du parc social de 2017 à 2018
+        data_type: double precision
+      - name: evol_2016
+        description: Evolution du parc social de 2016 à 2017
+        data_type: double precision
+      - name: evol_2015
+        description: Evolution du parc social de 2015 à 2016
+        data_type: double precision
+      - name: evol_2014
+        description: Evolution du parc social de 2014 à 2015
+        data_type: double precision
+      - name: evol_2013
+        description: Evolution du parc social de 2013 à 2014
+        data_type: double precision
+      - name: nv_mes
+        description: Mises en service au 1er janvier 2024
+        data_type: bigint
+      - name: nv_mes_2023
+        description: Mises en service au 1er janvier 2023
+        data_type: bigint
+      - name: nv_mes_2023.1
+        data_type: bigint
+        quote: true
+      - name: nv_mes_2022
+        description: Mises en service au 1er janvier 2022
+        data_type: bigint
+      - name: nv_mes_2021
+        description: Mises en service au 1er janvier 2021
+        data_type: bigint
+      - name: nv_mes_2020
+        description: Mises en service au 1er janvier 2020
+        data_type: bigint
+      - name: nv_mes_2019
+        description: Mises en service au 1er janvier 2019
+        data_type: bigint
+      - name: nv_mes_2018
+        description: Mises en service au 1er janvier 2018
+        data_type: bigint
+      - name: nv_mes_2017
+        description: Mises en service au 1er janvier 2017
+        data_type: bigint
+      - name: nv_mes_2016
+        description: Mises en service au 1er janvier 2016
+        data_type: bigint
+      - name: nv_mes_2015
+        description: Mises en service au 1er janvier 2015
+        data_type: bigint
+      - name: nv_mes_2014
+        description: Mises en service au 1er janvier 2014
+        data_type: bigint
+      - name: nv_mes_2013
+        description: Mises en service au 1er janvier 2013
+        data_type: bigint
+      - name: nb_ls_const_org
+        data_type: bigint
+      - name: nb_ls_av_trav
+        data_type: bigint
+      - name: nb_ls_ss_trav
+        data_type: bigint
+      - name: nb_ls_vefa
+        data_type: bigint
+      - name: nb_ls_vendu_occupant
+        data_type: double precision
+      - name: nb_ls_vendu_autre_bailleur
+        data_type: double precision
+      - name: nb_ls_autre_vente
+        data_type: double precision
+      - name: nb_ls_demolition
+        data_type: double precision
+      - name: nb_ls_sortie_autre_motif
+        data_type: double precision
+      - name: nb_ls_chgt_usage
+        data_type: double precision
+      - name: nb_ls_fusion_scission
+        data_type: double precision
+      - name: age
+        description: Age moyen du parc social (année de construction)
+        data_type: double precision
+      - name: age_inf_5
+        data_type: bigint
+      - name: age_5_10
+        data_type: bigint
+      - name: age_10_20
+        data_type: bigint
+      - name: age_20_40
+        data_type: bigint
+      - name: age_40_60
+        data_type: bigint
+      - name: age_60_plus
+        data_type: bigint
+      - name: "2019"
+        data_type: bigint
+        quote: true
+      - name: "2020"
+        data_type: bigint
+        quote: true
+      - name: "2021"
+        data_type: bigint
+        quote: true
+      - name: "2022"
+        data_type: bigint
+        quote: true
+      - name: "2023"
+        data_type: bigint
+        quote: true
+      - name: nb_ls_individuels_recent
+        data_type: bigint
+      - name: nb_ls_collectifs_recent
+        data_type: bigint
+      - name: nb_neuf
+        data_type: bigint
+      - name: nb_ls_1piece_recent
+        data_type: bigint
+      - name: nb_ls_2piece_recent
+        data_type: bigint
+      - name: nb_ls_3piece_recent
+        data_type: bigint
+      - name: nb_ls_4piece_recent
+        data_type: bigint
+      - name: nb_ls_5piece_plus_recent
+        data_type: bigint
+      - name: nb_ls_en_qpv_recent
+        data_type: bigint
+      - name: nb_ls_plai_recent
+        data_type: bigint
+      - name: nb_ls_plus_recent
+        data_type: bigint
+      - name: nb_ls_pls_recent
+        data_type: bigint
+      - name: nb_ls_pli_recent
+        data_type: bigint
+      - name: ener_AB
+        data_type: bigint
+        quote: true
+      - name: serre_AB
+        data_type: bigint
+        quote: true
+      - name: nb_loues_vacant
+        data_type: bigint
+      - name: tx_vac
+        description: Taux de vacance du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_vac_2023
+        description: Taux de vacance du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_vac_2022
+        description: Taux de vacance du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_vac_2021
+        description: Taux de vacance du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_vac_2020
+        description: Taux de vacance du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_vac_2019
+        description: Taux de vacance du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_vac_2018
+        description: Taux de vacance du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_vac_2017
+        description: Taux de vacance du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_vac_2016
+        description: Taux de vacance du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_vac_2015
+        description: Taux de vacance du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_vac_2014
+        description: Taux de vacance du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_vac_2013
+        description: Taux de vacance du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_vac_3_2023
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_vac_3_2022
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_vac_3_2021
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_vac_3_2020
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_vac_3_2019
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_vac_3_2018
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_vac_3_2017
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_vac_3_2016
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_vac_3_2015
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_vac_3_2014
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_vac_3_2013
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: tx_mob
+        description: Taux de mobilité du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: tx_mob_2023
+        description: Taux de mobilité du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: tx_mob_2022
+        description: Taux de mobilité du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: tx_mob_2021
+        description: Taux de mobilité du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: tx_mob_2020
+        description: Taux de mobilité du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: tx_mob_2019
+        description: Taux de mobilité du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: tx_mob_2018
+        description: Taux de mobilité du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: tx_mob_2017
+        description: Taux de mobilité du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: tx_mob_2016
+        description: Taux de mobilité du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: tx_mob_2015
+        description: Taux de mobilité du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: tx_mob_2014
+        description: Taux de mobilité du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: tx_mob_2013
+        description: Taux de mobilité du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: loymoy
+        description: Loyer moyen au mètre carré du parc social au 1er janvier de la dernière année
+        data_type: double precision
+      - name: loymoy_2023
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2023
+        data_type: double precision
+      - name: loymoy_2023.1
+        data_type: double precision
+        quote: true
+      - name: loymoy_2022
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2022
+        data_type: double precision
+      - name: loymoy_2021
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2021
+        data_type: double precision
+      - name: loymoy_2020
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2020
+        data_type: double precision
+      - name: loymoy_2019
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2019
+        data_type: double precision
+      - name: loymoy_2018
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2018
+        data_type: double precision
+      - name: loymoy_2017
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2017
+        data_type: double precision
+      - name: loymoy_2016
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2016
+        data_type: double precision
+      - name: loymoy_2015
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2015
+        data_type: double precision
+      - name: loymoy_2014
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2014
+        data_type: double precision
+      - name: loymoy_2013
+        description: Loyer moyen au mètre carré du parc social au 1er janvier 2013
+        data_type: double precision
+      - name: evol_loyer2023
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2023 à 2024
+        data_type: double precision
+      - name: evol_loyer2022
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2022 à 2023
+        data_type: double precision
+      - name: evol_loyer2022.1
+        data_type: double precision
+        quote: true
+      - name: evol_loyer2021
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2021 à 2022
+        data_type: double precision
+      - name: evol_loyer2020
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2020 à 2021
+        data_type: double precision
+      - name: evol_loyer2019
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2019 à 2020
+        data_type: double precision
+      - name: evol_loyer2018
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2018 à 2019
+        data_type: double precision
+      - name: evol_loyer2017
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2017 à 2018
+        data_type: double precision
+      - name: evol_loyer2016
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2016 à 2017
+        data_type: double precision
+      - name: evol_loyer2015
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2015 à 2016
+        data_type: double precision
+      - name: evol_loyer2014
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2014 à 2015
+        data_type: double precision
+      - name: evol_loyer2013
+        description: Evolution du loyer moyen au mètre carré du parc social de l'année 2013 à 2014
+        data_type: double precision
+      - name: loymoy_q2
+        data_type: double precision
+      - name: loymoy_q4
+        data_type: double precision
+      - name: loymoy_r
+        data_type: double precision
+      - name: loymoy_plai
+        data_type: double precision
+      - name: loymoy_plus_av
+        data_type: double precision
+      - name: loymoy_plus_ap
+        data_type: double precision
+      - name: loymoy_pls
+        data_type: double precision
+      - name: loymoy_pli
+        data_type: double precision
+      - name: loymoy_inf_5
+        data_type: double precision
+      - name: loymoy_5_10
+        data_type: double precision
+      - name: loymoy_10_20
+        data_type: double precision
+      - name: loymoy_20_40
+        data_type: double precision
+      - name: loymoy_40_60
+        data_type: double precision
+      - name: loymoy_60_plus
+        data_type: double precision
+      - name: serre_A
+        data_type: bigint
+        quote: true
+      - name: serre_B
+        data_type: bigint
+        quote: true
+      - name: serre_C
+        data_type: bigint
+        quote: true
+      - name: serre_D
+        data_type: bigint
+        quote: true
+      - name: serre_E
+        data_type: bigint
+        quote: true
+      - name: serre_F
+        data_type: bigint
+        quote: true
+      - name: serre_G
+        data_type: bigint
+        quote: true
+      - name: serre_NR
+        data_type: bigint
+        quote: true
+      - name: ener_A
+        data_type: bigint
+        quote: true
+      - name: ener_B
+        data_type: bigint
+        quote: true
+      - name: ener_C
+        data_type: bigint
+        quote: true
+      - name: ener_D
+        data_type: bigint
+        quote: true
+      - name: ener_E
+        data_type: bigint
+        quote: true
+      - name: ener_F
+        data_type: bigint
+        quote: true
+      - name: ener_G
+        data_type: bigint
+        quote: true
+      - name: ener_NR
+        data_type: bigint
+        quote: true
+      - name: ener_A_new
+        data_type: bigint
+        quote: true
+      - name: ener_B_new
+        data_type: bigint
+        quote: true
+      - name: ener_C_new
+        data_type: bigint
+        quote: true
+      - name: ener_D_new
+        data_type: bigint
+        quote: true
+      - name: ener_E_new
+        data_type: bigint
+        quote: true
+      - name: ener_F_new
+        data_type: bigint
+        quote: true
+      - name: ener_G_new
+        data_type: bigint
+        quote: true
+      - name: ener_NR_new
+        data_type: bigint
+        quote: true
+      - name: nb_dpe_realise
+        data_type: bigint
+      - name: perc_dpe_realise
+        data_type: double precision
 
   # Services
   - name: services_services
