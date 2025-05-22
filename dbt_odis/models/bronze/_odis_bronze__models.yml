@@ -781,6 +781,179 @@ models:
         data_type: timestamp without time zone
         description: date d'extraction de la donnée
 
+  - name: emploi_eff_prive_gds_secteurs
+    description: Effectifs salariés du secteur privé par grands secteurs, granularité fine au code APE
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: region
+        description: Nom de la région rattachée
+        data_type: text
+      - name: ancienne_region
+        data_type: text
+      - name: departement
+        description: Nom du département rattaché
+        data_type: text
+      - name: zone_d_emploi
+        description: Nom de la zone d'emploi rattachée
+        data_type: text
+      - name: epci
+        description: Nom de l'EPCI rattachée
+        data_type: text
+      - name: commune
+        description: Nom de la commune rattachée
+        data_type: text
+      - name: intitule_commune
+        description: Code INSEE et nom de la commune rattachée
+        data_type: text
+      - name: grand_secteur_d_activite
+        description: Classification et description du grand secteur d'activité
+        data_type: text
+      - name: secteur_na17
+        description: Classification des secteurs d'activité, niveau français intermédiaire entre les niveaux A 10 et A 38
+        data_type: text
+      - name: secteur_na38
+        description: Classification des secteurs d'activité, niveau international, intermédiaire entre sections et divisions
+        data_type: text
+      - name: secteur_na88
+        description: Classification des sous-secteurs d'activité, divisions, niveau standard de l'arborescence de la NAF révision 2
+        data_type: text
+      - name: ape
+        description: Classification des sous divisions des secteurs d'activité, niveau code APE
+        data_type: text
+      - name: code_region
+        description: Code de la région rattachée
+        data_type: text
+      - name: code_ancienne_region
+        data_type: text
+      - name: code_departement
+        description: Code du département rattaché
+        data_type: text
+      - name: code_zone_d_emploi
+        description: Code de la zone d'emploi rattachée
+        data_type: text
+      - name: code_epci
+        description: Code de l'EPCI rattachée
+        data_type: text
+      - name: code_commune
+        description: Code de la commune rattachée
+        data_type: text
+      - name: code_ape
+        description: Code APE
+        data_type: text
+      - name: nombre_d_etablissements_2006
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2006
+        data_type: text
+      - name: effectifs_salaries_2006
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2006
+        data_type: text
+      - name: nombre_d_etablissements_2007
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2007
+        data_type: text
+      - name: effectifs_salaries_2007
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2007
+        data_type: text
+      - name: nombre_d_etablissements_2008
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2008
+        data_type: text
+      - name: effectifs_salaries_2008
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2008
+        data_type: text
+      - name: nombre_d_etablissements_2009
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2009
+        data_type: text
+      - name: effectifs_salaries_2009
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2009
+        data_type: text
+      - name: nombre_d_etablissements_2010
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2010
+        data_type: text
+      - name: effectifs_salaries_2010
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2010
+        data_type: text
+      - name: nombre_d_etablissements_2011
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2011
+        data_type: text
+      - name: effectifs_salaries_2011
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2011
+        data_type: text
+      - name: nombre_d_etablissements_2012
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2012
+        data_type: text
+      - name: effectifs_salaries_2012
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2012
+        data_type: text
+      - name: nombre_d_etablissements_2013
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2013
+        data_type: text
+      - name: effectifs_salaries_2013
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2013
+        data_type: text
+      - name: nombre_d_etablissements_2014
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2014
+        data_type: text
+      - name: effectifs_salaries_2014
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2014
+        data_type: text
+      - name: nombre_d_etablissements_2015
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2015
+        data_type: text
+      - name: effectifs_salaries_2015
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2015
+        data_type: text
+      - name: nombre_d_etablissements_2016
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2016
+        data_type: text
+      - name: effectifs_salaries_2016
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2016
+        data_type: text
+      - name: nombre_d_etablissements_2017
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2017
+        data_type: text
+      - name: effectifs_salaries_2017
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2017
+        data_type: text
+      - name: nombre_d_etablissements_2018
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2018
+        data_type: text
+      - name: effectifs_salaries_2018
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2018
+        data_type: text
+      - name: nombre_d_etablissements_2019
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2019
+        data_type: text
+      - name: effectifs_salaries_2019
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2019
+        data_type: text
+      - name: nombre_d_etablissements_2020
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2020
+        data_type: text
+      - name: effectifs_salaries_2020
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2020
+        data_type: text
+      - name: nombre_d_etablissements_2021
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2021
+        data_type: text
+      - name: effectifs_salaries_2021
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2021
+        data_type: text
+      - name: nombre_d_etablissements_2022
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2022
+        data_type: text
+      - name: effectifs_salaries_2022
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2022
+        data_type: text
+      - name: nombre_d_etablissements_2023
+        description: Nombre d'établissements pour un code APE dans la commune, pour l'année 2023
+        data_type: text
+      - name: effectifs_salaries_2023
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour l'année 2023
+        data_type: text
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
   # Geographical references
   - name: geographical_references_communes
     description: Extraction du JSON source geographical references par commune, granularité fine au niveau du code INSEE (unique) de la commune
