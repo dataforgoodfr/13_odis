@@ -250,7 +250,7 @@ def compute_odis_score(df,scores_cat, prefs):
     add_distance_to_current_loc(odis, current_codgeo=prefs['commune_actuelle'])
 
     # We compute the subject specific scores
-    scores_cat_subject = compute_subject_specific_scores(odis, scores_cat=scores_cat, subject_pref=prefs)
+    scores_cat = compute_subject_specific_scores(odis, scores_cat=scores_cat, subject_pref=prefs)
     
     # We filter by distance to reduce the compute cost on a smaller odis_search dataframe
     odis_search = filter_loc_by_distance(odis, distance=prefs['loc_distance_km'])
@@ -259,7 +259,7 @@ def compute_odis_score(df,scores_cat, prefs):
     odis_exploded = adding_score_voisins(odis_search, odis)
 
     # We compute the category scores for both the target and the binome
-    odis_exploded = compute_cat_scores(odis_exploded, scores_cat=scores_cat_subject)
+    odis_exploded = compute_cat_scores(odis_exploded, scores_cat=scores_cat)
     
     # We provide the scores columns as a parameter to compute faster
     #scores_col = [col for col in odis_exploded.columns if col.endswith('_cat_score')]
@@ -274,8 +274,8 @@ def compute_odis_score(df,scores_cat, prefs):
     # We keep best monome or binome for each commune 
     odis_search_best = best_score_compute(odis_exploded)
 
-    return odis_search_best
-def produce_pitch(df):
+    return odis_search_best, scores_cat
+def produce_pitch(df, scores_cat):
     pitch_lines = []
     pitch_lines += [df.loc['libgeo'] +'dans l\'EPCI: '+ df.loc['epci_nom']]
     pitch_lines += ['Le score est de: '+str(df.loc['weighted_score'])]
@@ -291,6 +291,11 @@ def produce_pitch(df):
     crit_scores_col = [col for col in df.index if '_scaled' in col]#col.endswith('_scaled')]
     df_sorted=df[crit_scores_col].dropna().sort_values(ascending=False)
     for i in range(0, 5):
+        # print(df_sorted.index[i])
+        # if df_sorted.index[i].endswith('binome'):
+        #     nom_critere = scores_cat.loc[df_sorted.index[i][:-7]]['score_name']
+        # else:
+        #     nom_critere = scores_cat.loc[df_sorted.index[i]]['score_name']
         pitch_lines += ['Le critère #'+str(i+1)+' est: '+df_sorted.index[i]+' avec un score de: '+str(df_sorted.iloc[i])]
 
     #Adding the matching job families if any
