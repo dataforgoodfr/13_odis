@@ -1,5 +1,17 @@
-#TEST GITHUB FROM CHROMEBOOK
+#TODO
+# Add Rank on map
+# Auto Zoom
+# Show Schools
 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import geopandas as gpd
+from scipy import stats
+import shapely as shp
+from shapely.wkt import loads
+from shapely.geometry import Polygon
+from sklearn import preprocessing
 
 # Streamlit App
 import streamlit as st
@@ -7,14 +19,72 @@ import streamlit.components.v1 as components
 import folium as flm
 from streamlit_folium import folium_static, st_folium
 from branca.colormap import linear
-
-# Executing the original Notebook with all the functions and ground work to get the Odis Dataframe
-#st.toast("loading dataset...")
-exec(open("./jacques-scoring.py").read())
- 
+from odisscoring import compute_odis_score, produce_pitch
 
 st.set_page_config(layout="wide", page_title='Odis Stream2 Prototype')
-st.sidebar.write("Odis App")
+
+# Executing the original Notebook with all the functions and ground work to get the Odis Dataframe
+
+
+# setting up all the session_states
+# Fetched Datasets
+if "odis" not in st.session_state:
+    st.session_state["odis"] = None
+if "codfap_index" not in st.session_state:
+    st.session_state["codfap_index"] = None
+if "codformations_index" not in st.session_state:
+    st.session_state["codformations_index"] = None
+if "annuaire_ecoles" not in st.session_state:
+    st.session_state["annuaire_ecoles"] = None
+if "scores_cat" not in st.session_state:
+    st.session_state["scores_cat"] = None
+
+# Local variables
+if "context_set" not in st.session_state:
+    st.session_state["context_set"] = False
+if "prefs_set" not in st.session_state:
+    st.session_state["prefs_set"] = False
+if "prefs" not in st.session_state:
+    st.session_state["prefs"] = None
+if "processed_gdf" not in st.session_state:
+    st.session_state["processed_gdf"] = None
+if "selected_geo" not in st.session_state:
+    st.session_state["selected_geo"] = None
+if "fg_list" not in st.session_state:
+    st.session_state["fg_list"] = "Scores+top1"
+if 'ecoles_academie' not in st.session_state:
+    st.session_state['ecoles_academie'] = None
+
+st.sidebar.write("Odis Stream #2 Prototype App")
+
+def load_results(): 
+    # We reset some states
+    st.session_state['prefs'] = prefs
+    st.session_state["selected_geo"] = None
+    st.session_state["selected_binome"] = None
+    st.session_state["fg_list"] = "Scores+top1"
+    # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
+    st.toast('Scoring, please wait...')
+    st.session_state["processed_gdf"] = compute_odis_score(odis, scores_cat, prefs).sort_values('weighted_score', ascending=False).reset_index(drop=True)
+    st.session_state["processed_gdf"].to_crs(epsg=4326, inplace=True)
+    st.session_state["selected_geo"] = st.session_state["processed_gdf"][st.session_state["processed_gdf"].codgeo == st.session_state['prefs']['commune_actuelle']]
+
+
+#Avoid reloding the notebook all the time
+if st.session_state["odis"] is None:
+    exec(open("./jacques-scoring.py").read()) 
+    st.session_state["odis"] = odis
+    st.session_state["codfap_index"] = codfap_index
+    st.session_state["codformations_index"] = codformations_index
+    st.session_state["annuaire_ecoles"] = annuaire_ecoles
+    st.session_state["scores_cat"] = scores_cat
+    st.toast("Dateset loaded...")
+else:
+    odis = st.session_state["odis"]
+    codfap_index = st.session_state["codfap_index"]
+    codformations_index = st.session_state["codformations_index"]
+    annuaire_ecoles = st.session_state["annuaire_ecoles"]
+    scores_cat = st.session_state["scores_cat"]
 
 # Subject preferences weighted score computation
 #with st.sidebar.form("preferences", border=False):
@@ -23,25 +93,25 @@ st.sidebar.write("Odis App")
 with st.sidebar:
     #Mobilité
     departements = sorted(set(odis['dep_code']))
-    departement_actuel = st.sidebar.selectbox("Département", departements, index=departements.index('33'))
+    departement_actuel = st.selectbox("Département", departements, index=departements.index('33'))
     communes = sorted(set(odis[odis.dep_code==departement_actuel]['libgeo']))
-    commune_actuelle = st.sidebar.selectbox("Commune", communes, index=communes.index('Bordeaux'))
+    commune_actuelle = st.selectbox("Commune", communes)
     commune_codgeo = odis[(odis.dep_code==departement_actuel) & (odis.libgeo==commune_actuelle)].codgeo.item()
-    loc_distance_km = st.sidebar.select_slider("Distance Max Relocalisation", range(0,51), value=5)
+    loc_distance_km = st.select_slider("Distance Max Relocalisation", range(0,51), value=5)
 
     #Foyer
-    nb_adultes = st.sidebar.select_slider("Nombre d'adultes", range(1,3), value=1)
-    nb_enfants = st.sidebar.select_slider("Nombre d'enfants", range(0,6), value=1)
+    nb_adultes = st.select_slider("Nombre d'adultes", range(1,3), value=1)
+    nb_enfants = st.select_slider("Nombre d'enfants", range(0,6), value=1)
 
     #Poids
-    with st.sidebar.expander("Pondérations", expanded=False):
+    with st.expander("Pondérations", expanded=False):
         poids_emploi = st.select_slider("Pondération Emploi", range(0,5), value=1)
         poids_logement = st.select_slider("Pondération Logement", range(0,5), value=1)
         poids_education = st.select_slider("Pondération Education", range(0,5), value=1)
         poids_soutien = st.select_slider("Pondération Soutien", range(0,5), value=1)
         poids_mobilité = st.select_slider("Pondération Mobilité", range(0,5), value=1)
         penalite_binome = st.select_slider("Décote binôme %", range(0,101), value=25) / 100
-
+    
 #Top filter container
 with st.container(border=False):
     col_emploi, col_formation, col_logement, col_edu, col_sante = st.columns(5)
@@ -82,8 +152,12 @@ with st.container(border=False):
         with st.popover("Santé", use_container_width=True):
             st.radio('upport médical à proximité',["Hopital", 'Maternité', "Centre Addictions"])
 
-#Bouton Pour lancer le scoring + affichage de la carte
-submitted = st.button("Afficher la carte")
+    #Bouton Pour lancer le scoring + affichage de la carte
+    # Bouton Afficher la Carte
+    if st.session_state["processed_gdf"] is None:
+        st.button("Afficher la carte", on_click=load_results)
+    else:
+        st.button("Mettre à jour la carte", on_click=load_results)
 
 prefs = {
     'emploi':poids_emploi,
@@ -111,178 +185,179 @@ prefs = {
     'binome_penalty':penalite_binome
 }
 
-if "data_processed" not in st.session_state:
-    st.session_state["data_processed"] = False
-if "processed_gdf" not in st.session_state:
-    st.session_state["processed_gdf"] = None
-if "folium_map_object" not in st.session_state:
-    st.session_state["folium_map_object"] = None
-if "selected_geo" not in st.session_state:
-    st.session_state["selected_geo"] = None
-if "afficher_commune" not in st.session_state:
-    st.session_state["afficher_commune"] = False
-if "commune_json" not in st.session_state:
-    st.session_state["commune_json"] = None
 
-if submitted: #st.button("Afficher la carte"):
-    st.session_state["data_processed"] = False
-    st.session_state["folium_map_object"] = None
-    st.session_state["selected_geo"] = None
-    st.session_state["selected_binome"] = None
-    st.session_state['afficher_commune'] = False
-    st.session_state['commune_json'] = None
+#First let set the styles of each type of items 
+def styling_communes(feature, style):
+    score_weights_dict = st.session_state["processed_gdf"].set_index("codgeo")["weighted_score"]
+    colormap = linear.YlGn_09.scale(st.session_state["processed_gdf"]['weighted_score'].min(), st.session_state["processed_gdf"]['weighted_score'].max())
     
-    # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
-    st.session_state["processed_gdf"] = compute_odis_score(odis, scores_cat=scores_cat, prefs=prefs).sort_values('weighted_score', ascending=False).reset_index(drop=True)
-
-def add_commune_to_map(df, geometry, fg, style):
-    # commune = gpd.GeoDataFrame(df, geometry=geometry).set_crs(epsg=4326)
-    commune_json = flm.GeoJson(data=df, style_function=lambda _x: style)
-    fg.add_child(commune_json)
-
-def draw_folium_map(df, fg):
-    df.to_crs(epsg=4326, inplace=True) #4326
-    score_weights_dict = df.set_index("codgeo")["weighted_score"]
-    colormap = linear.YlGn_09.scale(
-        df['weighted_score'].min(), df['weighted_score'].max()
-    )
-    m = flm.Map(location=[lat,lon], zoom_start=10)
-    communes = gpd.GeoDataFrame(df[['codgeo','polygon','weighted_score']])
-    communes_json = flm.GeoJson(data=communes, style_function=lambda feature: {"stroke":False, "fillOpacity":0.8, "fillColor": colormap(score_weights_dict[feature["properties"]['codgeo']])})
-    fg.add_child(communes)
-    #communes_json.add_to(m)
-
-# Main 2 sections with results and map
-col_results, col_map = st.columns(2)
-with col_results:
-    st.header("Meilleurs résultats")
-    if st.session_state["processed_gdf"] is not None:
-        for index, row in st.session_state["processed_gdf"].head(5).iterrows():
-            if row.binome:
-                title = "Top " + str(index+1) + ': '+row.libgeo+' (en binôme avec '+row.libgeo_binome+')'
-            else:
-                title = "Top " + str(index+1) + ': '+row.libgeo+' (seule)'
-            with st.expander(title, expanded=False):
-                #st.button("Afficher Top"+str(index+1),on_click=add_commune_on_map, kwargs={'row_index':index}, type='tertiary')
-                pitch=produce_pitch(row)
-                for row in pitch:
-                    st.write(row)
-        
-
-with col_map:
-    st.header("Carte Interactive")
-
-    if st.session_state["processed_gdf"] is not None:
-        # we have scoring results let's draw the the map
-        
-        style_score = {
-            "fillColor": "#1100f8",
-            "color": "#1100f8",
-            "fillOpacity": 0.13,
-            "weight": 2,
+    if style == 'style_score':
+        style_to_use = {
+            #"fillColor": "#1100f8",
+            "fillColor": colormap(score_weights_dict[feature["properties"]['codgeo']]),
+            "color": "#535353",
+            "fillOpacity": 0.8,
+            "weight": 1,
         }
-        style_target = {
-            "color": "#ff3939",
+    if style == 'style_target':
+        style_to_use = {
+            "color": "red",
             "fillOpacity": 0,
             "weight": 3,
             "opacity": 1,
+            "html":'<div style="width: 10px;height: 10px;border: 1px solid black;border-radius: 5px;background-color: orange;">1</div>'
+            # html='<div style="font-size: 24pt">%s</div>' % text,
         }
 
-        style_binome = {
-            "color": "#ff3939",
+    if style == 'style_binome':
+        style_to_use = {
+            "color": "red",
             "fillOpacity": 0,
-            "weight": 3,
-            "opacity": 0.5,
+            "weight": 2,
+            "opacity": 1,
             "dashArray": "5, 5",
         }
-        
-        #base map
-        st.session_state["processed_gdf"].to_crs(epsg=4326, inplace=True)
-        lat = st.session_state["processed_gdf"][st.session_state["processed_gdf"].codgeo == commune_codgeo].centroid.y
-        lon = st.session_state["processed_gdf"][st.session_state["processed_gdf"].codgeo == commune_codgeo].centroid.x
-        m = flm.Map(location=[lat,lon], zoom_start=10)
-        fg_list = []
-        
-        #scoring results map
-        fg_results = flm.FeatureGroup(name="Results")
-        fg_list += [fg_results]
-        for index, row in st.session_state["processed_gdf"].head(10).iterrows():
-            df = st.session_state["processed_gdf"][st.session_state["processed_gdf"].index==index][['libgeo','polygon']]
-            add_commune_to_map(df=df, geometry='polygon', fg=fg_results, style=style_score)
-            
-        #top N communes maps
-        for index, row in st.session_state["processed_gdf"].head(5).iterrows():
-            fg_name = 'fg_com'+str(index+1)
-            fg_name = flm.FeatureGroup(name="fg_name"+str(index+1))
-            fg_list += [fg_name]
-            df = st.session_state["processed_gdf"][st.session_state["processed_gdf"].index==index][['codgeo','polygon']]
-            add_commune_to_map(df=df, geometry='polygon', fg=fg_name, style=style_target)
-            #Same thing for corresponding binomes
-            df_binome = st.session_state["processed_gdf"][st.session_state["processed_gdf"].index==index][['codgeo','polygon_binome']]
-            df_binome = gpd.GeoDataFrame(df_binome, geometry='polygon_binome', crs='EPSG:2154').to_crs(epsg=4326)
-            add_commune_to_map(df=df_binome, geometry='polygon_binome', fg=fg_name, style=style_binome)
+    colors = ["orange", "yellow", "green", "blue"]
+    if style == 'ecoles':
+        style_to_use = {
+            "radius": 8,
+            "fillColor": colors[feature['properties']['type_etablissement']],
+        }
+    return style_to_use
 
+def add_commune_to_map(df, geometry, fg, style):
+    # commune = gpd.GeoDataFrame(df, geometry=geometry).set_crs(epsg=4326)
+    # commune_json = flm.Choropleth(geo_data=df)
+    commune_json = flm.GeoJson(data=df, style_function=lambda feature: styling_communes(feature=feature, style=style))#, icon=flm.features.DivIcon(html='<div style="font-size: 24pt">%s</div>' % 'toto'))
+    fg.add_child(commune_json)
+    # fg.add_child(flm.Popup(str(df.index+1)))
 
-        
-        #Finally we display the map with all feature groups
-        layer = flm.LayerControl(collapsed=False)
-        st_data=st_folium(
-            m,
-            feature_group_to_add=fg_list,
-            width=700,
-            height=500,
-            key="odis_scored_map",
-            #layer_control=layer
-            )   
+def isolate_commune_on_map(index):
+    st.session_state["fg_list"]="Scores+top"+str(index+1)
 
+def create_circle_marker_for_geojson_point(feature, latlng):
+    category = feature['properties']['type_etablissement']
     
-# folium.Choropleth(
-#     geo_data=state_geo,
-#     name="choropleth",
-#     data=state_data,
-#     columns=["State", "Unemployment"],
-#     key_on="feature.id",
-#     fill_color="YlGn",
-#     fill_opacity=0.7,
-#     line_opacity=0.2,
-#     legend_name="Unemployment Rate (%)",
-# ).add_to(m)
+    
+    # Get color from our pre-defined mapping
+    fill_color = category_colors.get(category, category_colors['default']) # Default to gray if category not found
 
-        # # st.session_state["processed_gdf"].polygon_binome = st.session_state["processed_gdf"].polygon_binome.apply(shp.from_wkb) 
-        # binome = gpd.GeoDataFrame(
-        #     st.session_state["processed_gdf"][st.session_state["processed_gdf"].codgeo =='33234'][['codgeo','polygon_binome']],
-        #     geometry='polygon_binome', crs='EPSG:4326')
-        # # binome = binome.set_geometry('polygon_binome', crs='EPSG:4326')
-        # binome = binome.to_crs(epsg=4326)
-        # st.write(binome)
-        # binome_json = flm.GeoJson(data=binome, style_function=lambda x: {"stroke":True, 'fillColor':'red', 'fillOpacity':1.0, "color":"red"})
-        # fg_binome.add_child(binome_json)
+    # Adjust radius based on rating (optional, but shows how to use other props)
+    radius = 5
 
-        # st_data=st_folium(
-        #     m,
-        #     feature_group_to_add=fg_dict[fg],#[fg_results, fg_binome],
-        #     width=700,
-        #     height=500,
-        #     key="odis_scored_map",
-        #     layer_control=flm.LayerControl(collapsed=False)
-        #     )
-        # if st_data['last_object_clicked'] is not None:
-        #     clicked_point = shp.Point(st_data['last_object_clicked']['lng'], st_data['last_object_clicked']['lat'])
-        #     st.session_state["selected_geo"] = (st.session_state['processed_gdf'])[st.session_state["processed_gdf"].contains(clicked_point)]
-        #     st.session_state["selected_binome"] = st.session_state["selected_geo"][['codgeo_binome','libgeo_binome','polygon_binome']]
-        #     st.session_state["selected_binome"].polygon_binome = st.session_state["selected_binome"].polygon_binome.apply(loads)
-        #     st.write(st.session_state["selected_binome"])
+    return flm.CircleMarker(
+        location=latlng,
+        radius=radius,
+        color='black', # Border color
+        weight=1,      # Border weight
+        fill_color=fill_color,
+        fill_opacity=0.8,
+        popup=f"Name: {feature['properties']['name']}<br>Category: {category}"
+    )
 
-        #     # binome = gpd.GeoDataFrame(st.session_state["selected_binome"])
-        #     # st.write(binome)
-        #     # binome = binome.set_geometry('polygon_binome', crs='EPSG:4326')
-        #     # binome = binome.to_crs(epsg=4326)
-        #     # binome_json = flm.GeoJson(data=binome, style_function=lambda x: {"stroke":True,'fillColor':'red', 'fillOpacity':1, "color":"red"})
-        #     # st.write(binome_json)
-        #     # fg_binome.add_child(binome_json)
+# Main 2 sections with results and map
+if st.session_state['processed_gdf'] is not None:
+    col_results, col_map = st.columns(2)
+    with col_results:
+        st.header("Meilleurs résultats")
+        if st.session_state["processed_gdf"] is not None:
+            show_on_map_buttons={}
+            for index, row in st.session_state["processed_gdf"].head(5).iterrows():
+                if row.binome:
+                    title = "Top " + str(index+1) + ': '+row.libgeo+' (en binôme avec '+row.libgeo_binome+')'
+                else:
+                    title = "Top " + str(index+1) + ': '+row.libgeo+' (seule)'
+                expanded_state = bool(index==0)
+                with st.expander(title, expanded=expanded_state):
+                    st.button("Show on map", key=title, type='secondary', on_click=isolate_commune_on_map, kwargs={'index':index})
+                    pitch=produce_pitch(row)
+                    for row in pitch:
+                        st.write(row)      
+            
+            if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
+                st.session_state["fg_list"] = 'All'
 
+    with col_map:
+        st.header("Carte Interactive")
+
+        if st.session_state["processed_gdf"] is not None:
+            # we have scoring results let's draw the the map
+            #base map
+            
+            m = flm.Map(location=[st.session_state["selected_geo"].centroid.y,st.session_state["selected_geo"].centroid.x], zoom_start=10)
+            
+            
+            fg_list = []
+            fg_dict = {}
+            
+            #scoring results map
+            fg_results = flm.FeatureGroup(name="Results")
+            fg_list += [fg_results]
+            fg_dict['Scores']=fg_results
+            for index, row in st.session_state["processed_gdf"].iterrows():
+                df = st.session_state["processed_gdf"][st.session_state["processed_gdf"].index==index][['codgeo','polygon', 'weighted_score']]
+
+                add_commune_to_map(df=df, geometry='polygon', fg=fg_results, style='style_score')
                 
-        #     with st.popover('Details'):
-        #         pitch = st.session_state["selected_geo"].apply(produce_pitch, axis=1).iloc[0]
-        #         for row in pitch:
-        #             st.write(row)
+            #top N communes maps
+            for index, row in st.session_state["processed_gdf"].head(5).iterrows():
+                fg_name = 'fg_com'+str(index+1)
+                fg_name = flm.FeatureGroup(name="Commune Top"+str(index+1))
+                fg_list += [fg_name]
+                fg_name_dict="Scores+top"+str(index+1)
+                fg_dict[fg_name_dict]=[fg_results,fg_name]
+                df = st.session_state["processed_gdf"][st.session_state["processed_gdf"].index==index][['codgeo','polygon']]
+                add_commune_to_map(df=df, geometry='polygon', fg=fg_name, style='style_target')
+                #Same thing for corresponding binomes
+                df_binome = st.session_state["processed_gdf"][st.session_state["processed_gdf"].index==index][['codgeo','polygon_binome']]
+                df_binome = gpd.GeoDataFrame(df_binome, geometry='polygon_binome', crs='EPSG:2154').to_crs(epsg=4326)
+                add_commune_to_map(df=df_binome, geometry='polygon_binome', fg=fg_name, style='style_binome')
+
+            #We finally add all the created feature_groups to the 'All' option
+            fg_dict['All'] = fg_list
+            # We store the selected feature group to a session_state so that on reload it picks the right options
+            fg=st.session_state["fg_list"]
+        
+            #We add additional informational layers
+            # We keep the schools in the same academy only
+            # See doc here: https://python-visualization.github.io/folium/latest/user_guide/geojson/geojson_marker.html
+            if nb_enfants > 0:
+                category_colors = {
+                    'Ecole': 'blue',
+                    'Collège': 'red',
+                    'Lycée': 'green',
+                    'default': 'gray' # Fallback color for unexpected categories
+                }
+                st.session_state['ecoles_academie'] = annuaire_ecoles[
+                    (annuaire_ecoles.code_academie.astype(int).astype(str) == st.session_state["selected_geo"]['academie_code'].iloc[0])
+                    & (annuaire_ecoles.type_etablissement.isin(['Ecole', 'Collège','Lycée']))
+                    ]
+                st.session_state['ecoles_academie'] = gpd.GeoDataFrame(st.session_state['ecoles_academie'], geometry='geometry', crs='EPSG:4326')
+                st.session_state['ecoles_academie'] = flm.GeoJson(
+                    st.session_state['ecoles_academie'],
+                    tooltip=flm.GeoJsonTooltip(fields=["nom_etablissement", "type_etablissement", "statut_public_prive", "ecole_maternelle"]),
+                    marker=flm.Circle(radius=250, fill_color="orange", fill_opacity=1.0, weight=1),
+                    style_function=lambda x: {"fillColor": category_colors[x['properties']['type_etablissement']]}
+                )
+                fg_ecoles = flm.FeatureGroup(name="Établissements Scolaires")
+                fg_ecoles.add_child(st.session_state['ecoles_academie'])
+                    
+                afficher_ecoles = st.radio('Afficher Ecoles',['Oui', 'Non'],key='afficher_ecoles', index=1)
+                if afficher_ecoles == "Oui":
+                    fg_dict[fg].append(fg_ecoles)
+                    st.write(':large_blue_circle:= Ecoles,:red_circle:= Collèges et :large_green_circle:= Lycées')
+                elif fg_ecoles in fg_dict[fg]:
+                    fg_dict[fg].remove(fg_ecoles)
+            
+            #Finally we display the map with all feature groups
+            st_data=st_folium(
+                m,
+                feature_group_to_add=fg_dict[fg],
+                width=700,
+                height=500,
+                key="odis_scored_map",
+                # layer_control=flm.LayerControl(collapsed=False)
+            )   
+            
+            
+            

@@ -126,14 +126,14 @@ def compute_subject_specific_scores(df, scores_cat, subject_pref):
     #For each adult we look for jobs categories that match what is needed
     i=1
     for adult in subject_pref['codes_metiers']:
-        df['met_match_codes_adult'+str(i)] = df.be_codfap_top.apply(codes_match, codes_list=prefs['codes_metiers'][adult])
+        df['met_match_codes_adult'+str(i)] = df.be_codfap_top.apply(codes_match, codes_list=subject_pref['codes_metiers'][adult])
         df['met_match_adult'+str(i)] = df['met_match_codes_adult'+str(i)].apply(len)
         df['met_match_adult'+str(i)+'_scaled'] = t.fit_transform(df[['met_match_adult'+str(i)]].fillna(0))
         i+=1
 
     j=1
     for adult in subject_pref['codes_formations']:
-        df['form_match_codes_adult'+str(j)] = df.codes_formations.apply(codes_match, codes_list=prefs['codes_formations'][adult])
+        df['form_match_codes_adult'+str(j)] = df.codes_formations.apply(codes_match, codes_list=subject_pref['codes_formations'][adult])
         df['form_match_adult'+str(j)] = df['form_match_codes_adult'+str(j)].apply(len)
         df['form_match_adult'+str(j)+'_scaled'] = t.fit_transform(df[['form_match_adult'+str(j)]].fillna(0))
         j+=1
