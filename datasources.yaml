@@ -146,6 +146,9 @@ domains:
       format: zip
       headers:
         accept: application/zip, application/octet-stream
+      preprocessor:
+        type: notebook
+        name: unzip_load_csv_files
 
     etablissements_employeurs_secteur_prive:
       API: INSEE.Melodi
@@ -155,6 +158,9 @@ domains:
       format: zip
       headers:
         accept: application/zip, application/octet-stream
+      preprocessor:
+        type: notebook
+        name: unzip_load_csv_files
 
     deplacement_domicile_travail:
       API: INSEE.Melodi
@@ -164,7 +170,10 @@ domains:
       format: zip
       headers:
         accept: application/zip, application/octet-stream
-
+      preprocessor:
+        type: notebook
+        name: unzip_load_csv_files
+        
     bmo_2024:
       API: data.gouv.fr
       description: Fichier BMO (Besoins en Main d'Oeuvre) - 2024
