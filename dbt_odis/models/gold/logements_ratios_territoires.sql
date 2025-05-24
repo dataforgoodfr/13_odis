@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['gold', 'logement'],
     alias = 'gold_logements_ratios_territoires'
     )
 }}
