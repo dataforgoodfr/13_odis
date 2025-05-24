@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['silver', 'logement'],
     alias = 'silver_logements_types_territoires'
     )
 }}

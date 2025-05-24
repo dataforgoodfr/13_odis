@@ -26,7 +26,7 @@ models:
       - name: appartements_rp
         description: nombre d'appartements RP dans la zone géographique
       - name: pieces
-        description: nombre de pièces dans la zone géographique 
+        description: nombre de pièces dans la zone géographique
       - name: total_logements
         description: nombre total de logements dans la zone géographique
       - name: type_geo
@@ -35,7 +35,284 @@ models:
         description: code géographique (commune, département, région).
 
   - name: emploi_demandeur_emploi
-    description: Silver model for employment demanders
+    description: Table jointure horizontale des 3 niveaux de zones géographiques, pour les demandeurs d'emploi mesurée pour une zone donnée, mois-année en colonne
     columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: zone_geo
+        description: Zone géographique identifiée, nom_code
+        data_type: text
+        data_tests:
+          - not_null
+      - name: janvier_2020
+        data_type: integer
+        description: données pour janvier 2020
+      - name: fevrier_2020
+        data_type: integer
+        description: données pour février 2020
+      - name: mars_2020
+        data_type: integer
+        description: données pour mars 2020
+      - name: avril_2020
+        data_type: integer
+        description: données pour avril 2020
+      - name: mai_2020
+        data_type: integer
+        description: données pour mai 2020
+      - name: juin_2020
+        data_type: integer
+        description: données pour juin 2020
+      - name: juillet_2020
+        data_type: integer
+        description: données pour juillet 2020
+      - name: aout_2020
+        data_type: integer
+        description: données pour août 2020
+      - name: septembre_2020
+        data_type: integer
+        description: données pour septembre 2020
+      - name: octobre_2020
+        data_type: integer
+        description: données pour octobre 2020
+      - name: novembre_2020
+        data_type: integer
+        description: données pour novembre 2020
+      - name: decembre_2020
+        data_type: integer
+        description: données pour décembre 2020
+      - name: janvier_2021
+        data_type: integer
+        description: données pour janvier 2021
+      - name: fevrier_2021
+        data_type: integer
+        description: données pour février 2021
+      - name: mars_2021
+        data_type: integer
+        description: données pour mars 2021
+      - name: avril_2021
+        data_type: integer
+        description: données pour avril 2021
+      - name: mai_2021
+        data_type: integer
+        description: données pour mai 2021
+      - name: juin_2021
+        data_type: integer
+        description: données pour juin 2021
+      - name: juillet_2021
+        data_type: integer
+        description: données pour juillet 2021
+      - name: aout_2021
+        data_type: integer
+        description: données pour août 2021
+      - name: septembre_2021
+        data_type: integer
+        description: données pour septembre 2021
+      - name: octobre_2021
+        data_type: integer
+        description: données pour octobre 2021
+      - name: novembre_2021
+        data_type: integer
+        description: données pour novembre 2021
+      - name: decembre_2021
+        data_type: integer
+        description: données pour décembre 2021
+      - name: janvier_2022
+        data_type: integer
+        description: données pour janvier 2022
+      - name: fevrier_2022
+        data_type: integer
+        description: données pour février 2022
+      - name: mars_2022
+        data_type: integer
+        description: données pour mars 2022
+      - name: avril_2022
+        data_type: integer
+        description: données pour avril 2022
+      - name: mai_2022
+        data_type: integer
+        description: données pour mai 2022
+      - name: juin_2022
+        data_type: integer
+        description: données pour juin 2022
+      - name: juillet_2022
+        data_type: integer
+        description: données pour juillet 2022
+      - name: aout_2022
+        data_type: integer
+        description: données pour août 2022
+      - name: septembre_2022
+        data_type: integer
+        description: données pour septembre 2022
+      - name: octobre_2022
+        data_type: integer
+        description: données pour octobre 2022
+      - name: novembre_2022
+        data_type: integer
+        description: données pour novembre 2022
+      - name: decembre_2022
+        data_type: integer
+        description: données pour décembre 2022
+      - name: janvier_2023
+        data_type: integer
+        description: données pour janvier 2023
+      - name: fevrier_2023
+        data_type: integer
+        description: données pour février 2023
+      - name: mars_2023
+        data_type: integer
+        description: données pour mars 2023
+      - name: avril_2023
+        data_type: integer
+        description: données pour avril 2023
+      - name: mai_2023
+        data_type: integer
+        description: données pour mai 2023
+      - name: juin_2023
+        data_type: integer
+        description: données pour juin 2023
+      - name: juillet_2023
+        data_type: integer
+        description: données pour juillet 2023
+      - name: aout_2023
+        data_type: integer
+        description: données pour août 2023
+      - name: septembre_2023
+        data_type: integer
+        description: données pour septembre 2023
+      - name: octobre_2023
+        data_type: integer
+        description: données pour octobre 2023
+      - name: novembre_2023
+        data_type: integer
+        description: données pour novembre 2023
+      - name: decembre_2023
+        data_type: integer
+        description: données pour décembre 2023
+      - name: janvier_2024
+        data_type: integer
+        description: données pour janvier 2024
+      - name: fevrier_2024
+        data_type: integer
+        description: données pour février 2024
+      - name: mars_2024
+        data_type: integer
+        description: données pour mars 2024
+      - name: avril_2024
+        data_type: integer
+        description: données pour avril 2024
+      - name: mai_2024
+        data_type: integer
+        description: données pour mai 2024
+      - name: juin_2024
+        data_type: integer
+        description: données pour juin 2024
+      - name: juillet_2024
+        data_type: integer
+        description: données pour juillet 2024
+      - name: aout_2024
+        data_type: integer
+        description: données pour août 2024
+      - name: septembre_2024
+        data_type: integer
+        description: données pour septembre 2024
+      - name: octobre_2024
+        data_type: integer
+        description: données pour octobre 2024
+      - name: novembre_2024
+        data_type: integer
+        description: données pour novembre 2024
+      - name: decembre_2024
+        data_type: integer
+        description: données pour décembre 2024
+      - name: janvier_2025
+        data_type: integer
+        description: données pour janvier 2025
+      - name: fevrier_2025
+        data_type: integer
+        description: données pour février 2025
+      - name: mars_2025
+        data_type: integer
+        description: données pour mars 2025
+      - name: created_at
+        data_type: timestamp without time zone
+        description: date d'extraction de la donnée
       - name: code_geo
-        description: codegéo
+        description: code postal de la zone géographique identifiée
+        data_type: text
+      - name: type_geo
+        data_type: text
+        description: type de zone géographique de mesure
+      - name: nom
+        data_type: text
+        description: nom de la zone géographique
+
+  - name: emploi_eff_prive
+    description: Effectifs salariés du secteur privé par grands secteurs, granularité fine au code APE
+    columns:
+      - name: id
+        description: index_année
+        data_type: text
+      - name: region
+        description: Nom de la région rattachée
+        data_type: text
+      - name: ancienne_region
+        data_type: text
+      - name: departement
+        description: Nom du département rattaché
+        data_type: text
+      - name: zone_d_emploi
+        description: Nom de la zone d'emploi rattachée
+        data_type: text
+      - name: epci
+        description: Nom de l'EPCI rattachée
+        data_type: text
+      - name: commune
+        description: Nom de la commune rattachée
+        data_type: text
+      - name: intitule_commune
+        description: Code INSEE et nom de la commune rattachée
+        data_type: text
+      - name: grand_secteur_d_activite
+        description: Classification et description du grand secteur d'activité
+        data_type: text
+      - name: secteur_na17
+        description: Classification des secteurs d'activité, niveau français intermédiaire entre les niveaux A 10 et A 38
+        data_type: text
+      - name: secteur_na38
+        description: Classification des secteurs d'activité, niveau international, intermédiaire entre sections et divisions
+        data_type: text
+      - name: secteur_na88
+        description: Classification des sous-secteurs d'activité, divisions, niveau standard de l'arborescence de la NAF révision 2
+        data_type: text
+      - name: ape
+        description: Classification des sous divisions des secteurs d'activité, niveau code APE
+        data_type: text
+      - name: code_region
+        description: Code de la région rattachée
+        data_type: text
+      - name: code_ancienne_region
+        data_type: text
+      - name: code_departement
+        description: Code du département rattaché
+        data_type: text
+      - name: code_zone_d_emploi
+        description: Code de la zone d'emploi rattachée
+        data_type: text
+      - name: code_epci
+        description: Code de l'EPCI rattachée
+        data_type: text
+      - name: code_commune
+        description: Code de la commune rattachée
+        data_type: text
+      - name: code_ape
+        description: Code APE
+        data_type: text
+      - name: nombre_d_etablissements
+        description: Nombre d'établissements pour un code APE dans la commune, pour une année donnée
+        data_type: double precision
+      - name: effectifs_salaries
+        description: Nombre d'effectif salariés pour un code APE dans la commune, pour une année donnée
+        data_type: double precision
+      - name: annee
+        data_type: text

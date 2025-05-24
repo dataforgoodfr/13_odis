@@ -173,7 +173,7 @@ domains:
       preprocessor:
         type: notebook
         name: unzip_load_csv_files
-
+        
     bmo_2024:
       API: data.gouv.fr
       description: Fichier BMO (Besoins en Main d'Oeuvre) - 2024
@@ -418,7 +418,7 @@ domains:
           next: paging.next
           is_last: paging.isLast
 
-  # logement_social:
+  logement_social:
 
       # logement_sociaux:
       #   notebook_path: notebook/logements_sociaux_2024.ipynb

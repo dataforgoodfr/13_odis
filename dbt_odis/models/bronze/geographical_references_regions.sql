@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['bronze', 'geographical_references'],
     alias = 'vw_geographical_references_regions'
     )
 }}
