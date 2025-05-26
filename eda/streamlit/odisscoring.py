@@ -1,5 +1,5 @@
 # coding: utf-8
-
+# THIS SHOULD BE THE END OF JUPYTER NOTEBOOK EXPORT
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,66 +10,69 @@ import shapely as shp
 from shapely.wkt import loads
 from shapely.geometry import Polygon
 from sklearn import preprocessing
-df = gpd.read_parquet('../csv/odis_april_2025_jacques.parquet')
-odis = gpd.GeoDataFrame(df)
-odis.set_geometry(odis.polygon, inplace=True)
-odis = odis[~odis.polygon.isna()]
-# As we work and to save on compute we filter for a single region
-#odis=odis[odis.reg_code == '75'].copy()
-#Later we need the code FAP <-> FAP Name used to classify jobs
-codfap_index = pd.read_csv('../csv/dares_nomenclature_fap2021.csv', delimiter=';')
+def init_loading_datasets(odis_file, metiers_file, formations_file, ecoles_file):
+    odis = gpd.GeoDataFrame(gpd.read_parquet('../csv/odis_april_2025_jacques.parquet'))
+    odis.set_geometry(odis.polygon, inplace=True)
+    odis = odis[~odis.polygon.isna()]
 
-# Later we need the code formation <-> Formation Name used to classify trainings
-# source: https://www.data.gouv.fr/fr/datasets/liste-publique-des-organismes-de-formation-l-6351-7-1-du-code-du-travail/
-codformations_index = pd.read_csv('../csv/index_formations.csv').set_index('codformation')
+    #Later we need the code FAP <-> FAP Name used to classify jobs
+    codfap_index = pd.read_csv('../csv/dares_nomenclature_fap2021.csv', delimiter=';')
 
-# Etablissements scolaires
-annuaire_ecoles = pd.read_parquet('../csv/annuaire_ecoles_france_mini.parquet')
-annuaire_ecoles.geometry = annuaire_ecoles.geometry.apply(shp.from_wkb)
-#met_ratio est le ratio d'offres sur la population de la zone (pour 1000 habitants)
-odis['met_ratio']= 1000 * odis.met/odis.pop_be
-#met_tension_ratio est le ratio d'offres population de la zone (pour 1000 habitants)
-#odis['met_tension_ratio'] = np.where(odis.met_tension == 0, None, 1000 * odis.met_tension/odis.pop_be)
-odis['met_tension_ratio'] = 1000 * odis.met_tension/odis.pop_be
+    # Later we need the code formation <-> Formation Name used to classify trainings
+    # source: https://www.data.gouv.fr/fr/datasets/liste-publique-des-organismes-de-formation-l-6351-7-1-du-code-du-travail/
+    codformations_index = pd.read_csv('../csv/index_formations.csv').set_index('codformation')
 
-#svc_ratio est le ratio de services d'inclusion de la commune (pour 1000 habitants)
-#odis['svc_incl_ratio'] = np.where(odis.svc_incl_count == 0, None, 1000 * odis.svc_incl_count/odis.pop_be)
-odis['svc_incl_ratio'] = 1000 * odis.svc_incl_count/odis.pop_be
+    # Etablissements scolaires
+    annuaire_ecoles = pd.read_parquet('../csv/annuaire_ecoles_france_mini.parquet')
+    annuaire_ecoles.geometry = annuaire_ecoles.geometry.apply(shp.from_wkb)
 
-#log_vac_ratio est le ratio de logements vacants de la commune % total logements
-#odis['log_vac_ratio'] = np.where(odis.log_vac == 0, None, 1000 * odis.log_vac/odis.log_total)
-odis['log_vac_ratio'] = odis.log_vac/odis.log_total
+    return odis, codfap_index, codformations_index, annuaire_ecoles
+def init_communes_criterias(odis):
+    #met_ratio est le ratio d'offres sur la population de la zone (pour 1000 habitants)
+    odis['met_ratio']= 1000 * odis.met/odis.pop_be
+    #met_tension_ratio est le ratio d'offres population de la zone (pour 1000 habitants)
+    #odis['met_tension_ratio'] = np.where(odis.met_tension == 0, None, 1000 * odis.met_tension/odis.pop_be)
+    odis['met_tension_ratio'] = 1000 * odis.met_tension/odis.pop_be
 
-#log_5p+_ratio est le ratio de residences principales de 5 pièces ou plus % total residences principales
-#odis['log_5p_ratio'] = np.where(odis['rp_5+pieces'] == 0, None, 1000 * odis['rp_5+pieces']/odis.log_rp)
-odis['log_5p_ratio'] = odis['rp_5+pieces']/odis.log_rp
+    #svc_ratio est le ratio de services d'inclusion de la commune (pour 1000 habitants)
+    #odis['svc_incl_ratio'] = np.where(odis.svc_incl_count == 0, None, 1000 * odis.svc_incl_count/odis.pop_be)
+    odis['svc_incl_ratio'] = 1000 * odis.svc_incl_count/odis.pop_be
 
-# Risque de fermeture école: ratio de classe à risque de fermeture % nombre d'écoles
-odis['risque_fermeture_ratio'] = odis.risque_fermeture/odis.ecoles_ct
+    #log_vac_ratio est le ratio de logements vacants de la commune % total logements
+    #odis['log_vac_ratio'] = np.where(odis.log_vac == 0, None, 1000 * odis.log_vac/odis.log_total)
+    odis['log_vac_ratio'] = odis.log_vac/odis.log_total
 
-#Scaling with PowerTransformer so that 
-# 1. outliers don't impact too much the end result
-# 2. all scores are normaly distributed and centered around 0
-#pt = preprocessing.PowerTransformer()
-t = preprocessing.QuantileTransformer(output_distribution="uniform")
-odis['met_scaled'] = t.fit_transform(odis[['met_ratio']].fillna(0)).round(3)
-odis['met_tension_scaled'] = t.fit_transform(odis[['met_tension_ratio']].fillna(0)).round(3)
-odis['svc_incl_scaled'] = t.fit_transform(odis[['svc_incl_ratio']].fillna(0)).round(3)
-odis['log_vac_scaled'] = t.fit_transform(odis[['log_vac_ratio']].fillna(0)).round(3)
-odis['log_5p_scaled'] = t.fit_transform(odis[['log_5p_ratio']].fillna(0)).round(3)
-odis['classes_ferm_scaled'] = t.fit_transform(odis[['risque_fermeture_ratio']].fillna(0)).round(3)
-odis['pol_scaled'] = odis[['pol_num']].astype('float').round(3)
+    #log_5p+_ratio est le ratio de residences principales de 5 pièces ou plus % total residences principales
+    #odis['log_5p_ratio'] = np.where(odis['rp_5+pieces'] == 0, None, 1000 * odis['rp_5+pieces']/odis.log_rp)
+    odis['log_5p_ratio'] = odis['rp_5+pieces']/odis.log_rp
 
-#Adding a category for each score that will be used to assign weights for the weighted avg
-scores_cat = pd.DataFrame([
-    {'score':'met_scaled','score_name':'Taux Besoin Emploi','cat':'emploi'},
-    {'score':'met_tension_scaled','score_name':'Taux Besoin Emploi en Tension','cat':'emploi'},
-    {'score':'svc_incl_scaled','score_name':'Taux Services Inclusion','cat':'soutien'},
-    {'score':'log_vac_scaled','score_name':'Taux Logements Vacants','cat':'logement'},
-    {'score':'log_5p_scaled','score_name':'Taux Grandes Résidences Principales','cat':'logement'},
-    {'score':'classes_ferm_scaled','score_name':'Taux Classe à Risque de Fermeture','cat':'education'},
-    {'score':'pol_scaled','score_name':'Couleur Politique','cat':'soutien'},
-    ])
+    # Risque de fermeture école: ratio de classe à risque de fermeture % nombre d'écoles
+    odis['risque_fermeture_ratio'] = odis.risque_fermeture/odis.ecoles_ct
+
+    #Scaling with PowerTransformer so that 
+    # 1. outliers don't impact too much the end result
+    # 2. all scores are normaly distributed and centered around 0
+    #pt = preprocessing.PowerTransformer()
+    t = preprocessing.QuantileTransformer(output_distribution="uniform")
+    odis['met_scaled'] = t.fit_transform(odis[['met_ratio']].fillna(0)).round(3)
+    odis['met_tension_scaled'] = t.fit_transform(odis[['met_tension_ratio']].fillna(0)).round(3)
+    odis['svc_incl_scaled'] = t.fit_transform(odis[['svc_incl_ratio']].fillna(0)).round(3)
+    odis['log_vac_scaled'] = t.fit_transform(odis[['log_vac_ratio']].fillna(0)).round(3)
+    odis['log_5p_scaled'] = t.fit_transform(odis[['log_5p_ratio']].fillna(0)).round(3)
+    odis['classes_ferm_scaled'] = t.fit_transform(odis[['risque_fermeture_ratio']].fillna(0)).round(3)
+    odis['pol_scaled'] = odis[['pol_num']].astype('float').round(3)
+
+    #Adding a category for each score that will be used to assign weights for the weighted avg
+    scores_cat = pd.DataFrame([
+        {'score':'met_scaled','score_name':'Taux Besoin Emploi','cat':'emploi'},
+        {'score':'met_tension_scaled','score_name':'Taux Besoin Emploi en Tension','cat':'emploi'},
+        {'score':'svc_incl_scaled','score_name':'Taux Services Inclusion','cat':'soutien'},
+        {'score':'log_vac_scaled','score_name':'Taux Logements Vacants','cat':'logement'},
+        {'score':'log_5p_scaled','score_name':'Taux Grandes Résidences Principales','cat':'logement'},
+        {'score':'classes_ferm_scaled','score_name':'Taux Classe à Risque de Fermeture','cat':'education'},
+        {'score':'pol_scaled','score_name':'Couleur Politique','cat':'soutien'},
+        ])
+    return odis, scores_cat
 # Subject preferences weighted score computation
 # prefs = {
 #     'emploi':2,
@@ -109,6 +112,7 @@ def add_distance_to_current_loc(df, current_codgeo):
 
     df.to_crs(projected_crs, inplace=True)
     df['dist_current_loc'] = df['polygon'].apply(distance_calc, ref_point=zone_recherche.iloc[0].polygon)
+    return df
 #add_distance_to_current_loc(odis, current_codgeo=LOC_COMMUNE_ACTUELLE)
 #Adding score specific to subject looking for a job identified as en besoin
 def codes_match(df, codes_list):
@@ -122,7 +126,7 @@ def fap_names_lookup(df):
 
 def compute_subject_specific_scores(df, scores_cat, subject_pref): 
     # Let's create subject-specific scores
-    
+    t = preprocessing.QuantileTransformer(output_distribution="uniform")
     #For each adult we look for jobs categories that match what is needed
     i=1
     for adult in subject_pref['codes_metiers']:
@@ -153,14 +157,17 @@ def compute_subject_specific_scores(df, scores_cat, subject_pref):
         {'score':'reloc_epci_scaled','score_name':'Même EPCI que la localisation actuelle','cat':'mobilité'}
         ])
     scores_cat_subject = pd.concat([scores_cat, scores_cat_subject])
-    return scores_cat_subject
+    #scores_cat = pd.concat([scores_cat, scores_cat_subject])
+    return df, scores_cat_subject
 # Let's create subject-specific scores
 #scores_cat_subject = compute_subject_specific_scores(odis, scores_cat=scores_cat)
 # Filtering dataframe based on subject distance preference (to save on compute time later on)
 def filter_loc_by_distance(df, distance):
-    return odis[odis.dist_current_loc < distance * 1000]
+    return df[df.dist_current_loc < distance * 1000]
 #odis_search = filter_loc_by_distance(odis, distance=LOC_DISTANCE_KM)
 def adding_score_voisins(df_search, df_source):
+    #df_search is the dataframe pre-filtered by location
+    #df_source is the dataframe with all the communes
     binome_columns = ['codgeo','libgeo','codgeo_voisins','polygon','epci_code','epci_nom']+[col for col in df_source.columns if col.startswith('met_match_codes')]+[col for col in df_source.columns if col.endswith('_scaled')] 
 
     # Adds itself to list of voisins = monome case
@@ -181,18 +188,6 @@ def adding_score_voisins(df_search, df_source):
     
     return odis_search_exploded
 #odis_exploded = adding_score_voisins(odis_search, odis)
-#This was my first attempt with .apply(). It works but super slow... 
-def compute_cat_scores_old(df, scores_cat):
-    for cat in set(scores_cat.cat):
-        cat_scores_list = []
-        cat_scores_list_binome = []
-        for score in scores_cat[scores_cat.cat==cat].score.to_list():
-            #print(cat + ' | ' +score+ ' | ' +str(df.loc[score]))
-            cat_scores_list += [df.loc[score]]
-            cat_scores_list_binome += [df.loc[score+'_binome']]
-        df[cat+'_cat_score'] = np.mean(cat_scores_list)
-        df[cat+'_cat_score_binome'] = np.mean(cat_scores_list_binome)
-    return df
 def compute_cat_scores(df, scores_cat):
     df = df.copy()
     for cat in set(scores_cat.cat):
@@ -208,7 +203,6 @@ def compute_cat_scores(df, scores_cat):
         df[cat + '_cat_score_binome'] = 100 * cat_scores_binome_df.astype(float).mean(axis=1).round(3)
 
     return df
-#odis_exploded = odis_exploded.apply(compute_cat_scores,scores_cat=scores_cat_subject, axis=1)
 #COM_LIMITROPHE_PENALTY = 0.1 #décote de 10% pour les communes limitrophes vs commune cible
 
 def compute_binome_score(df, binome_penalty, weights):
@@ -224,8 +218,6 @@ def compute_binome_score(df, binome_penalty, weights):
             )
     
     return max_scores.mean(axis=1).round(1)
-# We provide the scores columns as a kwarg to compute faster
-#odis_exploded['weighted_score'] = compute_binome_score(odis_exploded, binome_penalty=COM_LIMITROPHE_PENALTY)
 def monome_cleanup(df):
     if df.loc['binome'] == False:
         for col in df.index:
@@ -242,24 +234,24 @@ def best_score_compute(df):
 
 #odis_search_best = best_score_compute(odis_exploded)
 #Main function that aggregates most of the above in one sequence
-def compute_odis_score(df,scores_cat, prefs):
+def compute_odis_score(df, scores_cat, prefs):
     # Note: we consider that the dataframe already has all the commune-specific criteria scores
     # Note2: the prefs dict has all the subject preferences
     
     # We add the distance between each commune and the one set as where the subject currently lives and filter based on distance pref
-    add_distance_to_current_loc(odis, current_codgeo=prefs['commune_actuelle'])
+    df = add_distance_to_current_loc(df, current_codgeo=prefs['commune_actuelle'])
 
     # We compute the subject specific scores
-    scores_cat = compute_subject_specific_scores(odis, scores_cat=scores_cat, subject_pref=prefs)
+    df, scores_cat_subject = compute_subject_specific_scores(df, scores_cat=scores_cat, subject_pref=prefs)
     
     # We filter by distance to reduce the compute cost on a smaller odis_search dataframe
-    odis_search = filter_loc_by_distance(odis, distance=prefs['loc_distance_km'])
+    odis_search = filter_loc_by_distance(df, distance=prefs['loc_distance_km'])
 
     # We add the criteria scores for all neighbor communes forming monomes and binomes
-    odis_exploded = adding_score_voisins(odis_search, odis)
+    odis_exploded = adding_score_voisins(odis_search, df)
 
     # We compute the category scores for both the target and the binome
-    odis_exploded = compute_cat_scores(odis_exploded, scores_cat=scores_cat)
+    odis_exploded = compute_cat_scores(odis_exploded, scores_cat=scores_cat_subject)
     
     # We provide the scores columns as a parameter to compute faster
     #scores_col = [col for col in odis_exploded.columns if col.endswith('_cat_score')]
@@ -274,8 +266,8 @@ def compute_odis_score(df,scores_cat, prefs):
     # We keep best monome or binome for each commune 
     odis_search_best = best_score_compute(odis_exploded)
 
-    return odis_search_best, scores_cat
-def produce_pitch(df, scores_cat):
+    return odis_search_best
+def produce_pitch(df, codfap_index):
     pitch_lines = []
     pitch_lines += [df.loc['libgeo'] +'dans l\'EPCI: '+ df.loc['epci_nom']]
     pitch_lines += ['Le score est de: '+str(df.loc['weighted_score'])]
@@ -291,11 +283,6 @@ def produce_pitch(df, scores_cat):
     crit_scores_col = [col for col in df.index if '_scaled' in col]#col.endswith('_scaled')]
     df_sorted=df[crit_scores_col].dropna().sort_values(ascending=False)
     for i in range(0, 5):
-        # print(df_sorted.index[i])
-        # if df_sorted.index[i].endswith('binome'):
-        #     nom_critere = scores_cat.loc[df_sorted.index[i][:-7]]['score_name']
-        # else:
-        #     nom_critere = scores_cat.loc[df_sorted.index[i]]['score_name']
         pitch_lines += ['Le critère #'+str(i+1)+' est: '+df_sorted.index[i]+' avec un score de: '+str(df_sorted.iloc[i])]
 
     #Adding the matching job families if any
