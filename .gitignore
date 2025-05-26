@@ -170,3 +170,4 @@ data/imports/*
 #eda/csv/
 eda/csv_large/
 eda/csv_not_used/
+eda/streamlit/__pycache__h
