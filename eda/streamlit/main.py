@@ -26,7 +26,7 @@ import folium as flm
 from streamlit_folium import st_folium
 from branca.colormap import linear
 import hashlib
-from odisscoring import compute_odis_score, produce_pitch, init_communes_criterias, init_loading_datasets
+from odisscoring import compute_odis_score, produce_pitch_markdown, init_communes_criterias, init_loading_datasets
 
 t = performance_tracker(t, 'End Import', timer_mode)
 
@@ -88,30 +88,55 @@ def compute_score(_df, scores_cat, prefs):
     return compute_odis_score(_df, scores_cat, prefs)
 
 def set_prefs():
+    # prefs = {
+    #     'emploi':poids_emploi,
+    #     'logement':poids_logement,
+    #     'education':poids_education,
+    #     'soutien':poids_soutien,
+    #     'mobilité':poids_mobilité,
+    #     'commune_actuelle':commune_codgeo,
+    #     'loc_distance_km':loc_distance_km,
+    #     'codes_metiers':{
+    #         'codes_metiers_adulte1':liste_metiers_adult[0],
+    #         'codes_metiers_adulte2':liste_metiers_adult[1]
+    #     },
+    #     'codes_formations':{
+    #         'codes_formations_adulte1':liste_formations_adult[0],
+    #         'codes_formations_adulte2':liste_formations_adult[1]
+    #     },
+    #     'age_enfants':{
+    #         'age_enfant1':liste_age_enfants[0],
+    #         'age_enfant2':liste_age_enfants[1],
+    #         'age_enfant3':liste_age_enfants[2],
+    #         'age_enfant4':liste_age_enfants[3],
+    #         'age_enfant5':liste_age_enfants[4]
+    #     },
+    #     'binome_penalty':penalite_binome
+    # }
     prefs = {
-        'emploi':poids_emploi,
-        'logement':poids_logement,
-        'education':poids_education,
-        'soutien':poids_soutien,
-        'mobilité':poids_mobilité,
-        'commune_actuelle':commune_codgeo,
-        'loc_distance_km':loc_distance_km,
+        'emploi':2,
+        'logement':1,
+        'education':1,
+        'soutien':1,
+        'mobilité':0,
+        'commune_actuelle':'33281',
+        'loc_distance_km':10,
         'codes_metiers':{
-            'codes_metiers_adulte1':liste_metiers_adult[0],
-            'codes_metiers_adulte2':liste_metiers_adult[1]
+            'codes_metiers_adulte1':['S1X40','J0X33','A1X41'],
+            'codes_metiers_adulte2':['T4X60','T2A60']
         },
         'codes_formations':{
-            'codes_formations_adulte1':liste_formations_adult[0],
-            'codes_formations_adulte2':liste_formations_adult[1]
+            'codes_formations_adulte1':[423],
+            'codes_formations_adulte2':[315,100]
         },
         'age_enfants':{
-            'age_enfant1':liste_age_enfants[0],
-            'age_enfant2':liste_age_enfants[1],
-            'age_enfant3':liste_age_enfants[2],
-            'age_enfant4':liste_age_enfants[3],
-            'age_enfant5':liste_age_enfants[4]
+            'age_enfant1':4,
+            'age_enfant2':10,
+            'age_enfant3':None,
+            'age_enfant4':None,
+            'age_enfant5':None
         },
-        'binome_penalty':penalite_binome
+        'binome_penalty':0.1
     }
     st.session_state["prefs_current"] = prefs
     return prefs
@@ -120,14 +145,16 @@ def load_results(df, scores_cat):
     print(' <---------------------> CLICK <--------------------->')
     prefs = set_prefs() # We update the prefs with the latest inputs
     # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
-    odis_scored = compute_score(
+    odis_scored, scores_cat = compute_score(
         _df=df,
         scores_cat=scores_cat,
         prefs=prefs
-        ).sort_values('weighted_score', ascending=False).reset_index(drop=True)
+        )
+    odis_scored = odis_scored.sort_values('weighted_score', ascending=False).reset_index(drop=True)
     odis_scored.to_crs(epsg=4326, inplace=True)
     selected_geo = odis_scored[odis_scored.codgeo == prefs['commune_actuelle']]
     st.session_state['prefs'] = prefs
+    st.session_state['scores_cat'] = scores_cat
     st.session_state['processed_gdf'] = odis_scored
     st.session_state['selected_geo'] = selected_geo
     st.session_state['afficher_ecoles'] = False
@@ -179,9 +206,8 @@ def add_commune_to_map(_df, _fg, style, prefs, index):
     #fg.add_child(flm.Tooltip(str(index+1)))
 
 def result_highlight(row, index):
-    print('I am here')
     fg_dict_key = "Scores+top"+str(index+1)
-    st.session_state['pitch'] = produce_pitch(row, codfap_index=codfap_index)
+    st.session_state['pitch'] = produce_pitch_markdown(row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
     st.session_state['fg_dict_key'] = "Scores+top"+str(index+1)
 
 def build_top_results(_df, prefs):
@@ -196,9 +222,11 @@ def build_top_results(_df, prefs):
             key='button_top'+str(index+1),
             type='secondary'
             ):
+            st.session_state["afficher_ecoles"] = False
             with st.container(border=True):
-                for row in st.session_state['pitch']:
-                    st.write(row)
+                st.markdown(st.session_state['pitch'])
+                # for row in st.session_state['pitch']:
+                #     st.text(row)
 
 @st.cache_data
 def show_scoring_results(_df, _fg_dict, _fg_list, prefs):
@@ -230,13 +258,13 @@ def odis_base_map(_current_geo, prefs):
             _current_geo.centroid.y.iloc[0],
             _current_geo.centroid.x.iloc[0]
         ]
-    m = flm.Map(location=center_loc, zoom_start=12)
+    m = flm.Map(location=center_loc, zoom_start=10)
     return m
 
 @st.cache_data
 def filter_ecoles_by_distance(_current_geo, annuaire_ecoles, prefs):
     # we go twice the distance around the selected geo 
-    MAX_DISTANCE_M = st.session_state['prefs']['loc_distance_km']*2*1000
+    MAX_DISTANCE_M = st.session_state['prefs']['loc_distance_km']*1000
     annuaire_ecoles = gpd.GeoDataFrame(annuaire_ecoles, geometry='geometry', crs='EPSG:4326')
     annuaire_ecoles.to_crs("EPSG:2154", inplace=True)
     current_geo = gpd.GeoDataFrame(_current_geo[['codgeo','polygon']], geometry='polygon')
@@ -252,32 +280,37 @@ def filter_ecoles_by_distance(_current_geo, annuaire_ecoles, prefs):
     filtered_ecoles=filtered_ecoles[filtered_ecoles['distance_to_current_geo'].notna()]
     return filtered_ecoles
 
-# @st.cache_data
-def build_local_ecoles_layer(_current_geo, annuaire_ecoles, prefs):
+@st.cache_resource
+def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
     category_colors = {
-    'Ecole': 'blue',
-    'Collège': 'red',
-    'Lycée': 'green',
-    'default': 'gray' # Fallback color for unexpected categories
-    }
-
-    filtered_ecoles = filter_ecoles_by_distance(_current_geo, annuaire_ecoles, prefs)
-    filtered_ecoles = flm.GeoJson(
-        filtered_ecoles,
-        tooltip=flm.GeoJsonTooltip(fields=["nom_etablissement", "type_etablissement", "statut_public_prive", "ecole_maternelle"]),
-        marker=flm.Circle(radius=250, fill_color="orange", fill_opacity=1.0, weight=1),
-        # style_to_use = 
-        # style_function=lambda x: {"fillColor": category_colors[x['properties']['type_etablissement']]}
-    )
+        'Ecole': 'blue',
+        'Collège': 'red',
+        'Lycée': 'green',
+        'default': 'gray' # Fallback color for unexpected categories
+        }
     fg_ecoles = flm.FeatureGroup(name="Établissements Scolaires")
-    fg_ecoles.add_child(filtered_ecoles)
+    filtered_ecoles = _annuaire_ecoles[_annuaire_ecoles.type_etablissement.isin(['Ecole', 'Collège', 'Lycée'])]
+    filtered_ecoles = filter_ecoles_by_distance(_current_geo, filtered_ecoles, prefs)
+
+    for index, row in filtered_ecoles.iterrows():
+        ecole = filtered_ecoles[filtered_ecoles.index==index]
+        ecole = flm.GeoJson(
+            data=ecole,
+            tooltip=flm.GeoJsonTooltip(fields=["nom_etablissement", "type_etablissement", "statut_public_prive", "ecole_maternelle"]),
+            marker=flm.Circle(radius=250, fillColor=category_colors[ecole['type_etablissement'].iloc[0]], fill_opacity=1.0, opacity=0.0, weight=1),
+        )
+        fg_ecoles.add_child(ecole)
     return fg_ecoles
 
-def toggle_ecoles():
-    if (st.session_state['afficher_ecoles']) & ('ecoles' not in st.session_state["fg_extras_dict"].keys()):
-        st.session_state["fg_extras_dict"]['ecoles'] = fg_ecoles
-    elif 'ecoles' in st.session_state["fg_extras_dict"].keys():
+def toggle_ecoles(fg):
+    if (st.session_state['afficher_ecoles']):
+        print('here')
+        st.session_state["fg_extras_dict"]['ecoles'] = fg
+        # st.write(':large_blue_circle:= Ecoles,:red_circle:= Collèges et :large_green_circle:= Lycées')
+    if (st.session_state['afficher_ecoles'] == False) & ('ecoles' in st.session_state["fg_extras_dict"].keys()):
+        print('there')
         st.session_state["fg_extras_dict"].pop('ecoles')
+    print(st.session_state["fg_extras_dict"])
 
 
 # Loading and caching Datasets
@@ -296,9 +329,9 @@ session_states_init()
 ### BEGINNING OF THE STREAMLIT APP ###
 t = performance_tracker(t, 'Start App Sidebar', timer_mode)
 # Sidebar
-st.sidebar.write("Odis Stream #2 Prototype App")
+st.sidebar.header("Odis Stream #2 Prototype App")
 with st.sidebar:
-    st.write('Filtres de recherche')
+    st.subheader('Filtres de recherche')
     # libdep_set, libfap_set, libform_set = get_index_sets(odis, codfap_index, codformations_index)
     #Mobilité
     departement_actuel = st.selectbox("Département", coddep_set, index=coddep_set.index('33'))
@@ -322,10 +355,9 @@ with st.sidebar:
 
 t = performance_tracker(t, 'Start Top Filters', timer_mode)
 #Top filter container
+st.text('Préférences de recherche')
 with st.container(border=True):
     tab_emploi, tab_formation, tab_logement, tab_edu, tab_sante, tab_autres = st.tabs(['Emploi', 'Formation', 'Logement', 'Education', 'Santé', 'Autres'])
-
-    # st.write('Préférences de recherche')
     
     #Metiers
     with tab_emploi:
@@ -360,7 +392,6 @@ with st.container(border=True):
             with col_right:
                 for enfant in range(3,nb_enfants):
                     liste_age_enfants[enfant] =st.select_slider('Age enfant '+str(enfant+1),range(0,19), value=None)
-                # st.write(liste_age_enfants)
 
     #Santé
     with tab_sante:
@@ -380,7 +411,7 @@ st.button(
 t = performance_tracker(t, 'Start Scoring Results', timer_mode)
 # Main 2 sections with results and map
 if (st.session_state['processed_gdf'] is not None):
-    col_results, col_map = st.columns([1, 2])
+    col_results, col_map = st.columns([1, 1])
     t = performance_tracker(t, 'Start Results Column', timer_mode)
     
     ### Results Column
@@ -388,9 +419,10 @@ if (st.session_state['processed_gdf'] is not None):
         st.header("Meilleurs résultats")
         st.markdown('<style>di.st-key-button_top1 .stBUtton button div p  {text-align: left !important;color: red;}</style>',unsafe_allow_html=True)
         if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
-            st.session_state["fg_list"] = 'All'
+            st.session_state["fg_dict_key"] = 'All'
         if st.session_state["processed_gdf"] is not None:
             fg_dict_key = build_top_results(st.session_state["processed_gdf"], st.session_state["prefs"])
+            
 
     t = performance_tracker(t, 'Start Map Column', timer_mode)
     ### Map Column
@@ -414,24 +446,18 @@ if (st.session_state['processed_gdf'] is not None):
         #     'All': [fg_results, fg_com1, fg_com2, fg_com3, fg_com4, fg_com5]
         # }
 
-
         # We add additional informational layers
         # We keep the schools in the same academy only
         # See doc here: https://python-visualization.github.io/folium/latest/user_guide/geojson/geojson_marker.html
         t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
         if nb_enfants > 0:
             fg_ecoles = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-            # st.session_state["fg_extras_dict"]['ecoles'] = fg_ecoles
-            st.checkbox('Afficher Ecoles', key='afficher_ecoles', value=False)#, on_change=toggle_ecoles)
-            if (st.session_state['afficher_ecoles']) & ('ecoles' not in st.session_state["fg_extras_dict"].keys()):
-                # {k:v.append(fg_ecoles) for k,v in st.session_state["fg_dict"].items()}
-                # st.write(':large_blue_circle:= Ecoles,:red_circle:= Collèges et :large_green_circle:= Lycées')
-                st.session_state["fg_extras_dict"]['ecoles'] = fg_ecoles
-            if (st.session_state['afficher_ecoles'] == False) & ('ecoles' in st.session_state["fg_extras_dict"].keys()):
-                st.session_state["fg_extras_dict"].pop('ecoles')
+            st.checkbox('Afficher Ecoles', key='afficher_ecoles', value=False, on_change=toggle_ecoles, kwargs={'fg':fg_ecoles})
+
+        t = performance_tracker(t, 'End Ecoles Display', timer_mode)
 
         t = performance_tracker(t, 'Start Map Display', timer_mode)
-
+        # print(fg_dict[st.session_state["fg_dict_key"]]+list(st.session_state["fg_extras_dict"].values()))
         m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
         st_data = st_folium(
             m,
@@ -440,9 +466,8 @@ if (st.session_state['processed_gdf'] is not None):
             height=800,
             key="odis_scored_map",
             use_container_width=True,
-            layer_control=flm.LayerControl(collapsed=False)
+            # layer_control=flm.LayerControl(collapsed=False)
         )
         t = performance_tracker(t, 'End Map Display', timer_mode)
 
 
-        
