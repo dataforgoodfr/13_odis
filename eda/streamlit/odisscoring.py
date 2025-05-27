@@ -11,19 +11,19 @@ from shapely.wkt import loads
 from shapely.geometry import Polygon
 from sklearn import preprocessing
 def init_loading_datasets(odis_file, metiers_file, formations_file, ecoles_file):
-    odis = gpd.GeoDataFrame(gpd.read_parquet('../csv/odis_april_2025_jacques.parquet'))
+    odis = gpd.GeoDataFrame(gpd.read_parquet(odis_file))
     odis.set_geometry(odis.polygon, inplace=True)
     odis = odis[~odis.polygon.isna()]
 
     #Later we need the code FAP <-> FAP Name used to classify jobs
-    codfap_index = pd.read_csv('../csv/dares_nomenclature_fap2021.csv', delimiter=';')
+    codfap_index = pd.read_csv(metiers_file, delimiter=';')
 
     # Later we need the code formation <-> Formation Name used to classify trainings
     # source: https://www.data.gouv.fr/fr/datasets/liste-publique-des-organismes-de-formation-l-6351-7-1-du-code-du-travail/
-    codformations_index = pd.read_csv('../csv/index_formations.csv').set_index('codformation')
+    codformations_index = pd.read_csv(formations_file).set_index('codformation')
 
     # Etablissements scolaires
-    annuaire_ecoles = pd.read_parquet('../csv/annuaire_ecoles_france_mini.parquet')
+    annuaire_ecoles = pd.read_parquet(ecoles_file)
     annuaire_ecoles.geometry = annuaire_ecoles.geometry.apply(shp.from_wkb)
 
     return odis, codfap_index, codformations_index, annuaire_ecoles
@@ -266,10 +266,10 @@ def compute_odis_score(df, scores_cat, prefs):
     # We keep best monome or binome for each commune 
     odis_search_best = best_score_compute(odis_exploded)
 
-    return odis_search_best
-def produce_pitch(df, codfap_index):
+    return odis_search_best, scores_cat_subject
+def produce_pitch(df, prefs, scores_cat, codfap_index, codformations_index):
     pitch_lines = []
-    pitch_lines += [df.loc['libgeo'] +'dans l\'EPCI: '+ df.loc['epci_nom']]
+    pitch_lines += [df.loc['libgeo'] +' dans l\'EPCI: '+ df.loc['epci_nom']]
     pitch_lines += ['Le score est de: '+str(df.loc['weighted_score'])]
     if df.loc['binome']:
         pitch_lines += ['Ce score est obtenu en binome avec la commune '+df.loc['libgeo_binome']]
@@ -281,51 +281,78 @@ def produce_pitch(df, codfap_index):
     
     #Adding the top contributin criterias
     crit_scores_col = [col for col in df.index if '_scaled' in col]#col.endswith('_scaled')]
+    
     df_sorted=df[crit_scores_col].dropna().sort_values(ascending=False)
     for i in range(0, 5):
-        pitch_lines += ['Le critère #'+str(i+1)+' est: '+df_sorted.index[i]+' avec un score de: '+str(df_sorted.iloc[i])]
+        score = df_sorted.index[i][:-7] if df_sorted.index[i].endswith('_binome') else df_sorted.index[i]
+        score_name = scores_cat[scores_cat.score == score]['score_name'].item()
+        pitch_lines += ['Le critère #'+str(i+1)+' est: '+score_name+' avec un score de: '+str(df_sorted.iloc[i])]
 
+    
     #Adding the matching job families if any
     metiers_col = [col for col in df.index if col.startswith('met_match_codes')]
     for metiers_adultx in metiers_col:
         matched_codfap_names = list(codfap_index[codfap_index['Code FAP 341'].isin(df.loc[metiers_adultx])]['Intitulé FAP 341'])
         if len(matched_codfap_names) == 1:
-            pitch_lines += ['La famille de métiers '+ str(matched_codfap_names) +' est rechechée'] 
+            pitch_lines += ['La famille de métiers '+ matched_codfap_names[0] +' est rechechée'] 
         elif len(matched_codfap_names) >= 1:
-            pitch_lines += ['Les familles de métiers '+ str(matched_codfap_names) +' sont rechechées']
+            list_jobs = ''
+            for job in matched_codfap_names:
+                list_jobs += job+', '
+            pitch_lines += ['Les familles de métiers '+ list_jobs[:-2] +' sont rechechées']
     
     return pitch_lines
     #for line in pitch_lines:
     #    print(line)
-def produce_html_tooltip(df):
-    tooltip = '<div>'
-    tooltip += '<div><strong>'+df.loc['libgeo'] +'</strong> dans l\'EPCI: '+ df.loc['epci_nom']+'</div>'
-    tooltip += '<div>'+'Le score est de: <strong>'+str(df.loc['weighted_score'])+'</strong></div>'
-    tooltip += '<div style="background-color:white;height:20px;width:200px;">'
-    tooltip += '<div style="background-color:green;height:20px;width:'+str(df.loc['weighted_score']*2)+'px;"></div></div>'
-    
+# codfap_index = pd.read_csv('../csv/dares_nomenclature_fap2021.csv', delimiter=';')
+# codformations_index = pd.read_csv('../csv/index_formations.csv').set_index('codformation')
+# for index, row in odis_search_best.head(1).iterrows():
+#     pitch = produce_pitch(row, prefs=prefs, scores_cat=scores_cat, codfap_index=codfap_index, codformations_index=codformations_index)
+# pitch
+def produce_pitch_markdown(df, prefs, scores_cat, codfap_index, codformations_index):
+    pitch_md = []
+    pitch_md.append('**'+df.loc['libgeo'] +'** dans l\'EPCI: '+ df.loc['epci_nom']+'\n')
+    pitch_md.append('Le score est de: **'+str(df.loc['weighted_score'])+'**\n')
     if df.loc['binome']:
-        tooltip += '<div>'+'Ce score est obtenu en binome avec la commune '+df.loc['libgeo_binome']+'</div>'
+        pitch_md.append('Ce score est obtenu en binome avec la commune '+df.loc['libgeo_binome'])
         if df.loc['epci_code'] != df.loc['epci_code_binome']:
-            tooltip += '<div>'+'Cette commune est située dans l\'EPCI: '+df.loc['epci_nom_binome']+'</div>'
+            pitch_md.append(' située dans l\'EPCI: '+df.loc['epci_nom_binome']+'\n')
     else:
-        tooltip += '<div>'+'Ce score est obtenu sans commune binôme'+'</div>'
+        pitch_md += 'Ce score est obtenu sans commune binôme'
 
     
     #Adding the top contributin criterias
     crit_scores_col = [col for col in df.index if '_scaled' in col]#col.endswith('_scaled')]
-    cat_scores_col = [col for col in df.index if col.endswith('_cat_score')]
-    df_sorted=df[cat_scores_col].dropna().sort_values(ascending=False)
-    for i in range(0, 5):
-        tooltip += '<div>'+'Le critère #'+str(i+1)+' est: '+df_sorted.index[i]+' avec un score de: '+str(df_sorted.iloc[i])+'</div>'
-
-    #Adding the matching job families if any
-    matched_codfap_names = list(codfap_index[codfap_index['Code FAP 341'].isin(df.loc['met_match_codes'])]['Intitulé FAP 341'])
-    if len(matched_codfap_names) == 1:
-        tooltip += '<div>'+'La famille de métiers '+ str(matched_codfap_names) +' est rechechée'+'</div>' 
-    elif len(matched_codfap_names) >= 1:
-        tooltip += '<div>'+'Les familles de métiers '+ str(matched_codfap_names) +' sont rechechées'+'</div>'
-    tooltip += '</div>'
     
-    return tooltip
+    df_sorted=df[crit_scores_col].dropna().sort_values(ascending=False)
+    for i in range(0, 5):
+        score = df_sorted.index[i][:-7] if df_sorted.index[i].endswith('_binome') else df_sorted.index[i]
+        score_name = scores_cat[scores_cat.score == score]['score_name'].item()
+        pitch_md.append('- Le critère #'+str(i+1)+' est: **'+score_name+'** avec un score de: **'+str(df_sorted.iloc[i])+'**\n')
+
+    
+    #Adding the matching job families if any
+    pitch_md.append('**Emploi**\n') 
+    metiers_col = [col for col in df.index if col.startswith('met_match_codes')]
+    matched_codfap_names = []
+    for metiers_adultx in metiers_col:
+        matched_codfap_names += list(codfap_index[codfap_index['Code FAP 341'].isin(df.loc[metiers_adultx])]['Intitulé FAP 341'])
+    matched_codfap_names = set(matched_codfap_names)
+    if len(matched_codfap_names) == 0:
+        pitch_md.append('Aucun des métiers recherchés ne figurent dans le Top 10 des métiers à pourvoir sur cette zone.\n')
+    if len(matched_codfap_names) == 1:
+        pitch_md.append('- La famille de métiers **'+ matched_codfap_names[0] +'** est rechechée \n')
+    elif len(matched_codfap_names) >= 1:
+        list_jobs = ''
+        for job in matched_codfap_names:
+            list_jobs += job+', '
+        pitch_md.append('- Les familles de métiers **'+ list_jobs[:-2] +'** sont rechechées \n')
+        
+    
+    pitch_md.append("---")
+    return '\n'.join(pitch_md).strip()
+# from IPython.display import Markdown as md
+# for index, row in odis_search_best.head(1).iterrows():
+#     pitch = produce_pitch_markdown(row, prefs=prefs, scores_cat=scores_cat, codfap_index=codfap_index, codformations_index=codformations_index)
+# md(pitch)
 # THIS SHOULD BE THE END OF JUPYTER NOTEBOOK EXPORT
