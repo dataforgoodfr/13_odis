@@ -3669,3 +3669,8 @@ models:
   - name: presentation_page_epci
 
   - name: presentation_page_population_communes
+
+  - name: population_categorie_socio_pro
+    columns:
+      - name: id
+        description: id
