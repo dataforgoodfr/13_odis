@@ -26,7 +26,7 @@ import folium as flm
 from streamlit_folium import st_folium
 from branca.colormap import linear
 import hashlib
-from odisscoring import compute_odis_score, produce_pitch_markdown, init_communes_criterias, init_loading_datasets
+from odisscoring import compute_odis_score, init_loading_datasets#, produce_pitch_markdown 
 
 t = performance_tracker(t, 'End Import', timer_mode)
 
@@ -65,15 +65,14 @@ def session_states_init():
         st.session_state["fg_dict"] = {}
     if 'prefs' not in st.session_state:
         st.session_state["prefs"] = {}
-    if "last_object_clicked" not in st.session_state:
-        st.session_state["last_object_clicked"] = None
+    if "fg_ecoles" not in st.session_state:
+        st.session_state["fg_ecoles"] = None
 
 # This @st.cache_resource dramatically improves performance of the app
 @st.cache_resource
 def init_datasets():
-
-    odis, codfap_index, codformations_index, annuaire_ecoles = init_loading_datasets(ODIS_FILE, METIERS_FILE, FORMATIONS_FILE, ECOLES_FILE)
-    odis, scores_cat = init_communes_criterias(odis)
+    # We load all the datasets
+    odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles = init_loading_datasets(ODIS_FILE, SCORES_CAT_FILE, METIERS_FILE, FORMATIONS_FILE, ECOLES_FILE)
     
     coddep_set = sorted(set(odis['dep_code']))
     depcom_df = odis[['dep_code','libgeo']].sort_values('libgeo')
@@ -88,56 +87,57 @@ def compute_score(_df, scores_cat, prefs):
     return compute_odis_score(_df, scores_cat, prefs)
 
 def set_prefs():
-    # prefs = {
-    #     'emploi':poids_emploi,
-    #     'logement':poids_logement,
-    #     'education':poids_education,
-    #     'soutien':poids_soutien,
-    #     'mobilité':poids_mobilité,
-    #     'commune_actuelle':commune_codgeo,
-    #     'loc_distance_km':loc_distance_km,
-    #     'codes_metiers':{
-    #         'codes_metiers_adulte1':liste_metiers_adult[0],
-    #         'codes_metiers_adulte2':liste_metiers_adult[1]
-    #     },
-    #     'codes_formations':{
-    #         'codes_formations_adulte1':liste_formations_adult[0],
-    #         'codes_formations_adulte2':liste_formations_adult[1]
-    #     },
-    #     'age_enfants':{
-    #         'age_enfant1':liste_age_enfants[0],
-    #         'age_enfant2':liste_age_enfants[1],
-    #         'age_enfant3':liste_age_enfants[2],
-    #         'age_enfant4':liste_age_enfants[3],
-    #         'age_enfant5':liste_age_enfants[4]
-    #     },
-    #     'binome_penalty':penalite_binome
-    # }
     prefs = {
-        'emploi':2,
-        'logement':1,
-        'education':1,
-        'soutien':1,
-        'mobilité':0,
-        'commune_actuelle':'33281',
-        'loc_distance_km':10,
+        'emploi':poids_emploi,
+        'logement':poids_logement,
+        'education':poids_education,
+        'soutien':poids_soutien,
+        'mobilité':poids_mobilité,
+        'commune_actuelle':commune_codgeo,
+        'loc_distance_km':loc_distance_km,
         'codes_metiers':{
-            'codes_metiers_adulte1':['S1X40','J0X33','A1X41'],
-            'codes_metiers_adulte2':['T4X60','T2A60']
+            'codes_metiers_adulte1':liste_metiers_adult[0],
+            'codes_metiers_adulte2':liste_metiers_adult[1]
         },
         'codes_formations':{
-            'codes_formations_adulte1':[423],
-            'codes_formations_adulte2':[315,100]
+            'codes_formations_adulte1':liste_formations_adult[0],
+            'codes_formations_adulte2':liste_formations_adult[1]
         },
         'age_enfants':{
-            'age_enfant1':4,
-            'age_enfant2':10,
-            'age_enfant3':None,
-            'age_enfant4':None,
-            'age_enfant5':None
+            'age_enfant1':liste_age_enfants[0],
+            'age_enfant2':liste_age_enfants[1],
+            'age_enfant3':liste_age_enfants[2],
+            'age_enfant4':liste_age_enfants[3],
+            'age_enfant5':liste_age_enfants[4]
         },
-        'binome_penalty':0.1
+        'binome_penalty':penalite_binome
     }
+    # Sample Data
+    # prefs = {
+    #     'emploi':2,
+    #     'logement':1,
+    #     'education':1,
+    #     'soutien':1,
+    #     'mobilité':0,
+    #     'commune_actuelle':'33281',
+    #     'loc_distance_km':10,
+    #     'codes_metiers':{
+    #         'codes_metiers_adulte1':['S1X40','J0X33','A1X41'],
+    #         'codes_metiers_adulte2':['T4X60','T2A60']
+    #     },
+    #     'codes_formations':{
+    #         'codes_formations_adulte1':[423],
+    #         'codes_formations_adulte2':[315,100]
+    #     },
+    #     'age_enfants':{
+    #         'age_enfant1':4,
+    #         'age_enfant2':10,
+    #         'age_enfant3':None,
+    #         'age_enfant4':None,
+    #         'age_enfant5':None
+    #     },
+    #     'binome_penalty':0.1
+    # }
     st.session_state["prefs_current"] = prefs
     return prefs
 
@@ -145,7 +145,7 @@ def load_results(df, scores_cat):
     print(' <---------------------> CLICK <--------------------->')
     prefs = set_prefs() # We update the prefs with the latest inputs
     # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
-    odis_scored, scores_cat = compute_score(
+    odis_scored = compute_score(
         _df=df,
         scores_cat=scores_cat,
         prefs=prefs
@@ -212,8 +212,7 @@ def result_highlight(row, index):
 
 def build_top_results(_df, prefs):
     for index, row in _df.head(5).iterrows():
-        title = "Top " + str(index+1) + ': '+row.libgeo+' (en binôme avec '+row.libgeo_binome+')' if row.binome else "Top " + str(index+1) + ': '+row.libgeo+' (seule)'
-        # st.session_state['fg_dict_key'] = "Scores" # Default selection 
+        title = f"Top {index+1}: {row.libgeo} (en binôme avec {row.libgeo_binome})" if row.binome else f"Top {index+1}: {row.libgeo} (seule)"
         if st.button(
             title,
             on_click=result_highlight,
@@ -222,11 +221,49 @@ def build_top_results(_df, prefs):
             key='button_top'+str(index+1),
             type='secondary'
             ):
-            st.session_state["afficher_ecoles"] = False
+            # st.session_state["afficher_ecoles"] = False
             with st.container(border=True):
                 st.markdown(st.session_state['pitch'])
-                # for row in st.session_state['pitch']:
-                #     st.text(row)
+    # This is used as a callback so we don't return anything
+
+def produce_pitch_markdown(df, prefs, scores_cat, codfap_index, codformations_index):
+    pitch_md = []
+    pitch_md.append(f'**{df.loc["libgeo"]}** dans l\'EPCI: {df.loc["epci_nom"]}.  ')
+    pitch_md.append(f'Le score TOTO est de: **{df.loc["weighted_score"]:.2f}**.')
+    if df.loc['binome']:
+        pitch_md.append(f'Ce score est obtenu en binome avec la commune {df.loc["libgeo_binome"]}')
+        if df.loc['epci_code'] != df.loc['epci_code_binome']:
+            pitch_md.append(f' située dans l\'EPCI: {df.loc["epci_nom_binome"]}')
+    else:
+        pitch_md.append(f'Ce score est obtenu sans commune binôme')
+
+    
+    #Adding the top contributing criterias
+    crit_scores_col = [col for col in df.index if '_scaled' in col]#col.endswith('_scaled')]
+    
+    df_sorted=df[crit_scores_col].dropna().sort_values(ascending=False)
+    for i in range(0, 5):
+        score = df_sorted.index[i][:-7] if df_sorted.index[i].endswith('_binome') else df_sorted.index[i]
+        score_name = scores_cat[scores_cat.score == score]['score_name'].item()
+        pitch_md.append(f'- Le critère #{i+1} est: **{score_name}** avec un score de: **{df_sorted.iloc[i]:.2f}**')
+
+    
+    #Adding the matching job families if any
+    pitch_md.append('\n **Emploi** \n') 
+    metiers_col = [col for col in df.index if col.startswith('met_match_codes')]
+    matched_codfap_names = []
+    for metiers_adultx in metiers_col:
+        matched_codfap_names += list(codfap_index[codfap_index['Code FAP 341'].isin(df.loc[metiers_adultx])]['Intitulé FAP 341'])
+    matched_codfap_names = set(matched_codfap_names)
+    if len(matched_codfap_names) == 0:
+        pitch_md.append(f'Aucun des métiers recherchés ne figure dans le Top 10 des métiers à pourvoir sur cette zone.  ')
+        pitch_md.append(f'Top 10 des métiers à pourvoir sur cette zone: **{", ".join(df.loc["be_libfap_top"])}**  ')
+    if len(matched_codfap_names) == 1:
+        pitch_md.append(f'- La famille de métiers **{matched_codfap_names[0]}** est rechechée  ')
+    elif len(matched_codfap_names) >= 1:
+        pitch_md.append(f'- Les familles de métiers **{", ".join(matched_codfap_names)}** sont rechechées  ')
+        
+    return "\n".join(pitch_md)#.strip()
 
 @st.cache_data
 def show_scoring_results(_df, _fg_dict, _fg_list, prefs):
@@ -280,7 +317,7 @@ def filter_ecoles_by_distance(_current_geo, annuaire_ecoles, prefs):
     filtered_ecoles=filtered_ecoles[filtered_ecoles['distance_to_current_geo'].notna()]
     return filtered_ecoles
 
-@st.cache_resource
+@st.cache_data
 def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
     category_colors = {
         'Ecole': 'blue',
@@ -300,6 +337,7 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
             marker=flm.Circle(radius=250, fillColor=category_colors[ecole['type_etablissement'].iloc[0]], fill_opacity=1.0, opacity=0.0, weight=1),
         )
         fg_ecoles.add_child(ecole)
+    print(fg_ecoles)
     return fg_ecoles
 
 def toggle_ecoles(fg):
@@ -315,6 +353,7 @@ def toggle_ecoles(fg):
 
 # Loading and caching Datasets
 ODIS_FILE = '../csv/odis_april_2025_jacques.parquet'
+SCORES_CAT_FILE = '../csv/odis_scores_cat.csv'
 METIERS_FILE = '../csv/dares_nomenclature_fap2021.csv'
 FORMATIONS_FILE = '../csv/index_formations.csv'
 ECOLES_FILE = '../csv/annuaire_ecoles_france_mini.parquet'
@@ -329,36 +368,34 @@ session_states_init()
 ### BEGINNING OF THE STREAMLIT APP ###
 t = performance_tracker(t, 'Start App Sidebar', timer_mode)
 # Sidebar
-st.sidebar.header("Odis Stream #2 Prototype App")
-with st.sidebar:
-    st.subheader('Filtres de recherche')
-    # libdep_set, libfap_set, libform_set = get_index_sets(odis, codfap_index, codformations_index)
-    #Mobilité
-    departement_actuel = st.selectbox("Département", coddep_set, index=coddep_set.index('33'))
-    communes = depcom_df[depcom_df.dep_code==departement_actuel]['libgeo']
-    commune_actuelle = st.selectbox("Commune", communes)
-    commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].codgeo.item()
-    loc_distance_km = st.select_slider("Distance Max Relocalisation", range(0,51), value=5)
-
-    #Foyer
-    nb_adultes = st.select_slider("Nombre d'adultes", range(1,3), value=1)
-    nb_enfants = st.select_slider("Nombre d'enfants", range(0,6), value=1)
-
-    #Poids
-    with st.expander("Pondérations", expanded=False):
-        poids_emploi = st.select_slider("Pondération Emploi", range(0,5), value=1)
-        poids_logement = st.select_slider("Pondération Logement", range(0,5), value=1)
-        poids_education = st.select_slider("Pondération Education", range(0,5), value=1)
-        poids_soutien = st.select_slider("Pondération Soutien", range(0,5), value=1)
-        poids_mobilité = st.select_slider("Pondération Mobilité", range(0,5), value=1)
-        penalite_binome = st.select_slider("Décote binôme %", range(0,101), value=25) / 100
+st.header("Odis Stream #2 Prototype App")
 
 t = performance_tracker(t, 'Start Top Filters', timer_mode)
-#Top filter container
-st.text('Préférences de recherche')
-with st.container(border=True):
-    tab_emploi, tab_formation, tab_logement, tab_edu, tab_sante, tab_autres = st.tabs(['Emploi', 'Formation', 'Logement', 'Education', 'Santé', 'Autres'])
-    
+#Top filter Form
+st.subheader('Préférences de recherche')
+with st.form("preferences"):
+    tab_mobilite, tab_foyer, tab_emploi, tab_formation, tab_logement, tab_edu, tab_sante, tab_autres, tab_ponderation = st.tabs(['Mobilité', 'Foyer', 'Emploi', 'Formation', 'Logement', 'Education', 'Santé', 'Autres', 'Pondération'])
+
+    #Mobilité
+    with tab_mobilite:
+        col_left,col_right =st.columns(2)
+        with col_left:
+            departement_actuel = st.selectbox("Département", coddep_set, index=coddep_set.index('33'))
+            communes = depcom_df[depcom_df.dep_code==departement_actuel]['libgeo']
+            commune_actuelle = st.selectbox("Commune", communes)
+            commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].codgeo.item()
+        with col_right:
+            loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[0,10,50,100], value=10, disabled=False)
+            
+
+    #Foyer
+    with tab_foyer:
+        col_left,col_right =st.columns(2)
+        with col_left:
+            nb_adultes = st.radio("Nombre d'adultes", [1,2], index=0)
+        with col_right:
+            nb_enfants = st.select_slider("Nombre d'enfants", range(0,6), value=1)
+
     #Metiers
     with tab_emploi:
         liste_metiers_adult=[[],[]]
@@ -401,8 +438,17 @@ with st.container(border=True):
     with tab_autres:
         st.text_input('Autres préférences')
 
-# Bouton Pour lancer le scoring + affichage de la carte
-st.button(
+    #Poids
+    with tab_ponderation:
+        poids_emploi = st.select_slider("Pondération Emploi", range(0,5), value=1)
+        poids_logement = st.select_slider("Pondération Logement", range(0,5), value=1)
+        poids_education = st.select_slider("Pondération Education", range(0,5), value=1)
+        poids_soutien = st.select_slider("Pondération Soutien", range(0,5), value=1)
+        poids_mobilité = st.select_slider("Pondération Mobilité", range(0,5), value=1)
+        penalite_binome = st.select_slider("Décote binôme %", range(0,101), value=25) / 100
+
+    # Bouton Pour lancer le scoring + affichage de la carte
+    st.form_submit_button(
     "Afficher la carte" if st.session_state["processed_gdf"] is None else "Mettre à jour la carte",
     on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat})
 
@@ -416,7 +462,7 @@ if (st.session_state['processed_gdf'] is not None):
     
     ### Results Column
     with col_results:
-        st.header("Meilleurs résultats")
+        st.subheader("Meilleurs résultats")
         st.markdown('<style>di.st-key-button_top1 .stBUtton button div p  {text-align: left !important;color: red;}</style>',unsafe_allow_html=True)
         if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
             st.session_state["fg_dict_key"] = 'All'
@@ -427,7 +473,7 @@ if (st.session_state['processed_gdf'] is not None):
     t = performance_tracker(t, 'Start Map Column', timer_mode)
     ### Map Column
     with col_map:
-        st.header("Carte Interactive")
+        st.subheader("Carte Interactive")
         # we have scoring results let's draw the the map
         fg_list = []
         fg_dict = {}
@@ -451,8 +497,8 @@ if (st.session_state['processed_gdf'] is not None):
         # See doc here: https://python-visualization.github.io/folium/latest/user_guide/geojson/geojson_marker.html
         t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
         if nb_enfants > 0:
-            fg_ecoles = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-            st.checkbox('Afficher Ecoles', key='afficher_ecoles', value=False, on_change=toggle_ecoles, kwargs={'fg':fg_ecoles})
+            st.session_state['fg_ecoles'] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
+            st.checkbox('Afficher Ecoles', key='afficher_ecoles', value=False, on_change=toggle_ecoles, kwargs={'fg':st.session_state['fg_ecoles']})
 
         t = performance_tracker(t, 'End Ecoles Display', timer_mode)
 
@@ -466,6 +512,7 @@ if (st.session_state['processed_gdf'] is not None):
             height=800,
             key="odis_scored_map",
             use_container_width=True,
+            returned_objects=[],
             # layer_control=flm.LayerControl(collapsed=False)
         )
         t = performance_tracker(t, 'End Map Display', timer_mode)
