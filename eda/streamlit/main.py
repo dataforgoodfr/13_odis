@@ -367,30 +367,24 @@ session_states_init()
 
 ### BEGINNING OF THE STREAMLIT APP ###
 t = performance_tracker(t, 'Start App Sidebar', timer_mode)
+
 # Sidebar
-st.header("Odis Stream #2 Prototype App")
+with st.sidebar:
+    st.header("Odis Stream #2 Prototype App")
+    st.subheader('Filtre Localisation')
+    departement_actuel = st.selectbox("Département", coddep_set, index=coddep_set.index('33'))
+    communes = depcom_df[depcom_df.dep_code==departement_actuel]['libgeo']
+    commune_actuelle = st.selectbox("Commune", communes)
+    commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].codgeo.item()
+    loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[0,10,50,100], value=10, disabled=False)
 
 t = performance_tracker(t, 'Start Top Filters', timer_mode)
+
 #Top filter Form
-st.subheader('Préférences de recherche')
-with st.form("preferences"):
-    tab_mobilite, tab_foyer, tab_emploi, tab_formation, tab_logement, tab_edu, tab_sante, tab_autres, tab_ponderation = st.tabs(['Mobilité', 'Foyer', 'Emploi', 'Formation', 'Logement', 'Education', 'Santé', 'Autres', 'Pondération'])
-
-    #Mobilité
-    with tab_mobilite:
-        col_left,col_right =st.columns(2)
-        with col_left:
-            @st.fragment
-            def pick_commune():
-                departement_actuel = st.selectbox("Département", coddep_set, index=coddep_set.index('33'))
-                communes = depcom_df[depcom_df.dep_code==departement_actuel]['libgeo']
-                commune_actuelle = st.selectbox("Commune", communes)
-                commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].codgeo.item()
-            pick_commune()
-        with col_right:
-            loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[0,10,50,100], value=10, disabled=False)
+with st.container(border=True):
+    st.subheader('Préférences de recherche')
+    tab_foyer, tab_emploi, tab_formation, tab_logement, tab_edu, tab_sante, tab_autres, tab_ponderation = st.tabs(['Foyer', 'Emploi', 'Formation', 'Logement', 'Education', 'Santé', 'Autres', 'Pondération'])
             
-
     #Foyer
     with tab_foyer:
         col_left,col_right =st.columns(2)
@@ -451,7 +445,7 @@ with st.form("preferences"):
         penalite_binome = st.select_slider("Décote binôme %", range(0,101), value=25) / 100
 
     # Bouton Pour lancer le scoring + affichage de la carte
-    st.form_submit_button(
+    st.button(
     "Afficher la carte" if st.session_state["processed_gdf"] is None else "Mettre à jour la carte",
     on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat})
 
