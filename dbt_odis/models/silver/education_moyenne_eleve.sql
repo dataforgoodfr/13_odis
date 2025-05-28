@@ -4,7 +4,8 @@
 }}
 
 
-Select * FROM {{ ref('geographical_references') }} 
+
+Select * FROM {{ ref('geographical_references_communes') }} 
 Select * FROM {{ ref('education_moyenne_eleve_commune') }} AS B ORDER BY commune ASC
 Select * FROM {{ ref('education_moyenne_eleve_departement') }} AS C
 Select * FROM {{ ref('education_moyenne_eleve_region') }} AS D
@@ -14,8 +15,9 @@ Select * FROM {{ ref('education_moyenne_eleve_region') }} AS D
 WITH geo AS (
     SELECT 
         code,
+        region_code,
         UPPER(TRANSLATE(nom, 'àâäáãåçéèêëíìîïñóòôöõúùûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy')) AS commune
-    FROM {{ ref('geographical_references') }}
+    FROM {{ ref('geographical_references_communes') }}
 ),
 
 union_c_d_r AS (
@@ -89,6 +91,7 @@ union_c_d_r AS (
 
 SELECT 
     G.code AS code_insee,
+    G.region_code AS region_code,
     F.id,
     F.code_postal,
     F.commune,

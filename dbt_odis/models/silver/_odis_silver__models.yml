@@ -316,3 +316,13 @@ models:
         data_type: double precision
       - name: annee
         data_type: text
+
+  - name: population_categorie_socio_pro
+    columns:
+      - name: id
+        description: id
+
+  - name: education_moyenne_eleve
+    columns:
+      - name: id
+        description: id      
