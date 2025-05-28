@@ -380,10 +380,13 @@ with st.form("preferences"):
     with tab_mobilite:
         col_left,col_right =st.columns(2)
         with col_left:
-            departement_actuel = st.selectbox("Département", coddep_set, index=coddep_set.index('33'))
-            communes = depcom_df[depcom_df.dep_code==departement_actuel]['libgeo']
-            commune_actuelle = st.selectbox("Commune", communes)
-            commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].codgeo.item()
+            @st.fragment
+            def pick_commune():
+                departement_actuel = st.selectbox("Département", coddep_set, index=coddep_set.index('33'))
+                communes = depcom_df[depcom_df.dep_code==departement_actuel]['libgeo']
+                commune_actuelle = st.selectbox("Commune", communes)
+                commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].codgeo.item()
+            pick_commune()
         with col_right:
             loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[0,10,50,100], value=10, disabled=False)
             
