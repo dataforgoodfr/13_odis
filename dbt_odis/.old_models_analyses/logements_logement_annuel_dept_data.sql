@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['bronze', 'logement'],
     alias = 'vw_logement_annuel_dept_data'
     )
 }}

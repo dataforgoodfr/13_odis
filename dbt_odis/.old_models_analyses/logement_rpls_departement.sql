@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['bronze', 'logement_social'],
     alias = 'vw_logement_rpls_departement'
     )
 }}

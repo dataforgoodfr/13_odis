@@ -119,7 +119,7 @@ class AbstractDataLoader(ABC):
 
             try:
                 self.db_client.execute(
-                    f"DROP TABLE IF EXISTS bronze.{self.model.table_name}"
+                    f"DROP TABLE IF EXISTS bronze.{self.model.table_name} CASCADE"
                 )
             except psycopg2.errors.DependentObjectsStillExist as e:
                 logger.warning(

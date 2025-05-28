@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['gold', 'geographical_references'],
     alias = 'gold_typologies_territoires'
     )
 }}
