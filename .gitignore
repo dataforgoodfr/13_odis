@@ -183,3 +183,6 @@ common/collections/** */.env
 eda/csv_large/
 eda/csv_not_used/
 eda/streamlit/__pycache__h
+eda/streamlit/__pycache__
+eda/streamlit/cached_df
+eda/streamlit/cached_df.parquet
