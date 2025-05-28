@@ -50,3 +50,46 @@ models:
         description: Tranche déterminée à partir du champ population
       - name: population
         description: Nombre d'habitants dans la commune
+
+  - name: logements_territoires
+    description: Table recensant les nombres de types de logements par commune, département et région
+    columns:
+      - name: codgeo
+        description: Code officiel français de la zone géographique
+        data_type: text
+      - name: YEAR
+        description: Année de la donnée mesurée
+        data_type: numeric
+      - name: LOG
+        description: Nombre total de logements dans la zone géographique
+        data_type: double precision
+      - name: RP
+        description: Nombre total de logements qui sont des résidences principales dans la zone géographique
+        data_type: double precision
+      - name: RSECOCC
+        description: Nombre total de logements qui sont des résidences secondaires occupées dans la zone géographique
+        data_type: double precision
+      - name: LOGVAC
+        description: Nombre total de logements qui sont des logements vacants dans la zone géographique
+        data_type: double precision
+      - name: MAISON
+        description: Nombre de maisons dans la zone géographique
+        data_type: double precision
+      - name: APPART
+        description: Nombre d'appartements dans la zone géographique
+        data_type: double precision
+      - name: RPMAISON
+        description: Nombre de maisons qui sont des résidences principales dans la zone géographique
+        data_type: double precision
+      - name: RPAPPART
+        description: Nombre d'appartements qui sont des résidences principales dans la zone géographique
+        data_type: double precision
+      - name: NB_MOY_PIECE
+        description: Nombre moyen de pièces par type de logement (maison ou appartement), pondéré selon la proportion de chaque type de logement dans le nombre total
+        data_type: double precision
+      - name: MEN
+        description: Nombre total de logements qui sont des résidences principales dans la zone géographique
+        data_type: double precision
+      - name: NBPI_RP
+        description: Nombre moyen de pièces par type de logement (maison ou appartement) qui sont des résidences principales
+        data_type: double precision
