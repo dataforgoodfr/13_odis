@@ -57,39 +57,39 @@ models:
       - name: codgeo
         description: Code officiel français de la zone géographique
         data_type: text
-      - name: YEAR
+      - name: year
         description: Année de la donnée mesurée
         data_type: numeric
-      - name: LOG
+      - name: log
         description: Nombre total de logements dans la zone géographique
         data_type: double precision
-      - name: RP
+      - name: rp
         description: Nombre total de logements qui sont des résidences principales dans la zone géographique
         data_type: double precision
-      - name: RSECOCC
+      - name: rsecocc
         description: Nombre total de logements qui sont des résidences secondaires occupées dans la zone géographique
         data_type: double precision
-      - name: LOGVAC
+      - name: logvac
         description: Nombre total de logements qui sont des logements vacants dans la zone géographique
         data_type: double precision
-      - name: MAISON
+      - name: maison
         description: Nombre de maisons dans la zone géographique
         data_type: double precision
-      - name: APPART
+      - name: appart
         description: Nombre d'appartements dans la zone géographique
         data_type: double precision
-      - name: RPMAISON
+      - name: rpmaison
         description: Nombre de maisons qui sont des résidences principales dans la zone géographique
         data_type: double precision
-      - name: RPAPPART
+      - name: rpappart
         description: Nombre d'appartements qui sont des résidences principales dans la zone géographique
         data_type: double precision
-      - name: NB_MOY_PIECE
+      - name: nb_moy_piece
         description: Nombre moyen de pièces par type de logement (maison ou appartement), pondéré selon la proportion de chaque type de logement dans le nombre total
         data_type: double precision
-      - name: MEN
+      - name: men
         description: Nombre total de logements qui sont des résidences principales dans la zone géographique
         data_type: double precision
-      - name: NBPI_RP
+      - name: nbpi_rp
         description: Nombre moyen de pièces par type de logement (maison ou appartement) qui sont des résidences principales
         data_type: double precision
