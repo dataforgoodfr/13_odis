@@ -44,7 +44,8 @@ def monome_cleanup(df):
 def adding_score_voisins(df_search, scores_cat):
     #df_search is the dataframe pre-filtered by location
     #df_source is the dataframe with all the communes
-    binome_columns = ['codgeo','libgeo','polygon','epci_code','epci_nom']+scores_cat[scores_cat.incl_binome]['score'].to_list()+scores_cat[scores_cat.incl_binome]['metric'].to_list()
+    binome_columns = ['codgeo','libgeo','polygon','epci_code','epci_nom'] + scores_cat[scores_cat.incl_binome]['score'].to_list()+scores_cat[scores_cat.incl_binome]['metric'].to_list()
+    binome_columns = list(set(binome_columns) & set(df_search.columns))
     df_binomes = df_search[binome_columns].copy()
 
     # Adds itself to list of voisins = monome case
@@ -92,55 +93,59 @@ def fap_names_lookup(df):
     return list(codfap_index[codfap_index['Code FAP 341'].isin(df)]['Intitulé FAP 341'])
 def compute_criteria_scores(df, prefs): 
     df = df.copy()
+    
+    # Using QuantileTransfer to normalize all scores between 0 and 1 for the region
+    t = preprocessing.QuantileTransformer(output_distribution="uniform")
+
+    #met_ration est le ratio d'offres non-pourvues pour 1000 habitants
     df['met_ratio']= 1000 * df.met/df.pop_be
+    df['met_scaled'] = t.fit_transform(df[['met_ratio']].fillna(0))
     #met_tension_ratio est le ratio d'offres population de la zone (pour 1000 habitants)
     df['met_tension_ratio'] = 1000 * df.met_tension/df.pop_be
-
+    df['met_tension_scaled'] = t.fit_transform(df[['met_tension_ratio']].fillna(0))
     #svc_ratio est le ratio de services d'inclusion de la commune (pour 1000 habitants)
     df['svc_incl_ratio'] = 1000 * df.svc_incl_count/df.pop_be
-
+    df['svc_incl_scaled'] = t.fit_transform(df[['svc_incl_ratio']].fillna(0))
     #log_vac_ratio est le ratio de logements vacants de la commune % total logements
     df['log_vac_ratio'] = df.log_vac/df.log_total
-
-    #log_5p+_ratio est le ratio de residences principales de 5 pièces ou plus % total residences principales
-
-    df['log_5p_ratio'] = df['rp_5+pieces']/df.log_rp
-
-    # Risque de fermeture école: ratio de classe à risque de fermeture % nombre d'écoles
-    df['risque_fermeture_ratio'] = df.risque_fermeture/df.ecoles_ct
-
-    #Scaling with PowerTransformer so that 
-    # 1. outliers don't impact too much the end result
-    # 2. all scores are normaly distributed and centered around 0
-    #pt = preprocessing.PowerTransformer()
-    t = preprocessing.QuantileTransformer(output_distribution="uniform")
-    df['met_scaled'] = t.fit_transform(df[['met_ratio']].fillna(0))
-    df['met_tension_scaled'] = t.fit_transform(df[['met_tension_ratio']].fillna(0))
-    df['svc_incl_scaled'] = t.fit_transform(df[['svc_incl_ratio']].fillna(0))
     df['log_vac_scaled'] = t.fit_transform(df[['log_vac_ratio']].fillna(0))
-    df['log_5p_scaled'] = t.fit_transform(df[['log_5p_ratio']].fillna(0))
-    df['classes_ferm_scaled'] = t.fit_transform(df[['risque_fermeture_ratio']].fillna(0))
+    #pol est le score selon la couleur politique (extreme droite = 0, gauche = 1)
     df['pol_scaled'] = df[['pol_num']].astype('float')
-    # Let's create subject-specific scores
-    t = preprocessing.QuantileTransformer(output_distribution="uniform")
-    #For each adult we look for jobs categories that match what is needed
-    i=1
-    for adult in prefs['codes_metiers']:
-        df['met_match_codes_adult'+str(i)] = df.be_codfap_top.apply(codes_match, codes_list=prefs['codes_metiers'][adult])
-        df['met_match_adult'+str(i)] = df['met_match_codes_adult'+str(i)].apply(len)
-        df['met_match_adult'+str(i)+'_scaled'] = t.fit_transform(df[['met_match_adult'+str(i)]].fillna(0))
-        i+=1
+    
+    if prefs['hebergement'] == "Chez l'habitant":
+        #log_5p+_ratio est le ratio de residences principales de 5 pièces ou plus % total residences principales
+        df['log_5p_ratio'] = df['rp_5+pieces']/df.log_rp
+        df['log_5p_scaled'] = t.fit_transform(df[['log_5p_ratio']].fillna(0))
 
-    j=1
-    for adult in prefs['codes_formations']:
-        df['form_match_codes_adult'+str(j)] = df.codes_formations.apply(codes_match, codes_list=prefs['codes_formations'][adult])
-        df['form_match_adult'+str(j)] = df['form_match_codes_adult'+str(j)].apply(len)
-        df['form_match_adult'+str(j)+'_scaled'] = t.fit_transform(df[['form_match_adult'+str(j)]].fillna(0))
-        j+=1
+    if len(prefs['classe_enfants']) > 0: 
+        # Risque de fermeture école: ratio de classe à risque de fermeture % nombre d'écoles
+        df['risque_fermeture_ratio'] = df.risque_fermeture/df.ecoles_ct
+        df['classes_ferm_scaled'] = t.fit_transform(df[['risque_fermeture_ratio']].fillna(0))
+
+
+    # Subject Specific criterias
 
     # We compute the distance from the current location 
     df['reloc_dist_scaled'] = (1-df['dist_current_loc']/(prefs['loc_distance_km']*1000))
     df['reloc_epci_scaled'] = np.where(df['epci_code'] == df[df.codgeo == prefs['commune_actuelle']]['epci_code'].iloc[0],1,0)
+
+    #For each adult we look for jobs categories that match what is needed
+    i=1
+    for adult in prefs['codes_metiers']:
+        if len(prefs['codes_metiers'][adult]) > 0:
+            df['met_match_codes_adult'+str(i)] = df.be_codfap_top.apply(codes_match, codes_list=prefs['codes_metiers'][adult])
+            df['met_match_adult'+str(i)] = df['met_match_codes_adult'+str(i)].apply(len)
+            df['met_match_adult'+str(i)+'_scaled'] = t.fit_transform(df[['met_match_adult'+str(i)]].fillna(0))
+            i+=1
+
+    j=1
+    for adult in prefs['codes_formations']:
+        if len(prefs['codes_formations'][adult]) > 0:
+            df['form_match_codes_adult'+str(j)] = df.codes_formations.apply(codes_match, codes_list=prefs['codes_formations'][adult])
+            df['form_match_adult'+str(j)] = df['form_match_codes_adult'+str(j)].apply(len)
+            df['form_match_adult'+str(j)+'_scaled'] = t.fit_transform(df[['form_match_adult'+str(j)]].fillna(0))
+        j+=1
+
     
     return df
 def compute_cat_scores(df, scores_cat, penalty):
@@ -159,7 +164,7 @@ def compute_cat_scores(df, scores_cat, penalty):
             df_binome[col] = pd.to_numeric(df[col], errors='coerce')
             df_binome.loc[mask, col] = df.loc[mask, col] * (1-penalty) 
             cat_scores_df = pd.concat([cat_scores_df, df_binome[col]], axis=1)
-        df[cat + '_cat_score'] = 100 * cat_scores_df.astype(float).mean(axis=1)
+        df[cat + '_cat_score'] = cat_scores_df.astype(float).mean(axis=1)
 
     return df
 def compute_binome_score_old(df, binome_penalty, prefs):
@@ -175,12 +180,11 @@ def compute_binome_score_old(df, binome_penalty, prefs):
             )
     
     return max_scores.mean(axis=1).round(1)
-def compute_binome_score(df, prefs):
+def compute_binome_score(df, scores_cat, prefs):
     scores_cat_col = [col for col in df.columns if col.endswith('_cat_score')]
     weighted_scores = pd.DataFrame()
-    
     for col in scores_cat_col:
-        cat_weight = prefs[col.split('_')[0]]
+        cat_weight =  prefs['poids_'+col.split('_')[0]]
         weighted_scores[col] = cat_weight * df[col]
     
     return weighted_scores.astype(float).mean(axis=1)
@@ -205,85 +209,10 @@ def compute_odis_score(df, scores_cat, prefs):
     odis_exploded = compute_cat_scores(odis_exploded, scores_cat=scores_cat, penalty=prefs['binome_penalty'])
 
     # We computing the final weighted score for all commune<->voisin combinations
-    odis_exploded['weighted_score'] = compute_binome_score(odis_exploded, prefs=prefs)
+    odis_exploded['weighted_score'] = compute_binome_score(odis_exploded, scores_cat=scores_cat, prefs=prefs)
 
     # We keep best monome or binome for each commune 
     odis_search_best = best_score_compute(odis_exploded)
 
     return odis_search_best
-def produce_pitch(df, prefs, scores_cat, codfap_index, codformations_index):
-    pitch_lines = []
-    pitch_lines += [df.loc['libgeo'] +' dans l\'EPCI: '+ df.loc['epci_nom']]
-    pitch_lines += ['Le score est de: '+str(df.loc['weighted_score'])]
-    if df.loc['binome']:
-        pitch_lines += ['Ce score est obtenu en binome avec la commune '+df.loc['libgeo_binome']]
-        if df.loc['epci_code'] != df.loc['epci_code_binome']:
-            pitch_lines += ['Cette commune est située dans l\'EPCI: '+df.loc['epci_nom_binome']]
-    else:
-        pitch_lines += ['Ce score est obtenu sans commune binôme']
-
-    
-    #Adding the top contributin criterias
-    crit_scores_col = [col for col in df.index if '_scaled' in col]#col.endswith('_scaled')]
-    
-    df_sorted=df[crit_scores_col].dropna().sort_values(ascending=False)
-    for i in range(0, 5):
-        score = df_sorted.index[i][:-7] if df_sorted.index[i].endswith('_binome') else df_sorted.index[i]
-        score_name = scores_cat[scores_cat.score == score]['score_name'].item()
-        pitch_lines += ['Le critère #'+str(i+1)+' est: '+score_name+' avec un score de: '+str(df_sorted.iloc[i])]
-
-    
-    #Adding the matching job families if any
-    metiers_col = [col for col in df.index if col.startswith('met_match_codes')]
-    for metiers_adultx in metiers_col:
-        matched_codfap_names = list(codfap_index[codfap_index['Code FAP 341'].isin(df.loc[metiers_adultx])]['Intitulé FAP 341'])
-        if len(matched_codfap_names) == 1:
-            pitch_lines += ['La famille de métiers '+ matched_codfap_names[0] +' est rechechée'] 
-        elif len(matched_codfap_names) >= 1:
-            list_jobs = ''
-            for job in matched_codfap_names:
-                list_jobs += job+', '
-            pitch_lines += ['Les familles de métiers '+ list_jobs[:-2] +' sont rechechées']
-    
-    return pitch_lines
-# def produce_pitch_markdown(df, prefs, scores_cat, codfap_index, codformations_index):
-#     pitch_md = []
-#     pitch_md.append(f'**{df.loc["libgeo"]}** dans l\'EPCI: {df.loc["epci_nom"]}\n')
-#     pitch_md.append(f'Le score TOTO est de: **{df.loc["weighted_score"]:.2f}**\n')
-#     if df.loc['binome']:
-#         pitch_md.append(f'Ce score est obtenu en binome avec la commune {df.loc["libgeo_binome"]}')
-#         if df.loc['epci_code'] != df.loc['epci_code_binome']:
-#             pitch_md.append(f' située dans l\'EPCI: {df.loc["epci_nom_binome"]}\n')
-#     else:
-#         pitch_md += f'Ce score est obtenu sans commune binôme'
-
-    
-#     #Adding the top contributing criterias
-#     crit_scores_col = [col for col in df.index if '_scaled' in col]#col.endswith('_scaled')]
-    
-#     df_sorted=df[crit_scores_col].dropna().sort_values(ascending=False)
-#     for i in range(0, 5):
-#         score = df_sorted.index[i][:-7] if df_sorted.index[i].endswith('_binome') else df_sorted.index[i]
-#         score_name = scores_cat[scores_cat.score == score]['score_name'].item()
-#         pitch_md.append(f'- Le critère #{i+1} est: **{score_name}** avec un score de: **{df_sorted.iloc[i]:.2f}**\n')
-
-    
-#     #Adding the matching job families if any
-#     pitch_md.append('**Emploi**\n') 
-#     metiers_col = [col for col in df.index if col.startswith('met_match_codes')]
-#     matched_codfap_names = []
-#     for metiers_adultx in metiers_col:
-#         matched_codfap_names += list(codfap_index[codfap_index['Code FAP 341'].isin(df.loc[metiers_adultx])]['Intitulé FAP 341'])
-#     matched_codfap_names = set(matched_codfap_names)
-#     if len(matched_codfap_names) == 0:
-#         pitch_md.append(f'Aucun des métiers recherchés ne figurent dans le Top 10 des métiers à pourvoir sur cette zone.\n')
-#     if len(matched_codfap_names) == 1:
-#         pitch_md.append(f'- La famille de métiers **{matched_codfap_names[0]}** est rechechée \n')
-#     elif len(matched_codfap_names) >= 1:
-#         list_jobs = ''
-#         for job in matched_codfap_names:
-#             list_jobs += job+', '
-#         pitch_md.append(f'- Les familles de métiers **{list_jobs[:-2]}** sont rechechées \n')
-        
-#     return pitch_md[0]
 # THIS SHOULD BE THE END OF JUPYTER NOTEBOOK EXPORT
