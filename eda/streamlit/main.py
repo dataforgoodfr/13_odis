@@ -462,7 +462,7 @@ def run_demo(demo_data):
             demo_data['classe_enfants'] = [0, 1] #index of ['Maternelle','Primaire','Collège','Lycée']
             demo_data['sante'] = "Maternité"
             demo_data['poids_mobilité'] = 0
-        st.query_params.clear()
+        st.query_params.clear()local
         # st.write(demo_data)
     return demo_data
 
