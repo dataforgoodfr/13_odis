@@ -115,6 +115,7 @@ def set_prefs(scores_cat, *demo_id):
         if row.loc['incl_binome']:
             row_to_add = scores_cat.loc[[index]]
             row_to_add['score'] = row_to_add['score'] + '_binome'
+            row_to_add['score_name'] = row_to_add['score_name'] + ' (Binôme)'
             row_to_add['incl_binome'] = False
             scores_cat_prefs = pd.concat([scores_cat_prefs, row_to_add])
     scores_cat_prefs['weight'] = scores_cat_prefs['cat'].apply(lambda x: prefs['poids_'+x])
@@ -209,8 +210,10 @@ def build_top_results(_df, n, prefs):
             ):
             with st.container(border=True):
                 st.markdown(st.session_state['pitch'])
+                # st.write(st.session_state['scores_cat'].loc['met_scaled'])
                 with st.expander('Details Supplémentaires'):
-                    st.write(row.filter(items=cols_to_show))
+                    for id, score in row.filter(items=cols_to_show).items():
+                        st.write(f"{st.session_state['scores_cat'].loc[id].score_name} | Score: {score}")
     # This is used as a callback so we don't return anything
 
 @st.cache_data
@@ -371,6 +374,7 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
 def filter_sante(target_codgeos, _annuaire_sante, prefs):
     # we consider all the etablissements soclaires in the target codgeos and the ones around (voisins)
     filtered_sante = _annuaire_sante.copy()
+    st.write(prefs['besoin_sante'])
     if prefs['besoin_sante'] == 'Maternité':
         filtered_sante = filtered_sante[filtered_sante.maternite]
     elif prefs['besoin_sante'] == "Hopital":
@@ -381,23 +385,22 @@ def filter_sante(target_codgeos, _annuaire_sante, prefs):
         filtered_sante = filtered_sante[filtered_sante.Categorie.isin(cat_list)]
 
     filtered_sante = filtered_sante[filtered_sante['codgeo'].isin(target_codgeos)]
-
+    st.write(filtered_sante)
     return filtered_sante[['nofinesset', 'codgeo', 'RaisonSociale', 'LibelleCategorieAgregat', 'LibelleSph', 'geometry', 'maternite']]
 
 @st.cache_data
 def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
     fg_sante = flm.FeatureGroup(name="Établissements de Santé")
-    # filtered_annuaire = _annuaire_ecoles[_annuaire_ecoles.type_etablissement.isin(['Ecole', 'Collège', 'Lycée'])]
+
     target_codgeos = set(
         st.session_state['processed_gdf'].codgeo.tolist() 
         +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
         )
-    filtered_annuaire = filter_sante(target_codgeos, annuaire_sante, prefs)
-    # st.write(filtered_annuaire)
+
+    filtered_annuaire = filter_sante(target_codgeos, _annuaire_sante, prefs)
     
     # Now let's add these schools to the map in the fg_ecoles feature group
     filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:2154')
-    # filtered_annuaire.to_crs(epsg=4326, inplace=True)
 
     for index, row in filtered_annuaire.iterrows():
         etablisssement = filtered_annuaire[filtered_annuaire.index==index]
@@ -415,7 +418,7 @@ def toggle_extra(fg, fg_name, key):
         st.session_state["fg_extras_dict"][fg_name] = fg
     if (key == False) & (fg_name in st.session_state["fg_extras_dict"].keys()):
         st.session_state["fg_extras_dict"].pop(fg_name)
-    print(st.session_state["fg_extras_dict"])
+
 
 demo_data = {
     'poids_emploi':None,
@@ -462,7 +465,9 @@ def run_demo(demo_data):
             demo_data['classe_enfants'] = [0, 1] #index of ['Maternelle','Primaire','Collège','Lycée']
             demo_data['sante'] = "Maternité"
             demo_data['poids_mobilité'] = 0
-        st.query_params.clear()local
+        if st.button('Exit Demo'):
+            st.query_params.clear()local
+            st.rerun()
         # st.write(demo_data)
     return demo_data
 
@@ -491,7 +496,7 @@ session_states_init()
 t = performance_tracker(t, 'Start App Sidebar', timer_mode)
 with st.sidebar:
     st.header("Odis Stream #2 Prototype App")
-    st.subheader('Filtre Localisation')
+    st.subheader('Localisation Actuelle')
     # Département
     dep_index = coddep_set.index(demo_data['departement_actuel'] if demo_data['departement_actuel'] is not None else '33')
     departement_actuel = st.selectbox("Département", coddep_set, index=dep_index)
@@ -502,6 +507,7 @@ with st.sidebar:
     commune_actuelle = st.selectbox("Commune", communes, index=com_index)
     commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].codgeo.item()
     # Distance
+    st.subheader('Filtre Localisation')
     dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 10
     loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[10,25,50,100], value=dist_value, disabled=False)
 
@@ -619,8 +625,8 @@ t = performance_tracker(t, 'Start Results Column', timer_mode)
     
 ### Results Column
 with col_results:
+    st.subheader("Meilleurs résultats")
     if st.session_state['processed_gdf'] is not None:
-        st.subheader("Meilleurs résultats")
         st.markdown('<style>di.st-key-button_top1 .stBUtton button div p  {text-align: left !important;color: red;}</style>',unsafe_allow_html=True)
         if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
             st.session_state["fg_dict_key"] = 'All'
@@ -657,14 +663,19 @@ with col_map:
         t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
         if st.session_state['prefs']['nb_enfants'] > 0:
             st.session_state['fg_ecoles'] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-            st.checkbox('Afficher Ecoles', key='afficher_ecoles', value=False, on_change=toggle_extra, kwargs={'fg':st.session_state['fg_ecoles'], 'fg_name':'ecoles', 'key':st.session_state['afficher_ecoles']})
+            # st.checkbox('Afficher Ecoles', key='afficher_ecoles', value=False, on_change=toggle_extra, kwargs={'fg':st.session_state['fg_ecoles'], 'fg_name':'ecoles', 'key':st.session_state['afficher_ecoles']})
+            st.checkbox('Afficher Ecoles', key='afficher_ecoles', value=False)
+            toggle_extra(fg=st.session_state['fg_ecoles'], fg_name='ecoles', key=st.session_state['afficher_ecoles'])
         t = performance_tracker(t, 'End Ecoles Display', timer_mode)
 
-        t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
+        t = performance_tracker(t, 'Start Sante Display', timer_mode)
         if st.session_state['prefs']['besoin_sante'] != "Aucun":
             st.session_state['fg_sante'] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
-            st.checkbox('Afficher Etablissements de Santé', key='afficher_sante', value=False, on_change=toggle_extra, kwargs={'fg':st.session_state['fg_sante'], 'fg_name':'sante', 'key':st.session_state['afficher_sante']})
-        t = performance_tracker(t, 'End Ecoles Display', timer_mode)
+            # st.checkbox('Afficher Etablissements de Santé', key='afficher_sante', value=False, on_change=toggle_extra, kwargs={'fg':st.session_state['fg_sante'], 'fg_name':'sante', 'key':st.session_state['afficher_sante']})
+            st.checkbox('Afficher Etablissements de Santé', key='afficher_sante', value=False)
+            toggle_extra(fg=st.session_state['fg_sante'], fg_name='sante', key=st.session_state['afficher_sante'])
+        t = performance_tracker(t, 'End Sante Display', timer_mode)
+        # st.write(st.session_state["fg_extras_dict"])
 
         t = performance_tracker(t, 'Start Map Display', timer_mode)
         # print(fg_dict[st.session_state["fg_dict_key"]]+list(st.session_state["fg_extras_dict"].values()))
