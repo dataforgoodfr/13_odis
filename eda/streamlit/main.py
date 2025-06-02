@@ -55,6 +55,8 @@ def session_states_init():
         st.session_state["fg_list"] = []
     if 'afficher_ecoles' not in st.session_state:
         st.session_state['afficher_ecoles'] = None
+    if 'afficher_sante' not in st.session_state:
+        st.session_state['afficher_sante'] = None
     if 'fg_extras_dict' not in st.session_state:
         st.session_state["fg_extras_dict"] = {}
     if 'fg_dict_key' not in st.session_state:
@@ -67,12 +69,14 @@ def session_states_init():
         st.session_state["prefs"] = {}
     if "fg_ecoles" not in st.session_state:
         st.session_state["fg_ecoles"] = None
-
+    if "fg_sante" not in st.session_state:
+        st.session_state["fg_sante"] = None
+        
 # This @st.cache_resource dramatically improves performance of the app
 @st.cache_resource
 def init_datasets():
     # We load all the datasets
-    odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles = init_loading_datasets(ODIS_FILE, SCORES_CAT_FILE, METIERS_FILE, FORMATIONS_FILE, ECOLES_FILE)
+    odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante = init_loading_datasets(ODIS_FILE, SCORES_CAT_FILE, METIERS_FILE, FORMATIONS_FILE, ECOLES_FILE, MATERNITE_FILE, SANTE_FILE)
     
     coddep_set = sorted(set(odis['dep_code']))
     depcom_df = odis[['dep_code','libgeo']].sort_values('libgeo')
@@ -80,7 +84,7 @@ def init_datasets():
     libfap_set = sorted(set(codfap_index['Intitulé FAP 341']))
     libform_set = sorted(set(codformations_index['libformation']))
     
-    return odis, codfap_index, codformations_index, annuaire_ecoles, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set
+    return odis, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set
 
 @st.cache_data
 def compute_score(_df, scores_cat, prefs):
@@ -95,17 +99,14 @@ def set_prefs(scores_cat, *demo_id):
         'poids_mobilité':poids_mobilité,
         'commune_actuelle':commune_codgeo,
         'loc_distance_km':loc_distance_km,
+        'nb_adultes': nb_adultes,
+        'nb_enfants': nb_enfants,
         'hebergement':hebergement,
         'logement':logement,
-        'codes_metiers':{
-            'codes_metiers_adulte1':liste_metiers_adult[0],
-            'codes_metiers_adulte2':liste_metiers_adult[1]
-        },
-        'codes_formations':{
-            'codes_formations_adulte1':liste_formations_adult[0],
-            'codes_formations_adulte2':liste_formations_adult[1]
-        },
+        'codes_metiers': liste_metiers_adult,
+        'codes_formations':liste_formations_adult,
         'classe_enfants':liste_classe_enfants,
+        'besoin_sante':besoin_sante,
         'binome_penalty':penalite_binome
     }
     # Add binomes scores & weights to scores_cat
@@ -142,6 +143,7 @@ def load_results(df, scores_cat, *demo_id):
     st.session_state['processed_gdf'] = odis_scored
     st.session_state['selected_geo'] = selected_geo
     st.session_state['afficher_ecoles'] = False
+    st.session_state['afficher_sante'] = False
 
 def styling_communes(feature, style):
     score_weights_dict = st.session_state["processed_gdf"].set_index("codgeo")["weighted_score"]
@@ -365,14 +367,54 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
     # print(fg_ecoles)
     return fg_ecoles
 
-def toggle_ecoles(fg):
-    if (st.session_state['afficher_ecoles']):
-        print('here')
-        st.session_state["fg_extras_dict"]['ecoles'] = fg
-        # st.write(':large_blue_circle:= Ecoles,:red_circle:= Collèges et :large_green_circle:= Lycées')
-    if (st.session_state['afficher_ecoles'] == False) & ('ecoles' in st.session_state["fg_extras_dict"].keys()):
-        print('there')
-        st.session_state["fg_extras_dict"].pop('ecoles')
+@st.cache_data
+def filter_sante(target_codgeos, _annuaire_sante, prefs):
+    # we consider all the etablissements soclaires in the target codgeos and the ones around (voisins)
+    filtered_sante = _annuaire_sante.copy()
+    if prefs['besoin_sante'] == 'Maternité':
+        filtered_sante = filtered_sante[filtered_sante.maternite]
+    elif prefs['besoin_sante'] == "Hopital":
+        cat_list = [355, 362, 101, 106]
+        filtered_sante = filtered_sante[filtered_sante.Categorie.isin(cat_list)]
+    elif prefs['besoin_sante'] == "Centre Addictions & Maladies Mentales":
+        cat_list = [156, 292, 425, 412, 366, 415, 430, 444]
+        filtered_sante = filtered_sante[filtered_sante.Categorie.isin(cat_list)]
+
+    filtered_sante = filtered_sante[filtered_sante['codgeo'].isin(target_codgeos)]
+
+    return filtered_sante[['nofinesset', 'codgeo', 'RaisonSociale', 'LibelleCategorieAgregat', 'LibelleSph', 'geometry', 'maternite']]
+
+@st.cache_data
+def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
+    fg_sante = flm.FeatureGroup(name="Établissements de Santé")
+    # filtered_annuaire = _annuaire_ecoles[_annuaire_ecoles.type_etablissement.isin(['Ecole', 'Collège', 'Lycée'])]
+    target_codgeos = set(
+        st.session_state['processed_gdf'].codgeo.tolist() 
+        +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
+        )
+    filtered_annuaire = filter_sante(target_codgeos, annuaire_sante, prefs)
+    # st.write(filtered_annuaire)
+    
+    # Now let's add these schools to the map in the fg_ecoles feature group
+    filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:2154')
+    # filtered_annuaire.to_crs(epsg=4326, inplace=True)
+
+    for index, row in filtered_annuaire.iterrows():
+        etablisssement = filtered_annuaire[filtered_annuaire.index==index]
+        etablisssement = flm.GeoJson(
+            data=etablisssement,
+            tooltip=flm.GeoJsonTooltip(fields=['RaisonSociale', 'LibelleCategorieAgregat', 'LibelleSph', 'maternite']),
+            marker=flm.Circle(radius=250, fillColor='orange', fill_opacity=1.0, opacity=0.0, weight=1),
+        )
+        fg_sante.add_child(etablisssement)
+    
+    return fg_sante
+
+def toggle_extra(fg, fg_name, key):
+    if key:
+        st.session_state["fg_extras_dict"][fg_name] = fg
+    if (key == False) & (fg_name in st.session_state["fg_extras_dict"].keys()):
+        st.session_state["fg_extras_dict"].pop(fg_name)
     print(st.session_state["fg_extras_dict"])
 
 demo_data = {
@@ -386,16 +428,11 @@ demo_data = {
     'loc_distance_km':None,
     'hebergement':None,
     'logement':None,
+    'sante': None,
     'nb_adultes': None,
     'nb_enfants': None,
-    'codes_metiers':{
-        'codes_metiers_adulte1':None,
-        'codes_metiers_adulte2':None
-    },
-    'codes_formations':{
-        'codes_formations_adulte1':None,
-        'codes_formations_adulte2':None
-    },
+    'codes_metiers':None,
+    'codes_formations':None,
     'classe_enfants':None,
     'binome_penalty':None
 }
@@ -415,15 +452,17 @@ def run_demo(demo_data):
             print('demo 2')
             demo_data['departement_actuel'] = '75'
             demo_data['commune_actuelle'] = 'Paris'
-            demo_data['loc_distance_km'] = 100
+            demo_data['loc_distance_km'] = 25
             demo_data['hebergement'] = "Location"
             demo_data['logement'] = "Logement Social"
             demo_data['nb_adultes'] = 2
             demo_data['nb_enfants'] = 2
-            demo_data['codes_metiers']['codes_metiers_adulte1'] = ['Ouvriers peu qualifiés en menuiserie et en agencement du BTP', 'Ouvriers qualifiés en menuiserie et en agencement du BTP']
-            demo_data['codes_formations']['codes_formations_adulte2'] = ['Santé', 'Spécialités plurivalentes sanitaires et sociales', "Informatique, traitement de l'information, réseaux de transmission des données"]
+            demo_data['codes_metiers'] = [['Ouvriers peu qualifiés en menuiserie et en agencement du BTP', 'Ouvriers qualifiés en menuiserie et en agencement du BTP']]
+            demo_data['codes_formations'] = [[],['Santé', 'Spécialités plurivalentes sanitaires et sociales', "Informatique, traitement de l'information, réseaux de transmission des données"]]
             demo_data['classe_enfants'] = [0, 1] #index of ['Maternelle','Primaire','Collège','Lycée']
-        # st.query_params.clear()
+            demo_data['sante'] = "Maternité"
+            demo_data['poids_mobilité'] = 0
+        st.query_params.clear()
         # st.write(demo_data)
     return demo_data
 
@@ -431,14 +470,16 @@ def run_demo(demo_data):
 demo_data = run_demo(demo_data)
 
 # Loading and caching Datasets
+t = performance_tracker(t, 'Start Dataset Import', timer_mode)
 ODIS_FILE = '../csv/odis_april_2025_jacques.parquet'
 SCORES_CAT_FILE = '../csv/odis_scores_cat.csv'
 METIERS_FILE = '../csv/dares_nomenclature_fap2021.csv'
 FORMATIONS_FILE = '../csv/index_formations.csv'
 ECOLES_FILE = '../csv/annuaire_ecoles_france_mini.parquet'
+MATERNITE_FILE = '../csv/annuaire_maternites_DREES.csv'
+SANTE_FILE = '../csv/annuaire_sante_finess.parquet'
 
-t = performance_tracker(t, 'Start Dataset Import', timer_mode)
-odis, codfap_index, codformations_index, annuaire_ecoles, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set = init_datasets()
+odis, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set = init_datasets()
 t = performance_tracker(t, 'End Dataset Import', timer_mode)
 
 # Load all the session_states if they don't exist yet
@@ -486,14 +527,20 @@ with st.container(border=True):
     with tab_emploi:
         liste_metiers_adult=[]
         for adult in range(0,nb_adultes):
-            metiers_default = demo_data['codes_metiers']['codes_metiers_adulte'+str(adult+1)] if demo_data['codes_metiers']['codes_metiers_adulte'+str(adult+1)] is not None else []
+            try: 
+                metiers_default = demo_data['codes_metiers'][adult]
+            except (IndexError, TypeError): 
+                metiers_default = []
             liste_metiers_adult += [st.multiselect("Métiers ciblés Adulte "+str(adult+1), libfap_set, default=metiers_default)]
 
     #Formations
     with tab_formation:
         liste_formations_adult=[]
         for adult in range(0,nb_adultes):
-            formations_default = demo_data['codes_formations']['codes_formations_adulte'+str(adult+1)] if demo_data['codes_formations']['codes_formations_adulte'+str(adult+1)] is not None else [] 
+            try:
+                formations_default = demo_data['codes_formations'][adult]
+            except (IndexError, TypeError):
+                formations_default = [] 
             liste_formations_adult += [st.multiselect("Formations ciblées Adulte "+str(adult+1),options=libform_set, default=formations_default)]
 
     # Logement
@@ -513,18 +560,29 @@ with st.container(border=True):
         else:
             col_left, col_right = st.columns(2)
             liste_classes = ['Maternelle','Primaire','Collège','Lycée']
+            classe_index = 0
             with col_left:
                 for enfant in range(0,nb_enfants, 2):
-                    classe_index = demo_data['classe_enfants'][enfant] if len(demo_data['classe_enfants']) > enfant else None
+                    if demo_data['classe_enfants'] is not None:
+                        try:
+                            classe_index = demo_data['classe_enfants'][enfant] 
+                        except IndexError:
+                            classe_index = 0
                     liste_classe_enfants += [st.selectbox('Niveau enfant '+str(enfant+1), liste_classes, index=classe_index)]
             with col_right:
                 for enfant in range(1,nb_enfants, 2):
-                    classe_index = demo_data['classe_enfants'][enfant] if len(demo_data['classe_enfants']) > enfant else None
+                    if demo_data['classe_enfants'] is not None:
+                        try:
+                            classe_index = demo_data['classe_enfants'][enfant] 
+                        except IndexError:
+                            classe_index = 0
                     liste_classe_enfants += [st.selectbox('Niveau enfant '+str(enfant+1), liste_classes, index=classe_index)]
 
     #Santé
     with tab_sante:
-        st.radio('upport médical à proximité',["Hopital", 'Maternité', "Centre Addictions"])
+        sante_options = ["Aucun", "Hopital", 'Maternité', "Centre Addictions & Maladies Mentales"]
+        sante_index = sante_options.index(demo_data['sante']) if demo_data['sante'] is not None else 0
+        besoin_sante = st.radio('Support médical à proximité',options=sante_options, index=sante_index)
 
     #Autres
     with tab_autres:
@@ -534,20 +592,25 @@ with st.container(border=True):
     with tab_ponderation:
         col1, col2, col3 = st.columns(3)
         with col1:
-            poids_emploi = st.select_slider("Pondération Emploi", [0, 25, 50, 100], value=100)
-            poids_logement = st.select_slider("Pondération Logement", [0, 25, 50, 100], value=100)
+            value_emploi = demo_data['poids_emploi'] if demo_data['poids_emploi'] is not None else 100
+            poids_emploi = st.select_slider("Pondération Emploi", [0, 25, 50, 100], value=value_emploi)
+            value_logement = demo_data['poids_logement'] if demo_data['poids_logement'] is not None else 100
+            poids_logement = st.select_slider("Pondération Logement", [0, 25, 50, 100], value=value_logement)
         with col2:
-            poids_education = st.select_slider("Pondération Education", [0, 25, 50, 100], value=100)
-            poids_soutien = st.select_slider("Pondération Soutien", [0, 25, 50, 100], value=25)
+            value_education = demo_data['poids_education'] if demo_data['poids_education'] is not None else 100
+            poids_education = st.select_slider("Pondération Education", [0, 25, 50, 100], value=value_education)
+            value_soutien = demo_data['poids_soutien'] if demo_data['poids_soutien'] is not None else 25
+            poids_soutien = st.select_slider("Pondération Soutien", [0, 25, 50, 100], value=value_soutien)
         with col3:
-            poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=100)
+            value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
+            poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
             penalite_binome = st.select_slider("Décote binôme %", [0, 10, 25, 50, 100], value=10) / 100
 
-    # Bouton Pour lancer le scoring + affichage de la carte
-    st.button(
-    "Afficher la carte" if st.session_state["processed_gdf"] is None else "Mettre à jour la carte",
-    on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat})
-    t = performance_tracker(t, 'Ready', timer_mode)
+# Bouton Pour lancer le scoring + affichage de la carte
+st.button(
+"Afficher la carte" if st.session_state["processed_gdf"] is None else "Mettre à jour la carte",
+on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat})
+t = performance_tracker(t, 'Ready', timer_mode)
 
 
 # Main 2 sections with results and map
@@ -592,10 +655,15 @@ with col_map:
         # We keep the schools in the same academy only
         # See doc here: https://python-visualization.github.io/folium/latest/user_guide/geojson/geojson_marker.html
         t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
-        if nb_enfants > 0:
+        if st.session_state['prefs']['nb_enfants'] > 0:
             st.session_state['fg_ecoles'] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-            st.checkbox('Afficher Ecoles', key='afficher_ecoles', value=False, on_change=toggle_ecoles, kwargs={'fg':st.session_state['fg_ecoles']})
+            st.checkbox('Afficher Ecoles', key='afficher_ecoles', value=False, on_change=toggle_extra, kwargs={'fg':st.session_state['fg_ecoles'], 'fg_name':'ecoles', 'key':st.session_state['afficher_ecoles']})
+        t = performance_tracker(t, 'End Ecoles Display', timer_mode)
 
+        t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
+        if st.session_state['prefs']['besoin_sante'] != "Aucun":
+            st.session_state['fg_sante'] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
+            st.checkbox('Afficher Etablissements de Santé', key='afficher_sante', value=False, on_change=toggle_extra, kwargs={'fg':st.session_state['fg_sante'], 'fg_name':'sante', 'key':st.session_state['afficher_sante']})
         t = performance_tracker(t, 'End Ecoles Display', timer_mode)
 
         t = performance_tracker(t, 'Start Map Display', timer_mode)
