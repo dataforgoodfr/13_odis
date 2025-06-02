@@ -10,7 +10,7 @@ import shapely as shp
 from shapely.wkt import loads
 from shapely.geometry import Polygon
 from sklearn import preprocessing
-def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_file, ecoles_file):
+def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_file, ecoles_file, maternites_file, sante_file):
     odis = gpd.GeoDataFrame(gpd.read_parquet(odis_file))
     odis.set_geometry(odis.polygon, inplace=True)
     odis = odis[~odis.polygon.isna()]
@@ -29,7 +29,23 @@ def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_f
     annuaire_ecoles = pd.read_parquet(ecoles_file)
     annuaire_ecoles.geometry = annuaire_ecoles.geometry.apply(shp.from_wkb)
 
-    return odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles
+    #Annuaire Maternités
+    # Source: https://www.data.gouv.fr/fr/datasets/liste-des-maternites-de-france-depuis-2000/
+    annuaire_maternites = pd.read_csv(maternites_file, delimiter=';')
+    annuaire_maternites.drop_duplicates(subset=['FI_ET'], keep='last', inplace=True)
+    annuaire_maternites.head()
+
+    # Annuaire etablissements santé
+    # Source: https://www.data.gouv.fr/fr/datasets/reexposition-des-donnees-finess/
+    annuaire_sante = pd.read_parquet(sante_file)
+    annuaire_sante = annuaire_sante[annuaire_sante.LibelleSph == 'Etablissement public de santé']
+    annuaire_sante['geometry'] = gpd.points_from_xy(annuaire_sante.coordxet, annuaire_sante.coordyet, crs='epsg:2154')
+    annuaire_sante = pd.merge(annuaire_sante, annuaire_maternites[['FI_ET']], left_on='nofinesset', right_on='FI_ET', how='left', indicator="maternite")
+    annuaire_sante.drop(columns=['FI_ET'], inplace=True)
+    annuaire_sante.maternite = np.where(annuaire_sante.maternite == 'both', True, False)
+    annuaire_sante['codgeo'] = annuaire_sante.Departement + annuaire_sante.Commune
+
+    return odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante
 # Filtering dataframe based on subject distance preference (to save on compute time later on)
 def filter_loc_by_distance(df, distance):
     return df[df.dist_current_loc < distance * 1000]
@@ -131,7 +147,7 @@ def compute_criteria_scores(df, prefs):
 
     #For each adult we look for jobs categories that match what is needed
     i=1
-    for adult in prefs['codes_metiers']:
+    for adult in range(0,prefs['nb_adultes']):
         if len(prefs['codes_metiers'][adult]) > 0:
             df['met_match_codes_adult'+str(i)] = df.be_codfap_top.apply(codes_match, codes_list=prefs['codes_metiers'][adult])
             df['met_match_adult'+str(i)] = df['met_match_codes_adult'+str(i)].apply(len)
@@ -139,7 +155,7 @@ def compute_criteria_scores(df, prefs):
             i+=1
 
     j=1
-    for adult in prefs['codes_formations']:
+    for adult in range(0,prefs['nb_adultes']):
         if len(prefs['codes_formations'][adult]) > 0:
             df['form_match_codes_adult'+str(j)] = df.codes_formations.apply(codes_match, codes_list=prefs['codes_formations'][adult])
             df['form_match_adult'+str(j)] = df['form_match_codes_adult'+str(j)].apply(len)
