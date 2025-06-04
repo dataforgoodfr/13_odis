@@ -79,7 +79,7 @@ def init_datasets():
     
     coddep_set = sorted(set(odis['dep_code']))
     depcom_df = odis[['dep_code','libgeo']].sort_values('libgeo')
-    codgeo_df = odis[['dep_code','libgeo','codgeo']]
+    codgeo_df = odis[['dep_code','libgeo']]
     libfap_set = sorted(set(codfap_index['Intitulé FAP 341']))
     libform_set = sorted(set(codformations_index['libformation']))
     
@@ -135,8 +135,10 @@ def load_results(df, scores_cat, *demo_id):
         scores_cat=scores_cat,
         prefs=prefs
         )
-    odis_scored = odis_scored.sort_values('weighted_score', ascending=False).reset_index(drop=True)
-    odis_scored.to_crs(epsg=4326, inplace=True)
+    # print(odis_scored)
+    odis_scored = odis_scored.sort_values('weighted_score', ascending=False).reset_index()
+    # odis_scored.to_crs(epsg=4326, inplace=True)
+    # print(odis_scored)
     selected_geo = odis_scored[odis_scored.codgeo == prefs['commune_actuelle']]
     st.session_state['prefs'] = prefs
     st.session_state['scores_cat'] = scores_cat_prefs
@@ -145,12 +147,10 @@ def load_results(df, scores_cat, *demo_id):
     st.session_state['afficher_ecoles'] = False
     st.session_state['afficher_sante'] = False
 
-def styling_communes(feature, style, **kwargs):
-    
+def styling_communes(style, **kwargs):
     if style == 'style_score':
         style_to_use = {
-            #"fillColor": "#1100f8",
-            "fillColor": kwargs['colormap'](kwargs['scores_dict'][feature]),
+            "fillColor": kwargs['colormap'](kwargs['scores_dict'][kwargs['codgeo']]),
             "fillOpacity": 0.8,
             "stroke": False,
             # "color": "#535353",
@@ -173,12 +173,7 @@ def styling_communes(feature, style, **kwargs):
             "opacity": 1,
             "dashArray": "5, 5",
         }
-    colors = ["orange", "yellow", "green", "blue"]
-    if style == 'ecoles':
-        style_to_use = {
-            "radius": 8,
-            "fillColor": colors[feature['properties']['type_etablissement']],
-        }
+
     return style_to_use
 
 @st.cache_data
@@ -190,19 +185,83 @@ def add_commune_to_map(_df, _fg, style, prefs, index):
     #fg.add_child(flm.Tooltip(str(index+1)))
 
 def show_fg(_fg_dict, fg_key, clear_others):
+    # We first remove all the other TopX fgs and then add the one we care about
     if clear_others:
-        for fg in [k for k in fg_dict.keys() if k.startswith('Top')]:
+        for fg in [k for k in _fg_dict.keys() if k.startswith('Top')]:
             _fg_dict.pop(fg)
     _fg_dict[fg_key] = st.session_state["fg_dict_ref"][fg_key]
     return _fg_dict
 
 def result_highlight(row, index):
+    print('----------------result_highlighy-------------------')
     st.session_state["fg_dict"] = show_fg(_fg_dict=st.session_state["fg_dict"], fg_key='Top'+str(index+1), clear_others=True)
     st.session_state['pitch'] = produce_pitch_markdown(row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
 
 def build_top_results(_df, n, prefs):
     cols_to_show = [col for col in _df.columns if ('_scaled' or '_score' or '_ratio') in col]
     for index, row in _df.head(n).iterrows():
+        # We show the proposed commune with a solid red border and binome with dashed one (if any)
+        fg_name = flm.FeatureGroup(name="Commune Top"+str(index+1))
+        geojson_features = []
+
+        # Top 5 with individual feature groups for each commune+binome pair
+        if row.polygon is not None:
+        
+            geojson_geometry = mapping(row.polygon)
+
+            style_to_use = styling_communes(style='style_target')
+            properties = {
+                "Nom": row.libgeo,
+                "Score": round(row.weighted_score, 2),
+                "style": style_to_use,
+                "popup_html": ( # Pre-render popup HTML for convenience
+                    f"<b>{row.libgeo}</b><br>"
+                    f"Score: {row.weighted_score:.2f}<br>"
+                    f"Binôme: {row.libgeo_binome}"
+                )
+            }
+
+            commune = {
+                "type": "Feature",
+                "geometry": geojson_geometry,
+                "properties": properties
+            }
+
+            geojson_features.append(commune)
+
+
+            # Handle the binome if any
+            if row.polygon_binome is not None:
+                # This time we display the binome polygon
+                geojson_geometry = mapping(row.polygon_binome)
+
+                style_to_use = styling_communes(style='style_binome')
+                properties = {
+                    "Nom": row.libgeo_binome,
+                    "Score": round(row.weighted_score, 2),
+                    "style": style_to_use,
+                }
+
+                commune = {
+                    "type": "Feature",
+                    "geometry": geojson_geometry,
+                    "properties": properties
+                }
+                geojson_features.append(commune)
+
+            # Now we add both to a Feature Collection
+            geojson_data = {
+                "type": "FeatureCollection",
+                "features": geojson_features
+            }
+            commune_json = flm.GeoJson(geojson_data, tooltip=flm.GeoJsonTooltip(fields=['Nom', 'Score'], aliases=['Nom', 'Score']))
+            fg_name.add_child(commune_json)
+        
+        # We register this fg into our refence dict of all possible fgs
+        st.session_state['fg_dict_ref']['Top'+str(index+1)] = fg_name
+
+
+        # Then we can show the expander-like button (= expander with on-click and)
         title = f"Top {index+1}: {row.libgeo} (en binôme avec {row.libgeo_binome})" if row.binome else f"Top {index+1}: {row.libgeo} (seule)"
         if st.button(
             title,
@@ -288,7 +347,7 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
     
         geojson_geometry = mapping(row.polygon)
 
-        style_to_use = styling_communes(feature=row.codgeo, style='style_score', scores_dict=score_weights_dict, colormap=colormap)
+        style_to_use = styling_communes(style='style_score', scores_dict=score_weights_dict, colormap=colormap, codgeo=row.codgeo)
         properties = {
             "Nom": row.libgeo,
             "Score": round(row.weighted_score, 2),
@@ -321,62 +380,8 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
         popup=flm.GeoJsonPopup(fields=['popup_html'], aliases=['Details'], localize=True, parse_html=True) # Use pre-rendered HTML
     )
     
-    fg_results.add_child(communes)
     _fg_dict['Scores'] = fg_results
-
-
-    # Top 5 with individual feature groups for each binome
-    for row in _df.head(n).itertuples():
-        
-        if row.polygon is None:
-            continue
-    
-        geojson_geometry = mapping(row.polygon)
-
-        style_to_use = styling_communes(feature=row.codgeo, style='style_target', scores_dict=score_weights_dict, colormap=colormap)
-        properties = {
-            "Nom": row.libgeo,
-            "Score": round(row.weighted_score, 2),
-            "style": style_to_use,
-            "popup_html": ( # Pre-render popup HTML for convenience
-                f"<b>{row.libgeo}</b><br>"
-                f"Score: {row.weighted_score:.2f}<br>"
-                f"Binôme: {row.libgeo_binome}"
-            )
-        }
-
-        commune = {
-            "type": "Feature",
-            "geometry": geojson_geometry,
-            "properties": properties
-        }
-
-        commune_json = flm.GeoJson(commune)
-        fg_name = flm.FeatureGroup(name="Commune Top"+str(row.Index+1))
-        _fg_dict['Top'+str(row.Index+1)] = fg_name
-        fg_name.add_child(commune_json)
-
-        # Handle the binome if any
-        if row.polygon_binome is not None:
-
-            # This time we display the binome polygon
-            geojson_geometry = mapping(row.polygon_binome)
-
-            style_to_use = styling_communes(feature=row.codgeo, style='style_binome', scores_dict=score_weights_dict, colormap=colormap)
-            properties = {
-                "Nom": row.libgeo_binome,
-                "style": style_to_use,
-            }
-
-            commune = {
-                "type": "Feature",
-                "geometry": geojson_geometry,
-                "properties": properties
-            }
-
-            commune_json = flm.GeoJson(commune)
-            fg_name.add_child(commune_json)
-
+    fg_results.add_child(communes)
 
     return _fg_dict
 
@@ -605,7 +610,7 @@ with st.sidebar:
     communes.reset_index(drop=True, inplace=True)
     com_index = int(communes[communes == demo_data['commune_actuelle']].index[0]) if demo_data['commune_actuelle'] is not None else 0
     commune_actuelle = st.selectbox("Commune", communes, index=com_index)
-    commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].codgeo.item()
+    commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].index.item()
     # Distance
     st.subheader('Filtre Localisation')
     dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 10

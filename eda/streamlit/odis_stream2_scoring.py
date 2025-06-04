@@ -14,6 +14,7 @@ def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_f
     odis = gpd.GeoDataFrame(gpd.read_parquet(odis_file))
     odis.set_geometry(odis.polygon, inplace=True)
     odis = odis[~odis.polygon.isna()]
+    odis.set_index('codgeo', inplace=True)
 
     # Index of all scores and their explanations
     scores_cat = pd.read_csv(scores_cat_file)
@@ -66,17 +67,18 @@ def adding_score_voisins(df_search, scores_cat):
 
     # Adds itself to list of voisins = monome case
     # Note: this code triggers the SettingWithCopyWarning but I don't know how to fix it...
-    df_search.codgeo_voisins = df_search.apply(lambda x: np.append(x.codgeo_voisins, x.codgeo), axis=1)
+    df_search.codgeo_voisins = df_search.apply(lambda x: np.append(x.codgeo_voisins, x.index), axis=1)
 
     # Explodes the dataframe to have a row for each voisins + itself
     df_search['codgeo_voisins_copy'] = df_search['codgeo_voisins']
     df_search_exploded = df_search.explode('codgeo_voisins_copy')
     
     # For each commune (codgeo) in search area (df_search) we add all its voisin's scores
-    odis_search_exploded = pd.merge(df_search_exploded, df_binomes.add_suffix('_binome'), left_on='codgeo_voisins_copy', right_on='codgeo_binome', how='left')
+    odis_search_exploded = pd.merge(df_search_exploded, df_binomes.add_suffix('_binome'), left_on='codgeo_voisins_copy', right_index=True, how='left', indicator="binome")
+    odis_search_exploded.binome = np.where(odis_search_exploded.binome == 'both', True, False)
     
     # Adds a column to identify binomes vs monomes + cleanup
-    odis_search_exploded['binome'] = odis_search_exploded.apply(lambda x: False if x.codgeo == x.codgeo_binome else True, axis=1)
+    # odis_search_exploded['binome'] = odis_search_exploded.apply(lambda x: False if x.index == x.codgeo_binome else True, axis=1)
     odis_search_exploded.drop(columns={'codgeo_voisins_copy'}, inplace=True)
 
     #We remove all values for the monome case to avoid accounting for them in the category score calculation
@@ -91,12 +93,18 @@ def distance_calc(df, ref_point):
 
 def add_distance_to_current_loc(df, current_codgeo):
     projected_crs = "EPSG:2154"
-    zone_recherche = gpd.GeoDataFrame(df[df.codgeo == current_codgeo]['polygon'])
-    zone_recherche.set_geometry('polygon', inplace=True)
-    zone_recherche.to_crs(projected_crs, inplace=True)
+    # We first need to change CRS to a projected CRS
+    df_projected = gpd.GeoDataFrame(df)
+    df_projected = df_projected.to_crs(projected_crs)
 
-    df.to_crs(projected_crs, inplace=True)
-    df['dist_current_loc'] = df['polygon'].apply(distance_calc, ref_point=zone_recherche.iloc[0].polygon)
+    zone_recherche = df_projected[df_projected.index == current_codgeo].copy()
+    zone_recherche['centroid'] = zone_recherche.centroid
+    zone_recherche = gpd.GeoDataFrame(zone_recherche, geometry='centroid')
+    zone_recherche.to_crs(projected_crs, inplace=True)
+    
+    df_projected = df_projected.sjoin_nearest(zone_recherche, distance_col="dist_current_loc")[['dist_current_loc']]
+    df = pd.merge(df, df_projected, left_index=True, right_index=True, how='left')
+    
     return df
 #Adding score specific to subject looking for a job identified as en besoin
 def codes_match(df, codes_list):
@@ -143,7 +151,7 @@ def compute_criteria_scores(df, prefs):
 
     # We compute the distance from the current location 
     df['reloc_dist_scaled'] = (1-df['dist_current_loc']/(prefs['loc_distance_km']*1000))
-    df['reloc_epci_scaled'] = np.where(df['epci_code'] == df[df.codgeo == prefs['commune_actuelle']]['epci_code'].iloc[0],1,0)
+    df['reloc_epci_scaled'] = np.where(df['epci_code'] == df.loc[prefs['commune_actuelle']]['epci_code'],1,0)
 
     #For each adult we look for jobs categories that match what is needed
     i=1
