@@ -151,9 +151,11 @@ def styling_communes(feature, style, **kwargs):
         style_to_use = {
             #"fillColor": "#1100f8",
             "fillColor": kwargs['colormap'](kwargs['scores_dict'][feature]),
-            "color": "#535353",
             "fillOpacity": 0.8,
-            "weight": 1,
+            "stroke": False,
+            # "color": "#535353",
+            # "weight": 0,
+            # "opacity": 0
         }
     if style == 'style_target':
         style_to_use = {
@@ -162,7 +164,6 @@ def styling_communes(feature, style, **kwargs):
             "weight": 3,
             "opacity": 1,
             "html":'<div style="width: 10px;height: 10px;border: 1px solid black;border-radius: 5px;background-color: orange;">1</div>'
-            # html='<div style="font-size: 24pt">%s</div>' % text,
         }
     if style == 'style_binome':
         style_to_use = {
@@ -201,8 +202,7 @@ def result_highlight(row, index):
 
 def build_top_results(_df, n, prefs):
     cols_to_show = [col for col in _df.columns if ('_scaled' or '_score' or '_ratio') in col]
-    for row in _df.head(n).itertuples():
-        index=row.Index
+    for index, row in _df.head(n).iterrows():
         title = f"Top {index+1}: {row.libgeo} (en binôme avec {row.libgeo_binome})" if row.binome else f"Top {index+1}: {row.libgeo} (seule)"
         if st.button(
             title,
@@ -221,9 +221,8 @@ def build_top_results(_df, n, prefs):
 
 @st.cache_data
 def produce_pitch_markdown(_row, prefs, scores_cat, codfap_index, codformations_index):
-    # We convert the named tuple into a dict and then Panda series so that it can be sorted out
-    row = pd.Series(_row._asdict())
-    print(row.keys())
+    # We produce the pitch for the top N results
+    row = _row
     pitch_md = []
     pitch_md.append(f'**{row["libgeo"]}** dans l\'EPCI: {row["epci_nom"]}.  ')
     pitch_md.append(f'Le score est de: **{row["weighted_score"]:.2f}**.')
@@ -236,7 +235,6 @@ def produce_pitch_markdown(_row, prefs, scores_cat, codfap_index, codformations_
 
     # Adding the top contributing criterias
     crit_scores_col = [col for col in row.keys() if '_scaled' in col]
-    print(crit_scores_col)
     
     # First compute the weighted (+ penalty for binome) for each criteria score
     weighted_row=row.copy()
@@ -272,26 +270,12 @@ def produce_pitch_markdown(_row, prefs, scores_cat, codfap_index, codformations_
 
 @st.cache_data
 def show_scoring_results(_df, _fg_dict, n, prefs):
+    st.session_state['fg_dict_ref'] = {}
+    st.session_state['fg_dict'] = {}
+
     fg_results = flm.FeatureGroup(name="Results")
-    _fg_dict['Scores'] = fg_results
-    # _fg_list += [fg_results] #Here we keep track of all possibles feature groups to add the the 'All' option in our fg_dict
-    # _fg_dict['Scores']=[fg_results]
-    # for index, row in _df.iterrows():
-    #     # This is for the main layer with all the communes colored according to weighted_score
-    #     df_com = _df[_df.index==index][['codgeo','polygon', 'weighted_score']]
-    #     fg_results = add_commune_to_map(_df=df_com, _fg=fg_results, style='style_score', prefs=prefs, index=index)
-    #     # This is to highlight the top 5 Geos and their corresponding binome
-    #     if index < n: # Additional work for top n
-    #         fg_name = 'fg_com'+str(index+1)
-    #         fg_name = flm.FeatureGroup(name="Commune Top"+str(index+1))
-    #         _fg_list += [fg_name]
-    #         fg_dict_name="Scores+top"+str(index+1)
-    #         _fg_dict[fg_dict_name]=_fg_dict['Scores']+[fg_name]
-    #         fg_name = add_commune_to_map(_df=df_com, _fg=fg_name, style='style_target', prefs=prefs, index=index)
-    #         #Same thing for corresponding binomes
-    #         df_binome = _df[_df.index==index][['codgeo','polygon_binome', 'weighted_score']]
-    #         df_binome = gpd.GeoDataFrame(df_binome, geometry='polygon_binome', crs='EPSG:2154').to_crs(epsg=4326)
-    #         fg_name = add_commune_to_map(_df=df_binome, _fg=fg_name, style='style_binome', prefs=prefs, index=index)
+
+    # We pass all the scored communes at once inside a geojson feature group
     geojson_features = []
     score_weights_dict = st.session_state["processed_gdf"].set_index("codgeo")["weighted_score"]
     colormap = linear.YlGn_09.scale(st.session_state["processed_gdf"]['weighted_score'].min(), st.session_state["processed_gdf"]['weighted_score'].max())
@@ -338,6 +322,7 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
     )
     
     fg_results.add_child(communes)
+    _fg_dict['Scores'] = fg_results
 
 
     # Top 5 with individual feature groups for each binome
@@ -348,7 +333,7 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
     
         geojson_geometry = mapping(row.polygon)
 
-        style_to_use = styling_communes(feature=row.codgeo, style='style_score', scores_dict=score_weights_dict, colormap=colormap)
+        style_to_use = styling_communes(feature=row.codgeo, style='style_target', scores_dict=score_weights_dict, colormap=colormap)
         properties = {
             "Nom": row.libgeo,
             "Score": round(row.weighted_score, 2),
@@ -365,12 +350,32 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
             "geometry": geojson_geometry,
             "properties": properties
         }
-        style_to_use = styling_communes(feature=row.codgeo, style='style_target')
-        commune_json = flm.GeoJson(commune, style=style_to_use)
+
+        commune_json = flm.GeoJson(commune)
         fg_name = flm.FeatureGroup(name="Commune Top"+str(row.Index+1))
-        # _fg_list += [fg_name]
         _fg_dict['Top'+str(row.Index+1)] = fg_name
         fg_name.add_child(commune_json)
+
+        # Handle the binome if any
+        if row.polygon_binome is not None:
+
+            # This time we display the binome polygon
+            geojson_geometry = mapping(row.polygon_binome)
+
+            style_to_use = styling_communes(feature=row.codgeo, style='style_binome', scores_dict=score_weights_dict, colormap=colormap)
+            properties = {
+                "Nom": row.libgeo_binome,
+                "style": style_to_use,
+            }
+
+            commune = {
+                "type": "Feature",
+                "geometry": geojson_geometry,
+                "properties": properties
+            }
+
+            commune_json = flm.GeoJson(commune)
+            fg_name.add_child(commune_json)
 
 
     return _fg_dict
@@ -386,25 +391,6 @@ def odis_base_map(_current_geo, prefs):
     return m
 
 # Ecoles Processing
-# @st.cache_data
-# def filter_ecoles_by_distance(_current_geo, annuaire_ecoles, prefs):
-#     # we go twice the distance around the selected geo 
-#     MAX_DISTANCE_M = prefs['loc_distance_km']*1000
-#     annuaire_ecoles = gpd.GeoDataFrame(annuaire_ecoles, geometry='geometry', crs='EPSG:4326')
-#     annuaire_ecoles.to_crs("EPSG:2154", inplace=True)
-#     current_geo = gpd.GeoDataFrame(_current_geo[['codgeo','polygon']], geometry='polygon')
-#     current_geo.to_crs("EPSG:2154", inplace=True)
-
-#     filtered_ecoles = gpd.sjoin_nearest(
-#         annuaire_ecoles,
-#         current_geo,
-#         how="left",
-#         max_distance=MAX_DISTANCE_M,
-#         distance_col="distance_to_current_geo" # Column to store computed distance
-#     )
-#     filtered_ecoles=filtered_ecoles[filtered_ecoles['distance_to_current_geo'].notna()]
-#     return filtered_ecoles
-
 @st.cache_data
 def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
     # we consider all the etablissements soclaires in the target codgeos and the ones around (voisins)
@@ -532,7 +518,7 @@ def toggle_extra(fg, fg_name, key):
     if (key == False) & (fg_name in st.session_state["fg_extras_dict"].keys()):
         st.session_state["fg_extras_dict"].pop(fg_name)
 
-
+# Demo scenarii
 demo_data = {
     'poids_emploi':None,
     'poids_logement':None,
@@ -737,7 +723,6 @@ t = performance_tracker(t, 'Ready', timer_mode)
 col_results, col_map = st.columns([1, 2])
 t = performance_tracker(t, 'Start Results Column', timer_mode)
 
-st.write(st.session_state['processed_gdf'])  
 ### Results Column
 with col_results:
     st.subheader("Meilleurs résultats")
@@ -755,7 +740,7 @@ with col_map:
     st.subheader("Carte Interactive")
     if st.session_state['processed_gdf'] is not None:
         # we have scoring results let's draw the the map
-        # fg_list = []
+
         fg_dict = {}
         #scoring results map with shades + highlighted top 5 binomes 
         st.session_state['fg_dict_ref'] = show_scoring_results(
@@ -764,18 +749,19 @@ with col_map:
             5, 
             st.session_state['prefs']
         )
-        #We finally add all the created feature_groups to the 'All' option
-        # fg_dict['All'] = fg_list
-        # We now have a fg_dict that looks like this:
+
+        # We now have a fg_dict_ref that looks like this:
         # {
         #     'Scores': fg_results,
         #     'Top1': fg_com1,
-        #     'Scores+top2': [fg_results, fg_com2],
-        #     'Scores+top3': [fg_results, fg_com3],
-        #     'Scores+top4': [fg_results, fg_com4],
-        #     'Scores+top5': [fg_results, fg_com5],
-        #     'All': [fg_results, fg_com1, fg_com2, fg_com3, fg_com4, fg_com5]
+        #     'Top2': fg_com1,
+        #     'Top...': fg_com...,
+        #     'TopN': fg_comN
         # }
+
+        # We default to the 'Scores' which shows all the scored results in shaded green
+        st.session_state['fg_dict']['Scores'] = st.session_state['fg_dict_ref']['Scores'] 
+
 
         # We add additional informational layers
         # We keep the schools in the same academy only
@@ -808,10 +794,10 @@ with col_map:
         t = performance_tracker(t, 'Start Map Display', timer_mode)
         # print(fg_dict[st.session_state["fg_dict_key"]]+list(st.session_state["fg_extras_dict"].values()))
         m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
-        st.write(fg_dict)
+        # st.write(st.session_state['fg_dict'])
         st_data = st_folium(
             m,
-            feature_group_to_add=list(fg_dict.values())+list(st.session_state["fg_extras_dict"].values()),#fg_dict[st.session_state["fg_dict_key"]],
+            feature_group_to_add=list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()),#fg_dict[st.session_state["fg_dict_key"]],
             width=1000,
             height=800,
             key="odis_scored_map",
