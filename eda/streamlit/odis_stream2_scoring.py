@@ -60,27 +60,34 @@ def monome_cleanup(df):
     return df
 def adding_score_voisins(df_search, scores_cat):
     #df_search is the dataframe pre-filtered by location
-    #df_source is the dataframe with all the communes
+
     binome_columns = ['codgeo','libgeo','polygon','epci_code','epci_nom'] + scores_cat[scores_cat.incl_binome]['score'].to_list()+scores_cat[scores_cat.incl_binome]['metric'].to_list()
+    # We take the subset of possible score columns that actually exist in our dataframe
     binome_columns = list(set(binome_columns) & set(df_search.columns))
     df_binomes = df_search[binome_columns].copy()
 
     # Adds itself to list of voisins = monome case
     # Note: this code triggers the SettingWithCopyWarning but I don't know how to fix it...
-    df_search.codgeo_voisins = df_search.apply(lambda x: np.append(x.codgeo_voisins, x.index), axis=1)
+    df_search.codgeo_voisins = df_search.apply(lambda x: np.append(x.codgeo_voisins, x.name), axis=1)
 
     # Explodes the dataframe to have a row for each voisins + itself
     df_search['codgeo_voisins_copy'] = df_search['codgeo_voisins']
     df_search_exploded = df_search.explode('codgeo_voisins_copy')
+    df_search_exploded.rename(columns={'codgeo_voisins_copy':'codgeo_binome'}, inplace=True)
     
     # For each commune (codgeo) in search area (df_search) we add all its voisin's scores
-    odis_search_exploded = pd.merge(df_search_exploded, df_binomes.add_suffix('_binome'), left_on='codgeo_voisins_copy', right_index=True, how='left', indicator="binome")
-    odis_search_exploded.binome = np.where(odis_search_exploded.binome == 'both', True, False)
+    odis_search_exploded = pd.merge(
+        df_search_exploded, 
+        df_binomes.add_suffix('_binome'), 
+        left_on='codgeo_binome', 
+        right_index=True, 
+        how='inner', 
+        validate="many_to_one")
     
     # Adds a column to identify binomes vs monomes + cleanup
-    # odis_search_exploded['binome'] = odis_search_exploded.apply(lambda x: False if x.index == x.codgeo_binome else True, axis=1)
-    odis_search_exploded.drop(columns={'codgeo_voisins_copy'}, inplace=True)
+    odis_search_exploded['binome'] = np.where(odis_search_exploded.index == odis_search_exploded.codgeo_binome, True, False)
 
+ 
     #We remove all values for the monome case to avoid accounting for them in the category score calculation
     odis_search_exploded = monome_cleanup(odis_search_exploded)
 
