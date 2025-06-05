@@ -71,6 +71,8 @@ def session_states_init():
         st.session_state["fg_ecoles"] = None
     if "fg_sante" not in st.session_state:
         st.session_state["fg_sante"] = None
+    if "zoom" not in st.session_state:
+        st.session_state["zoom"] = 10
         
 # This @st.cache_resource dramatically improves performance of the app
 @st.cache_resource
@@ -90,7 +92,8 @@ def init_datasets():
 def compute_score(_df, scores_cat, prefs):
     return compute_odis_score(_df, scores_cat, prefs)
 
-def set_prefs(scores_cat, *demo_id):
+def set_prefs(scores_cat):
+
     prefs = {
         'poids_emploi':poids_emploi,
         'poids_logement':poids_logement,
@@ -121,13 +124,12 @@ def set_prefs(scores_cat, *demo_id):
     scores_cat_prefs['weight'] = scores_cat_prefs['cat'].apply(lambda x: prefs['poids_'+x])
     scores_cat_prefs.set_index('score', inplace=True)
     
-    #Handle Demo Sets
-    # if demo_id is not None:
-    #     prefs = prefs_demo['prefs_demo'+str(demo_id)]
-    
+    # st.write(prefs)
+    # print(prefs)
     return prefs, scores_cat_prefs
 
-def load_results(df, scores_cat, *demo_id): 
+
+def load_results(df, scores_cat): 
     print(' <---------------------> CLICK <--------------------->')
     prefs, scores_cat_prefs = set_prefs(scores_cat) # We update the prefs with the latest inputs
     # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
@@ -141,10 +143,25 @@ def load_results(df, scores_cat, *demo_id):
     # odis_scored.to_crs(epsg=4326, inplace=True)
     # print(odis_scored)
     selected_geo = odis_scored[odis_scored.codgeo == prefs['commune_actuelle']]
-    st.session_state['prefs'] = prefs
+    # 10,25,50,100,500,1000
+    match prefs['loc_distance_km']:
+        case 10:
+            st.session_state['zoom'] = 11
+        case 25:
+            st.session_state['zoom'] = 10
+        case 50:
+            st.session_state['zoom'] = 9
+        case 100:
+            st.session_state['zoom'] = 8
+        case 500:
+            st.session_state['zoom'] = 6
+        case 100:
+            st.session_state['zoom'] = 5
+
     st.session_state['scores_cat'] = scores_cat_prefs
     st.session_state['processed_gdf'] = odis_scored
     st.session_state['selected_geo'] = selected_geo
+    st.session_state['prefs'] = prefs
     st.session_state['afficher_ecoles'] = False
     st.session_state['afficher_sante'] = False
 
@@ -198,7 +215,7 @@ def result_highlight(row, index):
     st.session_state['pitch'] = produce_pitch_markdown(row=row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
 
 def build_top_results(_df, n, prefs):
-    cols_to_show = [col for col in _df.columns if ('_scaled' or '_score' or '_ratio') in col]
+    cols_to_show = [col for col in _df.columns if ('_ratio' or '_score' or '_ratio') in col]
     for index, row in _df.head(n).iterrows():
         # We show the proposed commune with a solid red border and binome with dashed one (if any)
         fg_name = flm.FeatureGroup(name="Commune Top"+str(index+1))
@@ -273,13 +290,14 @@ def build_top_results(_df, n, prefs):
             ):
             with st.container(border=True):
                 st.markdown(st.session_state['pitch'])
-                with st.expander('Details Supplémentaires'):
-                    for id, score in row.filter(items=cols_to_show).items():
-                        st.write(f"{st.session_state['scores_cat'].loc[id].score_name} | Score: {score}")
+                # with st.expander('Détails Supplémentaires'):
+                #     for col, value in row.filter(items=cols_to_show).items():
+                #         st.write(f"{st.session_state['scores_cat'].loc[col].score_name} | Score: {value}")
     # This is used as a callback so we don't return anything
 
 def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_index):
     # We produce the pitch for the top N results
+    # We generate a markdown text that is natively displayed by streamlit
     pitch_md = []
     pitch_md.append(f'**{row["libgeo"]}** dans l\'EPCI: {row["epci_nom"]}.  ')
     pitch_md.append(f'Le score est de: **{row["weighted_score"]:.2f}**.')
@@ -308,21 +326,40 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
 
     
     #Adding the matching job families if any
-    pitch_md.append('\n**Emploi**\n') 
-    metiers_col = [col for col in row.keys() if col.startswith('met_match_codes')]
-    matched_codfap_names = []
-    for metiers_adultx in metiers_col:
-        matched_codfap_names += list(codfap_index[codfap_index['Code FAP 341'].isin(row[metiers_adultx])]['Intitulé FAP 341'])
-    matched_codfap_names = set(matched_codfap_names)
-    if len(matched_codfap_names) == 0:
-        pitch_md.append(f'Aucun des métiers recherchés ne figure dans le Top 10 des métiers à pourvoir sur cette zone.  ')
-        pitch_md.append(f'Top 10 des métiers à pourvoir sur cette zone:  ')
-        pitch_md.append(f'{"- ".join(row["be_libfap_top"])}')
-    if len(matched_codfap_names) == 1:
-        pitch_md.append(f'- La famille de métiers **{matched_codfap_names[0]}** est rechechée  ')
-    elif len(matched_codfap_names) >= 1:
-        pitch_md.append(f'- Les familles de métiers **{"- ".join(matched_codfap_names)}** sont rechechées  ')
+    if len(prefs['codes_metiers']) > 0:
+        pitch_md.append('\n**Emploi**\n') 
+        metiers_col = [col for col in row.keys() if col.startswith('met_match_codes')]
+        matched_codfap_names = []
+        for metiers_adultx in metiers_col:
+            matched_codfap_names += list(codfap_index[codfap_index['Code FAP 341'].isin(row[metiers_adultx])]['Intitulé FAP 341'])
+        matched_codfap_names = list(set(matched_codfap_names))
+        if len(matched_codfap_names) == 0:
+            pitch_md.append(f'Aucun des métiers recherchés ne figure dans le Top 10 des métiers à pourvoir sur cette zone.  ')
+            pitch_md.append('\n')
+            pitch_md.append(f'Top 10 des métiers à pourvoir sur cette zone:  ')
+            pitch_md.append(f'{", ".join(row["be_libfap_top"])}  ')
+        if len(matched_codfap_names) == 1:
+            pitch_md.append(f' La famille de métiers **{matched_codfap_names[0]}** est rechechée  ')
+        elif len(matched_codfap_names) >= 1:
+            pitch_md.append(f'- Les familles de métiers **{", ".join(matched_codfap_names)}** sont rechechées  ')
         
+    
+
+    # Adding the matching formation families if any
+    if len(prefs['codes_formations']) > 0:
+        pitch_md.append('\n**Formations**\n') 
+        formations_col = [col for col in row.keys() if col.startswith('form_match_codes')]
+        matched_codform_names = []
+        for formations_adultx in formations_col:
+            matched_codform_names += list(codformations_index[codformations_index.index.isin(row[formations_adultx])]['libformation'])
+        matched_codform_names = list(set(matched_codform_names))
+        if len(matched_codform_names) == 0:
+            pitch_md.append(f'Aucune des formations recherchées ne figure dans les formations offertes sur cette zone.  ')
+        if len(matched_codform_names) == 1:
+            pitch_md.append(f'- La formation recherchée **{matched_codform_names[0]}** est proposée  ')
+        elif len(matched_codform_names) >= 1:
+            pitch_md.append(f'- Les formations recherchés **{", ".join(matched_codform_names)}** sont proposées  ')
+
     return "\n".join(pitch_md)
 
 @st.cache_data
@@ -597,9 +634,9 @@ def run_demo(demo_data):
             demo_data['logement'] = "Logement Social"
             demo_data['nb_adultes'] = 2
             demo_data['nb_enfants'] = 2
-            demo_data['codes_metiers'] = [['Ouvriers peu qualifiés en menuiserie et en agencement du BTP', 'Ouvriers qualifiés en menuiserie et en agencement du BTP']]
+            demo_data['codes_metiers'] = [['B2X37', 'B2X38']]
             # demo_data['codes_metiers'] = [['Cuisiniers', 'Aides de cuisine et employés polyvalents de la restauration']]
-            demo_data['codes_formations'] = [[],['Santé', 'Spécialités plurivalentes sanitaires et sociales', "Informatique, traitement de l'information, réseaux de transmission des données"]]
+            demo_data['codes_formations'] = [[],[331, 330, 326]]
             demo_data['classe_enfants'] = [0, 1] #index of ['Maternelle','Primaire','Collège','Lycée']
             demo_data['sante'] = "Maternité"
             demo_data['poids_mobilité'] = 0
@@ -647,7 +684,8 @@ with st.sidebar:
     # Distance
     st.subheader('Filtre Localisation')
     dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 10
-    loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[10,25,50,100,500], value=dist_value, disabled=False)
+    loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[10,25,50,100,500,1000], value=dist_value, disabled=False)
+
 
 
 #Top filter Form
@@ -675,7 +713,9 @@ with st.container(border=True):
                 metiers_default = demo_data['codes_metiers'][adult]
             except (IndexError, TypeError): 
                 metiers_default = []
-            liste_metiers_adult += [st.multiselect("Métiers ciblés Adulte "+str(adult+1), libfap_set, default=metiers_default)]
+            codfap_select = codfap_index[['Code FAP 341', 'Intitulé FAP 341']].set_index('Code FAP 341')
+            # liste_metiers_adult += [st.multiselect("Métiers ciblés Adulte "+str(adult+1), libfap_set, default=metiers_default)]
+            liste_metiers_adult += [st.multiselect("Métiers ciblés Adulte "+str(adult+1), codfap_select.index, format_func=lambda x: codfap_select.loc[x].item(), default=metiers_default)]
 
     #Formations
     with tab_formation:
@@ -685,7 +725,8 @@ with st.container(border=True):
                 formations_default = demo_data['codes_formations'][adult]
             except (IndexError, TypeError):
                 formations_default = [] 
-            liste_formations_adult += [st.multiselect("Formations ciblées Adulte "+str(adult+1),options=libform_set, default=formations_default)]
+            # liste_formations_adult += [st.multiselect("Formations ciblées Adulte "+str(adult+1),options=libform_set, default=formations_default)]
+            liste_formations_adult += [st.multiselect("Métiers ciblés Adulte "+str(adult+1), codformations_index.index, format_func=lambda x: codformations_index.loc[x].item(), default=formations_default)]
 
     # Logement
     with tab_logement:
@@ -830,12 +871,13 @@ with col_map:
             # st.write(st.session_state["fg_extras_dict"])
 
         t = performance_tracker(t, 'Start Map Display', timer_mode)
-        # print(fg_dict[st.session_state["fg_dict_key"]]+list(st.session_state["fg_extras_dict"].values()))
+
         m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
-        # st.write(st.session_state['fg_dict'])
+        # st.write(list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()))
         st_data = st_folium(
             m,
-            feature_group_to_add=list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()),#fg_dict[st.session_state["fg_dict_key"]],
+            zoom=st.session_state["zoom"],
+            feature_group_to_add=list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()),
             width=1000,
             height=800,
             key="odis_scored_map",
