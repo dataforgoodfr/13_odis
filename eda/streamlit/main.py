@@ -23,6 +23,7 @@ from sklearn import preprocessing
 # Streamlit App Specific
 import streamlit as st
 import folium as flm
+from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 from branca.colormap import linear
 from odis_stream2_scoring import compute_odis_score, init_loading_datasets#, produce_pitch_markdown 
@@ -193,9 +194,8 @@ def show_fg(_fg_dict, fg_key, clear_others):
     return _fg_dict
 
 def result_highlight(row, index):
-    print('----------------result_highlighy-------------------')
     st.session_state["fg_dict"] = show_fg(_fg_dict=st.session_state["fg_dict"], fg_key='Top'+str(index+1), clear_others=True)
-    st.session_state['pitch'] = produce_pitch_markdown(row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
+    st.session_state['pitch'] = produce_pitch_markdown(row=row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
 
 def build_top_results(_df, n, prefs):
     cols_to_show = [col for col in _df.columns if ('_scaled' or '_score' or '_ratio') in col]
@@ -278,10 +278,8 @@ def build_top_results(_df, n, prefs):
                         st.write(f"{st.session_state['scores_cat'].loc[id].score_name} | Score: {score}")
     # This is used as a callback so we don't return anything
 
-@st.cache_data
-def produce_pitch_markdown(_row, prefs, scores_cat, codfap_index, codformations_index):
+def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_index):
     # We produce the pitch for the top N results
-    row = _row
     pitch_md = []
     pitch_md.append(f'**{row["libgeo"]}** dans l\'EPCI: {row["epci_nom"]}.  ')
     pitch_md.append(f'Le score est de: **{row["weighted_score"]:.2f}**.')
@@ -438,29 +436,45 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
     
     # Now let's add these schools to the map in the fg_ecoles feature group
     filtered_ecoles = gpd.GeoDataFrame(filtered_ecoles, geometry='geometry', crs='EPSG:4326')
-
+    
+    geojson_features = []
     for row in filtered_ecoles.itertuples(index=False):
         if row.geometry is None:
             continue
    
-        lat = row.geometry.y
-        lon = row.geometry.x
         maternelle_presente = 'Oui' if row.ecole_maternelle > 0 else 'Non'
-        popup_content = (
-            f"<b>{row.nom_etablissement}</b><br>"
-            f"Type: {row.type_etablissement}<br>"
-            f"Nombre Eleves: {row.nombre_d_eleves}<br>"
-            f"Maternelle: {maternelle_presente}"
-        )
-        # Create and add the marker
-        marker_colors = category_colors.get(row.type_etablissement, 'blue')
-        ecole = flm.Marker(
-            location=[lat, lon],
-            popup=popup_content,
-            tooltip=row.nom_etablissement, # Appears on hover
-            icon=flm.Icon(color=marker_colors, icon='map-marker')
-        )#.add_to(fg_ecoles)
-        fg_ecoles.add_child(ecole)
+        properties = {
+            "name": row.nom_etablissement,
+            "type": row.type_etablissement,
+            "Maternelle": maternelle_presente,
+            "color": 'blue', # Embed color in properties
+            "popup_html": f"<b>{row.nom_etablissement}</b><br>Type: {row.type_etablissement}<br>Maternelle: {maternelle_presente}"
+        }
+
+        etablissement = {
+            "type": "Feature",
+            "geometry": mapping(row.geometry), # Convert shapely Point to GeoJSON dict
+            "properties": properties
+        }
+
+        geojson_features.append(etablissement)
+    
+    geojson_data = {
+        "type": "FeatureCollection",
+        "features": geojson_features
+    }
+    
+    
+    etablisssement = flm.GeoJson(
+        geojson_data,
+        marker=flm.Circle(
+            radius=200,
+            fill_color="purple",
+            fill_opacity=1,
+            stroke=False)
+    )
+
+    fg_ecoles.add_child(etablisssement)
     # print(fg_ecoles)
     return fg_ecoles
 
@@ -483,6 +497,7 @@ def filter_sante(target_codgeos, _annuaire_sante, prefs):
 @st.cache_data
 def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
     fg_sante = flm.FeatureGroup(name="Établissements de Santé")
+    # fg_sante = MarkerCluster(name="Établissements de Santé")
 
     target_codgeos = set(
         st.session_state['processed_gdf'].codgeo.tolist() 
@@ -492,29 +507,46 @@ def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
     filtered_annuaire = filter_sante(target_codgeos, _annuaire_sante, prefs)
     filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:2154')
     filtered_annuaire.to_crs(epsg=4326, inplace=True)
-
+    
+    geojson_features = []
     for row in filtered_annuaire.itertuples(index=False):
         if row.geometry is None:
             continue
 
-        lat = row.geometry.y
-        lon = row.geometry.x
+        properties = {
+            "name": row.RaisonSociale,
+            "category": row.LibelleCategorieAgregat,
+            "type": row.LibelleSph,
+            "maternite": row.maternite,
+            "color": 'blue', # Embed color in properties
+            "popup_html": f"<b>{row.RaisonSociale}</b><br>Catégorie: {row.LibelleCategorieAgregat}<br>Type: {row.LibelleSph}<br>Maternité: {row.maternite}"
+        }
 
-        popup_content = (
-            f"<b>{row.RaisonSociale}</b><br>"
-            f"Catégorie: {row.LibelleCategorieAgregat}<br>"
-            f"Type: {row.LibelleSph}<br>"
-            f"Maternité: {row.maternite}"
-        )
+        etablissement = {
+            "type": "Feature",
+            "geometry": mapping(row.geometry), # Convert shapely Point to GeoJSON dict
+            "properties": properties
+        }
 
-        etablisssement = flm.Marker(
-            location=[lat, lon],
-            popup=popup_content,
-            tooltip=row.RaisonSociale, # Appears on hover
-            icon=flm.Icon(color='blue', icon='plus')
-        )
-        fg_sante.add_child(etablisssement)
+        geojson_features.append(etablissement)
     
+    geojson_data = {
+        "type": "FeatureCollection",
+        "features": geojson_features
+    }
+    
+    
+    etablisssement = flm.GeoJson(
+        geojson_data,
+        marker=flm.Circle(
+            radius=300,
+            fill_color="blue",
+            fill_opacity=1,
+            stroke=False)
+    )
+
+    fg_sante.add_child(etablisssement)
+
     return fg_sante
 
 def toggle_extra(fg, fg_name, key):
@@ -555,6 +587,7 @@ def run_demo(demo_data):
             demo_data['hebergement'] = "Chez l'habitant"
             demo_data['nb_adultes'] = 1
             demo_data['nb_enfants'] = 0
+            demo_data['poids_mobilité'] = 50
         if st.query_params['demo'] == "2":
             print('demo 2')
             demo_data['departement_actuel'] = '75'
@@ -570,7 +603,7 @@ def run_demo(demo_data):
             demo_data['classe_enfants'] = [0, 1] #index of ['Maternelle','Primaire','Collège','Lycée']
             demo_data['sante'] = "Maternité"
             demo_data['poids_mobilité'] = 0
-        if st.button('Exit Demo'):
+        if st.sidebar.button('Exit Demo'):
             st.query_params.clear()
             st.rerun()
         # st.write(demo_data)
