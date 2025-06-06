@@ -77,7 +77,7 @@ WITH geo_departement AS (
     SELECT 
         code,
         UPPER(TRANSLATE(nom, 'àâäáãåçéèêëíìîïñóòôöõúùûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy')) AS commune
-    FROM {{ ref('geographical_references_departements')) }}
+    FROM {{ ref('geographical_references_departements') }}
 ),
 
 education_dep AS (
