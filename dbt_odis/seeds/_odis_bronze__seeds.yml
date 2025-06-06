@@ -1,0 +1,14 @@
+version: 2
+
+seeds:
+  - name: corresp_codes_communes
+    description: "Correspondance des codes INSEE des communes avec les codes postaux"
+    config:
+      quote_columns: true 
+      delimiter: ';'
+      column_types:
+        Code_commune_INSEE: text
+        Nom_de_la_commune: text
+        Code_postal: text
+        Libellé_d_acheminement: text
+        Ligne_5: text
