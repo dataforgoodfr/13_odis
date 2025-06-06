@@ -4,14 +4,23 @@
     )
 }}
 
-with communes as 
+with geo_commune as(
+    select 
+        code,
+        UPPER(TRANSLATE(nom, 'àâäáãåçéèêëíìîïñóòôöõúùûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy')) AS commune
+    from {{ ref('geographical_references_communes') }}
+),
+communes as 
 (
     select 
-        *,
+        c.*,
         'commune' as type_geo,
-        right(zone_geo, 5) as code_geo,
-        left(zone_geo, length(zone_geo) - 6) as nom 
-    from {{ ref('emploi_demandeur_emploi_communes') }}  
+        right(zone_geo, 5) as code_postal,
+        gc.code as code_geo,
+        left(c.zone_geo, length(c.zone_geo) - 6) as nom 
+    from {{ ref('emploi_demandeur_emploi_communes') }}
+    left join geo_commune gc
+    on UPPER(TRANSLATE(c.nom, 'àâäáãåçéèêëíìîïñóòôöõúùûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy')) = gc.commune  
 ),
 
 departements as 

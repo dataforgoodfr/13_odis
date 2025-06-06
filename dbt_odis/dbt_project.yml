@@ -63,4 +63,5 @@ models:
     +schema: tec_odis  
 
 seeds:
-  +schema: silver
+  +schema: bronze
+
