@@ -46,6 +46,8 @@ education_communes AS (
     FROM {{ ref('education_moyenne_eleve_commune') }}
 )
 
+
+
 SELECT 
     g.code AS code_insee,
     e.id,
@@ -101,6 +103,32 @@ education_dep AS (
     FROM {{ ref('education_moyenne_eleve_departement') }}
 )
 
+SELECT 
+    h.code AS code_insee,
+    f.id,
+    f.code_postal,
+    f.commune,
+    f.departement,
+    f.academie,
+    f.region_academique,
+    f.rentree_scolaire,
+    f.nombre_total_eleves,
+    f.nombre_total_classes,
+    f.nombre_eleves_ulis,
+    f.nombre_eleves_cp_hors_ulis,
+    f.nombre_eleves_ce1_hors_ulis,
+    f.nombre_eleves_ce2_hors_ulis,
+    f.nombre_eleves_cm1_hors_ulis,
+    f.nombre_eleves_cm2_hors_ulis,
+    f.nombre_eleves_elementaire_hors_ulis,
+    f.nombre_eleves_preelementaire_hors_ulis,
+    f.created_at    
+FROM education_dep AS f
+LEFT JOIN geo_departement AS h
+    ON f.commune = UPPER(TRANSLATE(h.commune, 'àâäáãåçéèêëíìîïñóòôöõúùûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy'))
+
+
+
 {# #FAIRE UN SELECT + JOINTURE #}
 
 Select * FROM {{ ref('geographical_references_regions') }} 
@@ -137,6 +165,7 @@ education_regions AS (
         created_at
     FROM {{ ref('education_moyenne_eleve_region') }}
 )
+
 
 
 {# #FAIRE UN SELECT + JOINTURE #}
