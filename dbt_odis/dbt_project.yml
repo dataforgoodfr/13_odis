@@ -63,5 +63,8 @@ models:
     +schema: tec_odis  
 
 seeds:
-  +schema: bronze
+  dbt_odis:
+    +enabled: true
+    +schema: bronze
+
 
