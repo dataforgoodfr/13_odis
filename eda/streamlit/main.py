@@ -1,4 +1,4 @@
-from time import gmtime, strftime, sleep, time
+from time import time
 print('############################################')
 
 def performance_tracker(t, text, timer_mode):
@@ -6,24 +6,25 @@ def performance_tracker(t, text, timer_mode):
         print(str(round(time()-t,2))+'|'+text)
         return time()
 t = time()
+print(t)
 timer_mode = True
 
 t = performance_tracker(t, 'Start Import', timer_mode)
 # Notebook Specific
 import pandas as pd
-import numpy as np
+# import numpy as np
 import matplotlib.pyplot as plt
 import geopandas as gpd
-from scipy import stats
-import shapely as shp
-from shapely.wkt import loads
-from shapely.geometry import Polygon, mapping 
-from sklearn import preprocessing
+# from scipy import stats
+# import shapely as shp
+# from shapely.wkt import loads
+from shapely.geometry import mapping#, Polygon 
+# from sklearn import preprocessing
 
 # Streamlit App Specific
 import streamlit as st
 import folium as flm
-from folium.plugins import MarkerCluster
+# from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 from branca.colormap import linear
 from odis_stream2_scoring import compute_odis_score, init_loading_datasets#, produce_pitch_markdown 
@@ -133,16 +134,19 @@ def load_results(df, scores_cat):
     print(' <---------------------> CLICK <--------------------->')
     prefs, scores_cat_prefs = set_prefs(scores_cat) # We update the prefs with the latest inputs
     # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
+    
     odis_scored = compute_score(
         _df=df,
         scores_cat=scores_cat,
         prefs=prefs
         )
-    # print(odis_scored)
+    
+    # We pop the selected commune from the results
+    selected_geo = odis_scored.loc[prefs['commune_actuelle']]
+    odis_scored = odis_scored.drop(prefs['commune_actuelle'])
+    # We sort so that we can have the top results by selecting the first rows
     odis_scored = odis_scored.sort_values('weighted_score', ascending=False).reset_index()
-    # odis_scored.to_crs(epsg=4326, inplace=True)
-    # print(odis_scored)
-    selected_geo = odis_scored[odis_scored.codgeo == prefs['commune_actuelle']]
+    
     # 10,25,50,100,500,1000
     match prefs['loc_distance_km']:
         case 10:
@@ -162,18 +166,22 @@ def load_results(df, scores_cat):
     st.session_state['processed_gdf'] = odis_scored
     st.session_state['selected_geo'] = selected_geo
     st.session_state['prefs'] = prefs
-    st.session_state['afficher_ecoles'] = False
-    st.session_state['afficher_sante'] = False
+    st.session_state['afficher_ecoles'] = True
+    st.session_state['afficher_sante'] = True
 
 def styling_communes(style, **kwargs):
+
+    if style == 'style_current':
+        style_to_use = {
+            "fillColor": 'blue',
+            "fillOpacity": 0.8,
+            "stroke": True
+        }
     if style == 'style_score':
         style_to_use = {
             "fillColor": kwargs['colormap'](kwargs['scores_dict'][kwargs['codgeo']]),
             "fillOpacity": 0.8,
             "stroke": False,
-            # "color": "#535353",
-            # "weight": 0,
-            # "opacity": 0
         }
     if style == 'style_target':
         style_to_use = {
@@ -210,12 +218,17 @@ def show_fg(_fg_dict, fg_key, clear_others):
     _fg_dict[fg_key] = st.session_state["fg_dict_ref"][fg_key]
     return _fg_dict
 
-def result_highlight(row, index):
+# @st.cache_data
+def result_highlight(row, index, prefs):
+    # For each of the top N result we
+    # Add the red outline to show the commune on the scored communes map
     st.session_state["fg_dict"] = show_fg(_fg_dict=st.session_state["fg_dict"], fg_key='Top'+str(index+1), clear_others=True)
+    # We generate the pitch for this commune
     st.session_state['pitch'] = produce_pitch_markdown(row=row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
 
 def build_top_results(_df, n, prefs):
     cols_to_show = [col for col in _df.columns if ('_ratio' or '_score' or '_ratio') in col]
+    
     for index, row in _df.head(n).iterrows():
         # We show the proposed commune with a solid red border and binome with dashed one (if any)
         fg_name = flm.FeatureGroup(name="Commune Top"+str(index+1))
@@ -279,11 +292,11 @@ def build_top_results(_df, n, prefs):
 
 
         # Then we can show the expander-like button (= expander with on-click and)
-        title = f"Top {index+1}: {row.libgeo} (en binôme avec {row.libgeo_binome})" if row.binome else f"Top {index+1}: {row.libgeo} (seule)"
+        title = f"Top {index+1}: {row.libgeo} (en binôme avec {row.libgeo_binome})" if row.binome else f"Top {index+1}: {row.libgeo}"
         if st.button(
             title,
             on_click=result_highlight,
-            kwargs={'row':row, 'index':index},
+            kwargs={'row':row, 'index':index, 'prefs':prefs},
             use_container_width=True,
             key='button_top'+str(index+1),
             type='secondary'
@@ -293,6 +306,7 @@ def build_top_results(_df, n, prefs):
                 # with st.expander('Détails Supplémentaires'):
                 #     for col, value in row.filter(items=cols_to_show).items():
                 #         st.write(f"{st.session_state['scores_cat'].loc[col].score_name} | Score: {value}")
+            
     # This is used as a callback so we don't return anything
 
 def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_index):
@@ -366,7 +380,8 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
 def show_scoring_results(_df, _fg_dict, n, prefs):
     st.session_state['fg_dict_ref'] = {}
     st.session_state['fg_dict'] = {}
-
+    
+    # We show all the communes in the search radius in a shaded greeen according to their scores
     fg_results = flm.FeatureGroup(name="Results")
 
     # We pass all the scored communes at once inside a geojson feature group
@@ -401,6 +416,22 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
         }
         geojson_features.append(commune)
 
+    # We also add the current commune in Blue
+    geojson_geometry = mapping(st.session_state['selected_geo'].polygon)
+    style_to_use = styling_communes(style='style_current')
+    properties = {
+        "Nom": st.session_state['selected_geo'].libgeo,
+        "style": style_to_use
+    }
+    current_commune = {
+            "type": "Feature",
+            "geometry": geojson_geometry,
+            "properties": properties
+        }
+    geojson_features.append(current_commune)
+    
+    
+    
     # Wrap all features in a GeoJSON FeatureCollection
     geojson_data = {
         "type": "FeatureCollection",
@@ -423,9 +454,10 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
 @st.cache_data
 def odis_base_map(_current_geo, prefs):
     # We store the last known prefs in session to avoid reload
+    gs = gpd.GeoSeries(_current_geo.polygon, crs='EPSG:2154')
     center_loc = [
-            _current_geo.centroid.y.iloc[0],
-            _current_geo.centroid.x.iloc[0]
+            gs.centroid.y.iloc[0],
+            gs.centroid.x.iloc[0]
         ]
     m = flm.Map(location=center_loc, zoom_start=10)
     return m
@@ -643,11 +675,14 @@ def run_demo(demo_data):
         if st.sidebar.button('Exit Demo'):
             st.query_params.clear()
             st.rerun()
-        # st.write(demo_data)
+        
+        # And we automatically load the results
+        load_results(df=odis, scores_cat=scores_cat)
+    
     return demo_data
 
 
-demo_data = run_demo(demo_data)
+
 
 # Loading and caching Datasets
 t = performance_tracker(t, 'Start Dataset Import', timer_mode)
@@ -665,12 +700,14 @@ t = performance_tracker(t, 'End Dataset Import', timer_mode)
 # Load all the session_states if they don't exist yet
 session_states_init()
 
+
 ### BEGINNING OF THE STREAMLIT APP ###
 
 # Sidebar
 t = performance_tracker(t, 'Start App Sidebar', timer_mode)
 with st.sidebar:
-    st.header("Odis Stream #2 Prototype App")
+    st.logo('logo-jaccueille-singa.png', size='large')
+    st.header("Application Prototype")
     st.subheader('Localisation Actuelle')
     # Département
     dep_index = coddep_set.index(demo_data['departement_actuel'] if demo_data['departement_actuel'] is not None else '33')
@@ -687,10 +724,9 @@ with st.sidebar:
     loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[10,25,50,100,500,1000], value=dist_value, disabled=False)
 
 
-
 #Top filter Form
 t = performance_tracker(t, 'Start Top Filters', timer_mode)
-with st.container(border=True):
+with st.container(border=False):
     st.subheader('Préférences de recherche')
     tab_foyer, tab_emploi, tab_formation, tab_logement, tab_edu, tab_sante, tab_autres, tab_ponderation = st.tabs(['Foyer', 'Emploi', 'Formation', 'Logement', 'Education', 'Santé', 'Autres', 'Pondération'])
             
@@ -789,14 +825,16 @@ with st.container(border=True):
         with col3:
             value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
             poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
-            penalite_binome = st.select_slider("Décote binôme %", [0, 10, 25, 50, 100], value=10) / 100
+            penalite_binome = st.select_slider("Décote binôme %", [0, 10, 25, 50, 100], value=25) / 100
+
 
 # Bouton Pour lancer le scoring + affichage de la carte
 st.button(
-"Afficher la carte" if st.session_state["processed_gdf"] is None else "Mettre à jour la carte",
-on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat})
+    "Afficher la carte" if st.session_state["processed_gdf"] is None else "Mettre à jour la carte",
+    on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat}, type="primary")
 t = performance_tracker(t, 'Ready', timer_mode)
 
+run_demo(demo_data)
 
 # Main 2 sections with results and map
 col_results, col_map = st.columns([1, 2])
@@ -804,20 +842,24 @@ t = performance_tracker(t, 'Start Results Column', timer_mode)
 
 ### Results Column
 with col_results:
-    st.subheader("Meilleurs résultats")
+    
     if st.session_state['processed_gdf'] is not None:
+        st.subheader("Meilleurs résultats")
         st.markdown('<style>di.st-key-button_top1 .stBUtton button div p  {text-align: left !important;color: red;}</style>',unsafe_allow_html=True)
-        if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
-            st.session_state["fg_dict_key"] = 'All'
-        # if st.session_state["processed_gdf"] is not None:
+        # if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
+        #     for key, value in st.session_state["fg_dict_ref"].items():
+        #         if key.startswith("Top"):
+        #             show_fg(_fg_dict=st.session_state["fg_dict"], fg_key=value, clear_others=False)
+
         fg_dict_key = build_top_results(st.session_state["processed_gdf"], 5, st.session_state["prefs"])
             
 
 t = performance_tracker(t, 'Start Map Column', timer_mode)
 ### Map Column
 with col_map:
-    st.subheader("Carte Interactive")
+    
     if st.session_state['processed_gdf'] is not None:
+        st.subheader("Carte Interactive")
         # we have scoring results let's draw the the map
 
         fg_dict = {}
@@ -838,7 +880,7 @@ with col_map:
         #     'TopN': fg_comN
         # }
 
-        # We default to the 'Scores' which shows all the scored results in shaded green
+        # We default to the 'Scores' which shows all the scored results in shaded green and selected Geo in blue
         st.session_state['fg_dict']['Scores'] = st.session_state['fg_dict_ref']['Scores'] 
 
 
@@ -873,8 +915,10 @@ with col_map:
         t = performance_tracker(t, 'Start Map Display', timer_mode)
 
         m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
+        # print(st.session_state['fg_dict'])
         # st.write(list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()))
-        st_data = st_folium(
+        # st_data = 
+        st_folium(
             m,
             zoom=st.session_state["zoom"],
             feature_group_to_add=list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()),
