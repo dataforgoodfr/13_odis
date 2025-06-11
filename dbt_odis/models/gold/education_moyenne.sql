@@ -7,12 +7,8 @@
 {# #select les colonnes du silver pour correspondre à la table du drive  #}
 
 
-Select
-*
-from {{ ref('education_moyenne_eleve') }}
-WHERE code_geo = 73
- 
 
+ 
 
  
 
