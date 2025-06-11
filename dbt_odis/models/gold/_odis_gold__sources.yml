@@ -7,4 +7,6 @@ sources:
       - name: geographical_references
         description: Table contenant
         loaded_at_field: created_at
-      
+      - name: education_moyenne
+        description: Table contenant
+        loaded_at_field: created_at
