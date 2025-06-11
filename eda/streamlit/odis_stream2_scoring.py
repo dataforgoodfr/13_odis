@@ -13,6 +13,7 @@ from sklearn import preprocessing
 def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_file, ecoles_file, maternites_file, sante_file):
     odis = gpd.GeoDataFrame(gpd.read_parquet(odis_file))
     odis.set_geometry(odis.polygon, inplace=True)
+    odis.polygon.set_precision(10**-5)
     odis = odis[~odis.polygon.isna()]
     odis.set_index('codgeo', inplace=True)
 
@@ -161,22 +162,18 @@ def compute_criteria_scores(df, prefs):
     df['reloc_epci_scaled'] = np.where(df['epci_code'] == df.loc[prefs['commune_actuelle']]['epci_code'],1,0)
 
     #For each adult we look for jobs categories that match what is needed
-    i=1
     for adult in range(0,prefs['nb_adultes']):
         if len(prefs['codes_metiers'][adult]) > 0:
-            df['met_match_codes_adult'+str(i)] = df.be_codfap_top.apply(codes_match, codes_list=prefs['codes_metiers'][adult])
-            df['met_match_adult'+str(i)] = df['met_match_codes_adult'+str(i)].apply(len)
-            df['met_match_adult'+str(i)+'_scaled'] = t.fit_transform(df[['met_match_adult'+str(i)]].fillna(0))
-            i+=1
-
-    j=1
+            df['met_match_codes_adult'+str(adult+1)] = df.be_codfap_top.apply(codes_match, codes_list=prefs['codes_metiers'][adult])
+            df['met_match_adult'+str(adult+1)] = df['met_match_codes_adult'+str(adult+1)].apply(len)
+            df['met_match_adult'+str(adult+1)+'_scaled'] = t.fit_transform(df[['met_match_adult'+str(adult+1)]].fillna(0))
+    
+    #For each adult we look for jobs categories that match what is needed
     for adult in range(0,prefs['nb_adultes']):
         if len(prefs['codes_formations'][adult]) > 0:
-            df['form_match_codes_adult'+str(j)] = df.codes_formations.apply(codes_match, codes_list=prefs['codes_formations'][adult])
-            df['form_match_adult'+str(j)] = df['form_match_codes_adult'+str(j)].apply(len)
-            df['form_match_adult'+str(j)+'_scaled'] = t.fit_transform(df[['form_match_adult'+str(j)]].fillna(0))
-        j+=1
-
+            df['form_match_codes_adult'+str(adult+1)] = df.codes_formations.apply(codes_match, codes_list=prefs['codes_formations'][adult])
+            df['form_match_adult'+str(adult+1)] = df['form_match_codes_adult'+str(adult+1)].apply(len)
+            df['form_match_adult'+str(adult+1)+'_scaled'] = t.fit_transform(df[['form_match_adult'+str(adult+1)]].fillna(0))
     
     return df
 def compute_cat_scores(df, scores_cat, penalty):
