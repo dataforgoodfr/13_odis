@@ -1,5 +1,5 @@
 {{ config(
-    tags = ['gold', 'geographical_references'],
+    tags = ['gold', 'education'],
     alias = 'gold_education_moyenne'
     )
 }}
