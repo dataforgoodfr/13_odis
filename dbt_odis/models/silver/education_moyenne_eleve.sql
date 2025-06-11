@@ -9,7 +9,7 @@ select
     "Code_commune_INSEE" as code_geo,
     "Nom_de_la_commune" as nom,
     "Code_postal" as code_postal,
-    "Libellé_d_acheminement" as commune
+    "Intitule" as commune
 from {{ ref('corresp_codes_communes') }}
 group by 
     code_geo,

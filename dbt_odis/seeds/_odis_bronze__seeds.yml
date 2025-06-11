@@ -5,10 +5,10 @@ seeds:
     description: "Correspondance des codes INSEE des communes avec les codes postaux"
     config:
       quote_columns: true 
-      delimiter: ';'
+      delimiter: ','
       column_types:
         Code_commune_INSEE: text
         Nom_de_la_commune: text
         Code_postal: text
-        Libellé_d_acheminement: text
+        Intitule: text
         Ligne_5: text
