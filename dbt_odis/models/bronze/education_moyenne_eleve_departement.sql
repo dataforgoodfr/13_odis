@@ -1,4 +1,5 @@
 {{ config(
+    tags = ['bronze', 'education'],
     alias = 'vw_education_moyenne_eleve_departement'
     )
 }}

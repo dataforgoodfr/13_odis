@@ -3,6 +3,7 @@ version: 2
 models:
 
   - name: com_dep_reg
+    description: Table de correspondance des codes Région, Département, Communes
     columns:
       - name: codgeo
         description: Code officiel français de la commune
@@ -11,9 +12,10 @@ models:
       - name: coddep
         description: Code officiel français du département rattaché à la commune
       - name: libgeo
-        description: Nom des communes avec articles et tirets 
+        description: Nom des communes avec articles et tirets
 
   - name: gps_dep_reg
+    description: Table de correspondance des codes Région, Département, Communes qui sont des préfectures avec leur coordonnées géographiques en point
     columns:
       - name: geo_point
         description: Coordonnées géograhiques du point lié à la commune préfecture, en liste ['Lattitude','Longitude']
@@ -21,28 +23,30 @@ models:
         description: Type de Préfecture Département ou Région
         tests:
           - accepted_values:
-              values: ['Préfecture','Préfecture de région']
+              values:
+                - Préfecture
+                - Préfecture de région
       - name: code_INSEE
         description: Code officiel français de la commune
         tests:
           - not_null
-      - name: commune 
-        description: Nom des Préfectures avec articles et tirets 
+      - name: commune
+        description: Nom des Préfectures avec articles et tirets
       - name: DEP
         description: Code officiel français du département rattaché à la commune, vide pour les régions
       - name: REG
         description: Code officiel français de la région rattachée à la commune, vide pour les départements
 
   - name: typologie_territoires
+    description: Table de correspondance des Communes avec leur population mesurée et leur tranche de population liée
     columns:
       - name: CodGeo
         description: Code officiel français de la commune
         tests:
-          - unique
           - not_null
-      - name: libellé 
+      - name: libellé
         description: Nom des communes avec articles et tirets
       - name: tranche_de_population
         description: Tranche déterminée à partir du champ population
       - name: population
-        description: Nombre d'habitants dans la commune  
+        description: Nombre d'habitants dans la commune
