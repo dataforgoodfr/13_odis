@@ -7,5 +7,9 @@ sources:
       - name: geographical_references
         description: Table contenant
         loaded_at_field: created_at
+      - name: education_moyenne_eleve
+        description: Table contenant
+        loaded_at_field: created_at
+
       - name: logements_types_territoires
         description: Table contenant
