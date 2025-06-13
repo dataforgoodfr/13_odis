@@ -9,7 +9,7 @@ select
     "Code_commune_INSEE" as code_geo,
     "Nom_de_la_commune" as nom,
     "Code_postal" as code_postal,
-    "Intitule" as commune
+    regexp_replace("Intitule",'[-'']', ' ', 'g') as commune
 from {{ ref('corresp_codes_communes') }}
 group by 
     code_geo,
@@ -194,11 +194,35 @@ join_region as (
     from education_regions as r
     left join geo_regions as gr
         on r.nom_region = gr.region
+),
+
+unioned as (
+    select * from join_commune
+        union all
+    select * from join_departement
+        union all
+    select * from join_region
 )
 
-select * from join_commune
-    union all
-select * from join_departement
-    union all
-select * from join_region
-
+select
+    code_geo,
+    id,
+    code_postal,
+    nom_geo,
+    type_geo,
+    departement,
+    academie,
+    region_academique,
+    rentree_scolaire,
+    cast(NULLIF(replace(nombre_total_eleves::text, '0.0', '0'), '') as integer) as nombre_total_eleves,
+    cast(NULLIF(replace(nombre_total_classes::text, '0.0', '0'), '') as integer) as nombre_total_classes,
+    cast(NULLIF(replace(nombre_eleves_ulis::text, '0.0', '0'), '') as integer) as nombre_eleves_ulis,
+    cast(NULLIF(replace(nombre_eleves_cp_hors_ulis::text, '0.0', '0'), '') as integer) as nombre_eleves_cp_hors_ulis,
+    cast(NULLIF(replace(nombre_eleves_ce1_hors_ulis::text, '0.0', '0'), '') as integer) as nombre_eleves_ce1_hors_ulis,
+    cast(NULLIF(replace(nombre_eleves_ce2_hors_ulis::text, '0.0', '0'), '') as integer) as nombre_eleves_ce2_hors_ulis,
+    cast(NULLIF(replace(nombre_eleves_cm1_hors_ulis::text, '0.0', '0'), '') as integer) as nombre_eleves_cm1_hors_ulis,
+    cast(NULLIF(replace(nombre_eleves_cm2_hors_ulis::text, '0.0', '0'), '') as integer) as nombre_eleves_cm2_hors_ulis,
+    cast(NULLIF(replace(nombre_eleves_elementaire_hors_ulis::text, '0.0', '0'), '') as integer) as nombre_eleves_elementaire_hors_ulis,
+    cast(NULLIF(replace(nombre_eleves_preelementaire_hors_ulis::text, '0.0', '0'), '') as integer) as nombre_eleves_preelementaire_hors_ulis,
+    created_at
+from unioned
