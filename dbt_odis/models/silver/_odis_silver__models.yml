@@ -247,6 +247,9 @@ models:
         data_type: text
         description: nom de la zone géographique
 
+  - name: emploi_demandeur_pivot
+    description: Table pivotée des demandeurs d'emploi par zone géographique, mois-année en ligne
+
   - name: emploi_eff_prive
     description: Effectifs salariés du secteur privé par grands secteurs, granularité fine au code APE
     columns:

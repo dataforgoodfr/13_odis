@@ -1,6 +1,7 @@
 {{ config(
     tags = ['silver', 'emploi'],
-    alias = 'silver_emploi_demandeur_emploi'
+    alias = 'vw_silver_emploi_demandeur_emploi',
+    materialized = 'view'
     )
 }}
 

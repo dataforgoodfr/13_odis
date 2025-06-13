@@ -93,3 +93,9 @@ models:
       - name: nbpi_rp
         description: Nombre moyen de pièces par type de logement (maison ou appartement) qui sont des résidences principales
         data_type: double precision
+
+  - name: education_moyenne
+    description: blabla
+
+  - name: emploi_demandeur
+    description: Table recensant
