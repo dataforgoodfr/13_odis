@@ -72,7 +72,15 @@ joined as (
 )
 
 select 
-    *,
+    id,
+    geo,
+    time_period,
+    cast(maisons as float) as maisons,
+    cast(maisons_rp as float) as maisons_rp,
+    cast(appartements as float) as appartements,
+    cast(appartements_rp as float) as appartements_rp,
+    cast(pieces as float) as pieces,
+    cast(total_logements as float) as total_logements,
     case
         when geo like '%COM%' then 'commune'
         when geo like '%DEP%' then 'departement'

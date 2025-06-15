@@ -5,9 +5,9 @@
 }}
 
 select 
-    code as CODGEO,
-    region_code as CODREG,
-    departement_code as CODDEP,
-    nom as LIBGEO
+    code as "CODGEO",
+    region_code as "CODREG",
+    departement_code as "CODDEP",
+    nom as "LIBGEO"
 from {{ ref('geographical_references') }} 
 

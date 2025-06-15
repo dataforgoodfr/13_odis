@@ -166,8 +166,6 @@ log/*
 data/imports/*
 !data/imports/.gitkeep
 .DS_Store
-dbt_odis/seeds/*
-!dbt_odis/seeds/.gitkeep
 log/*
 !log/.gitkeep
 

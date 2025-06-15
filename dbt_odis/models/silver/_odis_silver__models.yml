@@ -35,7 +35,7 @@ models:
         description: code géographique (commune, département, région).
 
   - name: emploi_demandeur_emploi
-    description: Table jointure horizontale des 3 niveaux de zones géographiques, pour les demandeurs d'emploi mesurée pour une zone donnée, mois-année en colonne
+    description: View jointure horizontale des 3 niveaux de zones géographiques, pour les demandeurs d'emploi mesurée pour une zone donnée, mois-année en colonne
     columns:
       - name: id
         description: index
@@ -238,7 +238,7 @@ models:
         data_type: timestamp without time zone
         description: date d'extraction de la donnée
       - name: code_geo
-        description: code postal de la zone géographique identifiée
+        description: code INSEE de la zone géographique, rapportée de la correspondance des codes INSEE
         data_type: text
       - name: type_geo
         data_type: text
@@ -246,6 +246,49 @@ models:
       - name: nom
         data_type: text
         description: nom de la zone géographique
+      - name: avril_2025
+        description: données pour avril 2025
+        data_type: integer
+      - name: code_postal
+        description: code postal de la zone géographique
+        data_type: text
+      - name: intitule
+        description: nom en majuscules de la zone géographique rapportée de la correspondance des codes INSEE
+        data_type: text
+
+  - name: emploi_demandeur_pivot
+    description: Table pivotée des demandeurs d'emploi par zone géographique, mois-année en ligne
+    columns:
+      - name: id
+        description: index
+        data_type: text
+      - name: code_geo
+        data_type: text
+        description: code INSEE de la zone géographique
+      - name: nom
+        data_type: text
+        description: nom de la zone géographique
+      - name: intitule
+        data_type: text
+        description: nom en majuscules de la zone géographique
+      - name: type_geo
+        data_type: text
+        description: "type de la zone géographique : commune, département, région"
+      - name: code_postal
+        data_type: text
+        description: code postal de la zone géographique
+      - name: zone_geo
+        data_type: text
+        description: Zone géographique identifiée, nom_code
+      - name: mois
+        data_type: text
+        description: mois de mesure de la donnée
+      - name: annee
+        data_type: text
+        description: année fonction du mois de mesure de la donnée
+      - name: demandeurs_emploi
+        data_type: integer
+        description: nombre de demandeurs d'emploi pour la zone identifiée pour un mois-année donnée
 
   - name: emploi_eff_prive
     description: Effectifs salariés du secteur privé par grands secteurs, granularité fine au code APE
@@ -316,3 +359,8 @@ models:
         data_type: double precision
       - name: annee
         data_type: text
+
+  - name: education_moyenne_eleve
+    columns:
+      - name: id
+        description: id
