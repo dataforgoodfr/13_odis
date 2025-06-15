@@ -5,20 +5,29 @@ models:
   - name: com_dep_reg
     description: Table de correspondance des codes Région, Département, Communes
     columns:
-      - name: codgeo
-        description: Code officiel français de la commune
-      - name: codreg
-        description: Code officiel français de la région rattachée à la commune
-      - name: coddep
-        description: Code officiel français du département rattaché à la commune
-      - name: libgeo
+      - name: CODGEO
+        description: Code officiel INSEE français de la commune
+        quote: true
+        data_type: text
+      - name: CODREG
+        description: Code officiel INSEE français de la région rattachée à la commune
+        quote: true
+        data_type: text
+      - name: CODDEP
+        description: Code officiel INSEE français du département rattaché à la commune
+        quote: true
+        data_type: text
+      - name: LIBGEO
         description: Nom des communes avec articles et tirets
+        quote: true
+        data_type: text
 
   - name: gps_dep_reg
     description: Table de correspondance des codes Région, Département, Communes qui sont des préfectures avec leur coordonnées géographiques en point
     columns:
       - name: geo_point
         description: Coordonnées géograhiques du point lié à la commune préfecture, en liste ['Lattitude','Longitude']
+        data_type: text
       - name: service
         description: Type de Préfecture Département ou Région
         tests:
@@ -26,16 +35,24 @@ models:
               values:
                 - Préfecture
                 - Préfecture de région
+        data_type: text
       - name: code_INSEE
-        description: Code officiel français de la commune
+        description: Code officiel INSEE français de la commune
+        data_type: text
+        quote: true
         tests:
           - not_null
       - name: commune
         description: Nom des Préfectures avec articles et tirets
+        data_type: text
       - name: DEP
         description: Code officiel français du département rattaché à la commune, vide pour les régions
+        quote: true
+        data_type: text
       - name: REG
         description: Code officiel français de la région rattachée à la commune, vide pour les départements
+        quote: true
+        data_type: text
 
   - name: typologie_territoires
     description: Table de correspondance des Communes avec leur population mesurée et leur tranche de population liée
@@ -52,7 +69,7 @@ models:
         description: Nombre d'habitants dans la commune
 
   - name: logements_territoires
-    description: Table recensant les nombres de types de logements par commune, département et région
+    description: Table recensant les nombres de types de logements par construction et par occupation par commune, département et région. les ratios nombre de pièces moyennes par habitation et par résidence rpincipale sont calculés
     columns:
       - name: codgeo
         description: Code officiel français de la zone géographique
@@ -95,7 +112,39 @@ models:
         data_type: double precision
 
   - name: education_moyenne
-    description: blabla
+    description: Table recensant les nombres totaux de classes et d'élèves en écoles préélémentaires et élémentaires d'une zone géographique identifiée, et son nombre moyen d'élèves par classe
+    columns:
+      - name: codgeo
+        description: code INSEE de la zone géographique
+        data_type: text
+      - name: YEAR
+        description: année de mesure, à la rentrée scolaire
+        data_type: numeric
+        quote: true
+      - name: Nombre_Moyen_Eleves_Classe
+        description: nombre moyen d'élèves par classe, tous niveaux et toutes classes confondues (pas de pondération)
+        data_type: numeric
+        quote: true
+      - name: Nombre total d'élèves
+        description: nombre total d'élèves en écoles préélémentaires et élémentaires dans la zone géographique
+        data_type: integer
+        quote: true
+      - name: Nombre total de classes
+        description: nombre total de classes en niveaux préélémentaires et élémentaires dans la zone géograhique
+        data_type: integer
+        quote: true
 
   - name: emploi_demandeur
-    description: Table recensant
+    description: Table recensant le nombre de demandeurs d'emploi pour une zone géographique identifiée et un mois de mesure donné
+    columns:
+      - name: codgeo
+        description: code INSEE de la zone géographique
+        data_type: text
+      - name: YEAR
+        description: mois_année de mesure des données
+        data_type: text
+        quote: true
+      - name: Demandeurs_Emploi
+        description: Nombre de demandeurs d'emploi
+        data_type: integer
+        quote: true
