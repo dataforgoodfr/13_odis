@@ -54,6 +54,7 @@ coverage.xml
 .pytest_cache/
 cover/
 
+
 # Translations
 *.mo
 *.pot
@@ -176,3 +177,13 @@ notebooks/*_processed.ipynb
 
 # ignore .env files for Bruno to avoid sharing secrets
 common/collections/** */.env
+
+#jacques CSV repos
+#eda/csv/
+eda/csv_large/
+eda/csv_not_used/
+eda/streamlit/__pycache__h
+eda/streamlit/__pycache__
+eda/streamlit/cached_df
+eda/streamlit/cached_df.parquet
+eda/streamlit/cached_df.csv
