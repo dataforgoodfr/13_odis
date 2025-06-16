@@ -2,7 +2,8 @@
 met_scaled,Taux Besoin Emploi,met_ratio,besoin/1000 hab,Emplois non pourvus pour 1000 habitants (Source: France Travail),emploi,TRUE,élevé
 met_tension_scaled,Taux Besoin Emploi en Tension,met_tension_ratio,besoin/1000 hab,Emplois en tension non pourvus pour 1000 habitants (Source: France Travail),emploi,TRUE,élevé
 svc_incl_scaled,Taux Services Inclusion,svc_incl_ratio,services/1000 hab,Services d'inclusions pour 1000 habitants,soutien,TRUE,élevé
-log_vac_scaled,Taux Logements Vacants,log_vac_ratio,/Total Logements,,logement,TRUE,élevé
+log_vac_scaled,Taux Logements Vacants,log_vac_ratio,/Total Logements,Nombre de logements vacants sur le parc,logement,TRUE,élevé
+log_soc_inoc_scaled,Taux de Logements Sociaux Inoccupés (Vacants ou Vides),log_soc_inoc_ratio,/Total Logements Sociaux,Nombre de logements sociaux innocupés (vacants ou vide) sur le parc de logements sociaux,logement,TRUE,élevé
 log_5p_scaled,Taux Grandes Résidences Principales,log_5p_ratio,/Total Résidences Principales,,logement,TRUE,élevé
 classes_ferm_scaled,Taux Classes à Risque de Fermeture,risque_fermeture_ratio,/Total Ecoles,Ratio du nombre de classes à riques de fermetures sur le nombre total d'établissements,education,TRUE,élevé
 pol_scaled,Couleur Politique de la commmue,pol_num,None,Affiliation à un parti politique en faveur de l'accueil,soutien,FALSE,favorable
@@ -17,3 +18,5 @@ edu_enfant2_scaled,Proximité de l'établissement scolaire enfant 2,edu_dist_kid
 edu_enfant3_scaled,Proximité de l'établissement scolaire enfant 3,edu_dist_kid3,mètres,Distance en m de la commune proposée (0 si même commune),education,FALSE,proche
 edu_enfant4_scaled,Proximité de l'établissement scolaire enfant 4,edu_dist_kid4,mètres,Distance en m de la commune proposée (0 si même commune),education,FALSE,proche
 edu_enfant5_scaled,Proximité de l'établissement scolaire enfant 5,edu_dist_kid5,mètres,Distance en m de la commune proposée (0 si même commune),education,FALSE,proche
+edu_fle_scaled,Proximité d'un établissement d'apprentissage du Français,edu_fle,mètres,Distance en m de la commune proposée (0 si même commune),education,FALSE,proche
+besoins_match_scaled,Présence de solutions de soutien spécifiques,besoin_match,Nombre de services,Présence de solutions de soutien spécifiques,soutien,FALSE,élevé
