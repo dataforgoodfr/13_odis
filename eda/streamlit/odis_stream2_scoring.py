@@ -10,7 +10,7 @@ import shapely as shp
 from shapely.wkt import loads
 from shapely.geometry import Polygon
 from sklearn import preprocessing
-def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_file, ecoles_file, maternites_file, sante_file):
+def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_file, ecoles_file, maternites_file, sante_file, inclusion_file):
     odis = gpd.GeoDataFrame(gpd.read_parquet(odis_file))
     odis.set_geometry(odis.polygon, inplace=True)
     odis.polygon.set_precision(10**-5)
@@ -47,7 +47,13 @@ def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_f
     annuaire_sante.maternite = np.where(annuaire_sante.maternite == 'both', True, False)
     annuaire_sante['codgeo'] = annuaire_sante.Departement + annuaire_sante.Commune
 
-    return odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante
+    # Annuaire des services d'inclusion
+    annuaire_inclusion = gpd.read_parquet(inclusion_file)
+    incl_index=annuaire_inclusion[['codgeo', 'categorie', 'service']].drop_duplicates()
+    incl_index['key'] = incl_index.categorie+'_'+incl_index.service
+    incl_index=incl_index.groupby('codgeo').agg({'key':lambda x: set(x)})
+
+    return odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index
 # Filtering dataframe based on subject distance preference (to save on compute time later on)
 def filter_loc_by_distance(df, distance):
     return df[df.dist_current_loc < distance * 1000]
@@ -123,58 +129,95 @@ def codes_match(df, codes_list):
 
 def fap_names_lookup(df):
     return list(codfap_index[codfap_index['Code FAP 341'].isin(df)]['Intitulé FAP 341'])
-def compute_criteria_scores(df, prefs): 
+def compute_criteria_scores(df, prefs, incl_index): 
     df = df.copy()
     
     # Using QuantileTransfer to normalize all scores between 0 and 1 for the region
     t = preprocessing.QuantileTransformer(output_distribution="uniform")
 
+    # EMPLOI
+
     #met_ration est le ratio d'offres non-pourvues pour 1000 habitants
-    df['met_ratio']= 1000 * df.met/df.pop_be
+    df['met_ratio']= 1000 * df['met']/df['pop_be']
     df['met_scaled'] = t.fit_transform(df[['met_ratio']].fillna(0))
-    #met_tension_ratio est le ratio d'offres population de la zone (pour 1000 habitants)
-    df['met_tension_ratio'] = 1000 * df.met_tension/df.pop_be
-    df['met_tension_scaled'] = t.fit_transform(df[['met_tension_ratio']].fillna(0))
-    #svc_ratio est le ratio de services d'inclusion de la commune (pour 1000 habitants)
-    df['svc_incl_ratio'] = 1000 * df.svc_incl_count/df.pop_be
-    df['svc_incl_scaled'] = t.fit_transform(df[['svc_incl_ratio']].fillna(0))
-    #log_vac_ratio est le ratio de logements vacants de la commune % total logements
-    df['log_vac_ratio'] = df.log_vac/df.log_total
-    df['log_vac_scaled'] = t.fit_transform(df[['log_vac_ratio']].fillna(0))
-    #pol est le score selon la couleur politique (extreme droite = 0, gauche = 1)
-    df['pol_scaled'] = df[['pol_num']].astype('float')
     
-    if prefs['hebergement'] == "Chez l'habitant":
-        #log_5p+_ratio est le ratio de residences principales de 5 pièces ou plus % total residences principales
-        df['log_5p_ratio'] = df['rp_5+pieces']/df.log_rp
-        df['log_5p_scaled'] = t.fit_transform(df[['log_5p_ratio']].fillna(0))
+    #met_tension_ratio est le ratio d'offres pour des métiers déclarés en tensions sur la zone (pour 1000 habitants)
+    # df['met_tension_ratio'] = 1000 * df['met_tension']/df['pop_be']
+    # df['met_tension_scaled'] = t.fit_transform(df[['met_tension_ratio']].fillna(0))
 
-    if len(prefs['classe_enfants']) > 0: 
-        # Risque de fermeture école: ratio de classe à risque de fermeture % nombre d'écoles
-        df['risque_fermeture_ratio'] = df.risque_fermeture/df.ecoles_ct
-        df['classes_ferm_scaled'] = t.fit_transform(df[['risque_fermeture_ratio']].fillna(0))
-
-
-    # Subject Specific criterias
-
-    # We compute the distance from the current location 
-    df['reloc_dist_scaled'] = (1-df['dist_current_loc']/(prefs['loc_distance_km']*1000))
-    df['reloc_epci_scaled'] = np.where(df['epci_code'] == df.loc[prefs['commune_actuelle']]['epci_code'],1,0)
-
-    #For each adult we look for jobs categories that match what is needed
+    # jobs categories that match
     for adult in range(0,prefs['nb_adultes']):
         if len(prefs['codes_metiers'][adult]) > 0:
             df['met_match_codes_adult'+str(adult+1)] = df.be_codfap_top.apply(codes_match, codes_list=prefs['codes_metiers'][adult])
             df['met_match_adult'+str(adult+1)] = df['met_match_codes_adult'+str(adult+1)].apply(len)
             df['met_match_adult'+str(adult+1)+'_scaled'] = t.fit_transform(df[['met_match_adult'+str(adult+1)]].fillna(0))
     
-    #For each adult we look for jobs categories that match what is needed
+    # training centers that match
     for adult in range(0,prefs['nb_adultes']):
         if len(prefs['codes_formations'][adult]) > 0:
             df['form_match_codes_adult'+str(adult+1)] = df.codes_formations.apply(codes_match, codes_list=prefs['codes_formations'][adult])
             df['form_match_adult'+str(adult+1)] = df['form_match_codes_adult'+str(adult+1)].apply(len)
             df['form_match_adult'+str(adult+1)+'_scaled'] = t.fit_transform(df[['form_match_adult'+str(adult+1)]].fillna(0))
+
     
+    # HEBERGEMENT / LOGEMENT
+    if prefs['hebergement'] == "Chez l'habitant":
+        #log_5p+_ratio est le ratio de residences principales de 5 pièces ou plus % total residences principales
+        df['log_5p_ratio'] = df['rp_5+pieces']/df['log_rp']
+        df['log_5p_scaled'] = t.fit_transform(df[['log_5p_ratio']].fillna(0))
+    
+    if prefs['logement'] == "Logement Social":
+        # log_soc_inoccupes = nombre de logements sociaux vacants + vides
+        df['log_soc_inoc_ratio'] = df['log_soc_inoccupes']/df['log_soc_total'] 
+        df['log_soc_inoc_scaled'] = t.fit_transform(df[['log_soc_inoc_ratio']].fillna(0))
+    elif prefs['logement'] == "Location":
+        #log_vac_ratio est le ratio de logements vacants de la commune % total logements
+        df['log_vac_ratio'] = df['log_vac']/df['log_total']
+        df['log_vac_scaled'] = t.fit_transform(df[['log_vac_ratio']].fillna(0))
+
+    
+    # EDUCATION
+    if len(prefs['classe_enfants']) > 0: 
+        # Risque de fermeture école: ratio de classe à risque de fermeture % nombre d'écoles
+        df['risque_fermeture_ratio'] = df['risque_fermeture']/df['ecoles_ct']
+        df['classes_ferm_scaled'] = t.fit_transform(df[['risque_fermeture_ratio']].fillna(0))
+
+    # MOBILITE
+
+    # 1. distance from the current location 
+    df['reloc_dist_scaled'] = (1-df['dist_current_loc']/(prefs['loc_distance_km']*1000))
+    df['reloc_epci_scaled'] = np.where(df['epci_code'] == df.loc[prefs['commune_actuelle']]['epci_code'],1,0)
+
+    
+    # SOUTIEN LOCAL
+    # other needs facilities
+    if bool(prefs['besoins_autres']):
+        # We keep things pretty simple here: for every need type, if there is at least corresponding facility in the same geo or nearby geo we score 1
+        df['besoins_match'] = 0
+        for row in df.itertuples():
+            match_counter = 0
+            # codgeos = row.codgeo_voisins.tolist()+[row.Index] if row.codgeo_voisins is not None else [row.Index]
+            codgeos = [row.Index] # For now we simplify and only look at the specific geos and not neighboring communes
+            for codgeo in codgeos:
+                if codgeo in incl_index.index:
+                    for key, values in prefs['besoins_autres'].items():
+                        for v in values:
+                            # if v is None:
+                            #     if key in incl_index.loc[codgeo].item():
+                            #         match_counter += 1
+                            # else: 
+                            if key+'_'+v in incl_index.loc[codgeo].item():
+                                match_counter += 1
+            df.loc[row.Index, 'besoins_match'] = match_counter
+        df['besoins_match_scaled'] = t.fit_transform(df[['besoins_match']].fillna(0))
+    else:
+        #svc_ratio est le ratio de services d'inclusion de la commune (pour 1000 habitants)
+        df['svc_incl_ratio'] = 1000 * df['svc_incl_count']/df['pop_be']
+        df['svc_incl_scaled'] = t.fit_transform(df[['svc_incl_ratio']].fillna(0))
+
+    #pol est le score selon la couleur politique (extreme droite = 0, gauche = 1)
+    df['pol_scaled'] = df[['pol_num']].astype('float')
+        
     return df
 def compute_cat_scores(df, scores_cat, penalty):
     df = df.copy()
@@ -208,27 +251,43 @@ def compute_binome_score_old(df, binome_penalty, prefs):
             )
     
     return max_scores.mean(axis=1).round(1)
+# def compute_binome_score(df, scores_cat, prefs):
+#     scores_cat_col = [col for col in df.columns if col.endswith('_cat_score')]
+#     weighted_scores = pd.DataFrame()
+#     for cat_score in scores_cat_col:
+#         cat_weight =  prefs['poids_'+cat_score.split('_')[0]]
+#         weighted_scores[cat_score] = cat_weight * df[cat_score]
+    
+#     return weighted_scores.astype(float).mean(axis=1)
+
 def compute_binome_score(df, scores_cat, prefs):
     scores_cat_col = [col for col in df.columns if col.endswith('_cat_score')]
-    weighted_scores = pd.DataFrame()
-    for col in scores_cat_col:
-        cat_weight =  prefs['poids_'+col.split('_')[0]]
-        weighted_scores[col] = cat_weight * df[col]
+    weighted_scores = 0
+    total_weight = 0
+    for cat_score in scores_cat_col:
+        cat_weight =  prefs['poids_'+cat_score.split('_')[0]]
+        weighted_scores += cat_weight * df[cat_score]
+        total_weight += cat_weight
     
-    return weighted_scores.astype(float).mean(axis=1)
+    return weighted_scores / total_weight
 def best_score_compute(df):
     #Keeping the best (top #1) monome or binome result for each commune
     best = df.sort_values('weighted_score', ascending=False).groupby('codgeo').head(1)
     return best
 #Main function that aggregates most of the above in one sequence
-def compute_odis_score(df, scores_cat, prefs):
+def compute_odis_score(df, scores_cat, prefs, incl_index):
+    
+    # We restrict to communes with pop larger than 1000 (30% of all communes)
+    df = df[df.population > 1000]
+
+    # We add the disctance from the current location defined in the app
     df = add_distance_to_current_loc(df, current_codgeo=prefs['commune_actuelle'])
 
     # We filter by distance to reduce the compute cost on a smaller odis_search dataframe
     odis_search = filter_loc_by_distance(df, distance=prefs['loc_distance_km'])
 
     # We compute the subject specific scores
-    odis_scored = compute_criteria_scores(odis_search, prefs=prefs)
+    odis_scored = compute_criteria_scores(odis_search, prefs=prefs, incl_index=incl_index)
 
     # We add the criteria scores for all neighbor communes forming monomes and binomes
     odis_exploded = adding_score_voisins(odis_scored, scores_cat)
