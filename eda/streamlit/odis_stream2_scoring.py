@@ -75,14 +75,13 @@ def adding_score_voisins(df_search, scores_cat):
 
     # Adds itself to list of voisins = monome case
     # Note: this code triggers the SettingWithCopyWarning but I don't know how to fix it...
-    df_search.codgeo_voisins = df_search.apply(lambda x: np.append(x.codgeo_voisins, x.name), axis=1)
+    df_search['codgeo_voisins_and_self'] = df_search.apply(lambda x: np.append(x.codgeo_voisins, x.name), axis=1)
 
     # Explodes the dataframe to have a row for each voisins + itself
-    df_search['codgeo_voisins_copy'] = df_search['codgeo_voisins']
-    df_search_exploded = df_search.explode('codgeo_voisins_copy')
-    df_search_exploded.rename(columns={'codgeo_voisins_copy':'codgeo_binome'}, inplace=True)
+    df_search_exploded = df_search.explode('codgeo_voisins_and_self')
+    df_search_exploded.rename(columns={'codgeo_voisins_and_self':'codgeo_binome'}, inplace=True)
     
-    # For each commune (codgeo) in search area (df_search) we add all its voisin's scores
+    # For each commune (codgeo) in search area (df_search) we all its binome's scores (incl. self as a binome)
     odis_search_exploded = pd.merge(
         df_search_exploded, 
         df_binomes.add_suffix('_binome'), 
@@ -92,11 +91,11 @@ def adding_score_voisins(df_search, scores_cat):
         validate="many_to_one")
     
     # Adds a column to identify binomes vs monomes + cleanup
-    odis_search_exploded['binome'] = np.where(odis_search_exploded.index == odis_search_exploded.codgeo_binome, True, False)
+    odis_search_exploded['binome'] = np.where(odis_search_exploded.index == odis_search_exploded.codgeo_binome, False, True)
 
  
     #We remove all values for the monome case to avoid accounting for them in the category score calculation
-    odis_search_exploded = monome_cleanup(odis_search_exploded)
+    # odis_search_exploded = monome_cleanup(odis_search_exploded)
 
     return odis_search_exploded
 #Computing distance from current commune 
@@ -220,23 +219,34 @@ def compute_criteria_scores(df, prefs, incl_index):
         
     return df
 def compute_cat_scores(df, scores_cat, penalty):
+    # Efficiently compute score in a scalar way (select all relevant rows at once)
     df = df.copy()
-    df_binome = pd.DataFrame()
-    columns_in_use = set(df.columns) & set(scores_cat.score)
-    columns_in_use_binome = set(df.columns) & set([score+'_binome' for score in scores_cat.score])
+
+    # For each score category (emploi, education etc.) we compute the score weighted with penalty (e.g. 10%) for neighbors 
     for cat in set(scores_cat.cat):
-        cat_scores_indices = [score for score in scores_cat[scores_cat['cat'] == cat]['score'] if score in columns_in_use]
-        cat_scores_indices_binome = [score+'_binome' for score in scores_cat[scores_cat['cat'] == cat]['score'] if score+'_binome' in columns_in_use_binome]
+        # We select the relevant columns for this specific category
+        cat_scores_indices = [col for col in df.columns if col in scores_cat[scores_cat.cat == cat]['score'].to_list()] 
 
-        # Efficiently select all relevant rows at once
-        cat_scores_df = df[cat_scores_indices]
-        for col in cat_scores_indices_binome:
-            mask = df[col].notna()
-            df_binome[col] = pd.to_numeric(df[col], errors='coerce')
-            df_binome.loc[mask, col] = df.loc[mask, col] * (1-penalty) 
-            cat_scores_df = pd.concat([cat_scores_df, df_binome[col]], axis=1)
-        df[cat + '_cat_score'] = cat_scores_df.astype(float).mean(axis=1)
+        if not cat_scores_indices:
+            # if there is no computed score relevant for this category we skip it
+            continue
+        
+        cat_scores_indices_binome = [col+'_binome' for col in cat_scores_indices if col+'_binome' in df.columns]
+        
+        # First we build the criteria score dataframe with penalty for binome commune
+        cat_scores_df = pd.concat([df[cat_scores_indices],(1-penalty)*df[cat_scores_indices_binome]], axis=1) 
 
+        # Second we compare neighbor score to assessed commune and keep the max
+        for col in cat_scores_indices:
+            col_binome = col+'_binome'
+            if col_binome in cat_scores_df.columns:
+                cat_scores_df[col+'_max'] = cat_scores_df[[col, col_binome]].max(axis=1)
+            else:
+                cat_scores_df[col+'_max'] = cat_scores_df[col] # this is the case where the criteria is not relevant for binome comparison
+
+        # Third and finally we compute the mean to get the final cat score (NaN values are ignored which is what we want)
+        df[cat + '_cat_score'] = cat_scores_df.filter(like='_max', axis=1).mean(axis=1)
+    
     return df
 def compute_binome_score_old(df, binome_penalty, prefs):
     scores_col = [col for col in df.columns if col.endswith('_cat_score')]
@@ -251,23 +261,15 @@ def compute_binome_score_old(df, binome_penalty, prefs):
             )
     
     return max_scores.mean(axis=1).round(1)
-# def compute_binome_score(df, scores_cat, prefs):
-#     scores_cat_col = [col for col in df.columns if col.endswith('_cat_score')]
-#     weighted_scores = pd.DataFrame()
-#     for cat_score in scores_cat_col:
-#         cat_weight =  prefs['poids_'+cat_score.split('_')[0]]
-#         weighted_scores[cat_score] = cat_weight * df[cat_score]
-    
-#     return weighted_scores.astype(float).mean(axis=1)
-
 def compute_binome_score(df, scores_cat, prefs):
     scores_cat_col = [col for col in df.columns if col.endswith('_cat_score')]
     weighted_scores = 0
     total_weight = 0
     for cat_score in scores_cat_col:
-        cat_weight =  prefs['poids_'+cat_score.split('_')[0]]
-        weighted_scores += cat_weight * df[cat_score]
-        total_weight += cat_weight
+        if df[cat_score] is not None:
+            cat_weight =  prefs['poids_'+cat_score.split('_')[0]]
+            weighted_scores += cat_weight * df[cat_score]
+            total_weight += cat_weight
     
     return weighted_scores / total_weight
 def best_score_compute(df):

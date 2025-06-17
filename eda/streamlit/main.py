@@ -171,7 +171,7 @@ def load_results(df, scores_cat):
             st.session_state['zoom'] = 8
         case 500:
             st.session_state['zoom'] = 6
-        case 100:
+        case 1000:
             st.session_state['zoom'] = 5
 
     st.session_state['scores_cat'] = scores_cat_prefs
@@ -182,46 +182,47 @@ def load_results(df, scores_cat):
     # st.session_state['afficher_sante'] = True
     # st.session_state['afficher_services'] = True
 
-def styling_communes(style, **kwargs):
+# def styling_communes(style, **kwargs):
 
-    if style == 'style_current':
-        style_to_use = {
-            "fillColor": 'blue',
-            "fillOpacity": 0.8,
-            "stroke": True
-        }
-    if style == 'style_score':
-        style_to_use = {
-            "fillColor": kwargs['colormap'](kwargs['scores_dict'][kwargs['codgeo']]),
-            "fillOpacity": 0.8,
-            "stroke": False,
-        }
-    if style == 'style_target':
-        style_to_use = {
-            "color": "red",
-            "fillOpacity": 0,
-            "weight": 3,
-            "opacity": 1,
-            "html":'<div style="width: 10px;height: 10px;border: 1px solid black;border-radius: 5px;background-color: orange;">1</div>'
-        }
-    if style == 'style_binome':
-        style_to_use = {
-            "color": "red",
-            "fillOpacity": 0,
-            "weight": 2,
-            "opacity": 1,
-            "dashArray": "5, 5",
-        }
+#     if style == 'style_current':
+#         style_to_use = {
+#             "fillColor": 'blue',
+#             "fillOpacity": 0.8,
+#             "stroke": True
+#         }
+#     if style == 'style_score':
+#         style_to_use = {
+#             "fillColor": kwargs['colormap'](kwargs['scores_dict'][kwargs['codgeo']]),
+#             "fillOpacity": 0.8,
+#             "stroke": False,
+#         }
+#     if style == 'style_target':
+#         style_to_use = {
+#             "color": "red",
+#             "fillOpacity": 0,
+#             "weight": 3,
+#             "opacity": 1,
+#             "html":'<div style="width: 10px;height: 10px;border: 1px solid black;border-radius: 5px;background-color: orange;">1</div>'
+#         }
+#     if style == 'style_binome':
+#         style_to_use = {
+#             "color": "red",
+#             "fillOpacity": 0,
+#             "weight": 2,
+#             "opacity": 1,
+#             "dashArray": "5, 5",
+#         }
 
-    return style_to_use
+#     return style_to_use
 
-@st.cache_data
-def add_commune_to_map(_df, _fg, style, prefs, index):
-    style_to_use = styling_communes(feature=_df.codgeo.iloc[0], style=style)
-    commune_json = flm.GeoJson(data=_df, style=style_to_use)
-    _fg.add_child(commune_json)
-    return _fg
-    #fg.add_child(flm.Tooltip(str(index+1)))
+# @st.cache_data
+# def add_commune_to_map(_df, _fg, style, prefs, index):
+#     style_to_use = styling_communes(feature=_df.codgeo.iloc[0], style=style)
+#     commune_json = flm.GeoJson(data=_df, style=style_to_use)
+#     _fg.add_child(commune_json)
+    
+#     return _fg
+
 
 def show_fg(_fg_dict, fg_key, clear_others):
     # We first remove all the other TopX fgs and then add the one we care about
@@ -229,6 +230,7 @@ def show_fg(_fg_dict, fg_key, clear_others):
         for fg in [k for k in _fg_dict.keys() if k.startswith('Top')]:
             _fg_dict.pop(fg)
     _fg_dict[fg_key] = st.session_state["fg_dict_ref"][fg_key]
+    
     return _fg_dict
 
 # @st.cache_data
@@ -249,10 +251,18 @@ def build_top_results(_df, n, prefs):
 
         # Top 5 with individual feature groups for each commune+binome pair
         if row.polygon is not None:
-        
+            print(f"{row.name}|{row.codgeo_binome}={row.binome}, ")
             geojson_geometry = mapping(row.polygon)
 
-            style_to_use = styling_communes(style='style_target')
+            # style_to_use = styling_communes(style='style_target')
+            style_to_use = {
+                "color": "red",
+                "fillOpacity": 0,
+                "weight": 3,
+                "opacity": 1,
+                "html":'<div style="width: 10px;height: 10px;border: 1px solid black;border-radius: 5px;background-color: orange;">1</div>'
+            }
+
             properties = {
                 "Nom": row.libgeo,
                 "Score": round(row.weighted_score, 2),
@@ -278,7 +288,14 @@ def build_top_results(_df, n, prefs):
                 # This time we display the binome polygon
                 geojson_geometry = mapping(row.polygon_binome)
 
-                style_to_use = styling_communes(style='style_binome')
+                # style_to_use = styling_communes(style='style_binome')
+                style_to_use = {
+                    "color": "red",
+                    "fillOpacity": 0,
+                    "weight": 2,
+                    "opacity": 1,
+                    "dashArray": "5, 5",
+                }
                 properties = {
                     "Nom": row.libgeo_binome,
                     "Score": round(row.weighted_score, 2),
@@ -305,7 +322,7 @@ def build_top_results(_df, n, prefs):
 
 
         # Then we can show the expander-like button (= expander with on-click and)
-        title = f"{row.weighted_score * 100:.0f}% | {row.libgeo}" + (" (en binôme avec {row.libgeo_binome})" if row.binome else "")
+        title = f"{row.weighted_score * 100:.0f}% | {row.libgeo}" + (f" (en binôme avec {row.libgeo_binome})" if row.binome else "")
         if st.button(
             title,
             on_click=result_highlight,
@@ -355,6 +372,7 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     pitch_md = []
     pitch_md.append(f'**{row["libgeo"]}** dans l\'agglomération: {row["epci_nom"]}.  ')
     pitch_md.append(f'Le score est de: **{row["weighted_score"] *100:.2f}** ')
+ 
     if row["binome"]:
         pitch_md.append(f'obtenu en binome avec la commune {row["libgeo_binome"]}')
         if row["epci_code"] != row["epci_code_binome"]:
@@ -411,8 +429,6 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
         matched_codform_names = list(set(matched_codform_names))
         if len(matched_codform_names) == 0:
             pitch_md.append(f'Aucune des formations recherchées ne figure dans les formations offertes sur cette zone.  ')
-            with st.expander('Liste des formations proposées dans la commune'):
-                st.text('hello')
         if len(matched_codform_names) == 1:
             pitch_md.append(f'- La formation recherchée **{matched_codform_names[0]}** est proposée  ')
         elif len(matched_codform_names) >= 1:
@@ -431,7 +447,7 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
     # We pass all the scored communes at once inside a geojson feature group
     geojson_features = []
     score_weights_dict = st.session_state["processed_gdf"].set_index("codgeo")["weighted_score"]
-    colormap = linear.YlGn_09.scale(st.session_state["processed_gdf"]['weighted_score'].min(), st.session_state["processed_gdf"]['weighted_score'].max())
+    colormap = linear.YlGn_09.scale(score_weights_dict.min(), score_weights_dict.max())
 
     # All results colored based on score
     for row in _df.itertuples(index=False):
@@ -440,8 +456,15 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
             continue
     
         geojson_geometry = mapping(row.polygon)
+        
+        style_to_use = {
+            "fillColor": colormap(score_weights_dict.get(row.codgeo)),
+            "fillOpacity": 0.8,
+            "stroke": True,
+            "weight": 1,
+            "color": "grey"
+        }
 
-        style_to_use = styling_communes(style='style_score', scores_dict=score_weights_dict, colormap=colormap, codgeo=row.codgeo)
         properties = {
             "Nom": row.libgeo,
             "Score": round(row.weighted_score, 2),
@@ -462,7 +485,14 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
 
     # We also add the current commune in Blue
     geojson_geometry = mapping(st.session_state['selected_geo'].polygon)
-    style_to_use = styling_communes(style='style_current')
+    # style_to_use = styling_communes(style='style_current')
+
+    style_to_use = {
+        "fillColor": 'blue',
+        "fillOpacity": 0.8,
+        "stroke": True
+    }
+
     properties = {
         "Nom": st.session_state['selected_geo'].libgeo,
         "style": style_to_use
@@ -512,7 +542,7 @@ def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
     # we consider all the etablissements soclaires in the target codgeos and the ones around (voisins)
     target_codgeos = set(
         st.session_state['processed_gdf'].codgeo.tolist() 
-        +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
+        # +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
         )
     niveaux_enfants = set(liste_classe_enfants)
     
@@ -599,7 +629,7 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
 
         // Define the options for the Leaflet CircleMarker
         var circleMarkerOptions = {
-            radius: 2,           // Size of the circle in pixels (adjust as needed)
+            radius: 3,           // Size of the circle in pixels (adjust as needed)
             fillColor: fillColor,
             color: borderColor,   // Border color
             weight: 1,           // Border thickness in pixels
@@ -659,7 +689,7 @@ def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
 
     target_codgeos = set(
         st.session_state['processed_gdf'].codgeo.tolist() 
-        +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
+        # +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
         )
     
     etablissements_sante_colors = {
@@ -715,9 +745,9 @@ def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
         var rectangleOptions = {
             fillColor: fillColor,
             fillOpacity: 1.0,
-            //color: 'blue',
-            //weight:2,
-            opacity: 0,
+            color: 'blue',
+            weight: 2,
+            opacity: 1,
         };
 
         // Create a Leaflet Rectangle
@@ -782,7 +812,7 @@ def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
             "type": row.service.replace('-', ' ').capitalize(),
             "presentation": row.presentation_resume,
             "fill_color": services_inclusion_colors.get(row.categorie, 'default'),
-            "border_color": 'yellow', # Embed color in properties
+            "border_color": 'orange', # Embed color in properties
             "popup_html": f"<b>{row.nom}</b> | Catégorie: {row.categorie}<br>Description: {row.presentation_resume}"
         }
 
@@ -809,10 +839,10 @@ def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
 
         // Define the options for the Leaflet CircleMarker
         var circleMarkerOptions = {
-            radius: 3,           // Size of the circle in pixels (adjust as needed)
+            radius: 5,           // Size of the circle in pixels (adjust as needed)
             fillColor: fillColor,
             color: borderColor,   // Border color
-            weight: 1,           // Border thickness in pixels
+            weight: 2,           // Border thickness in pixels
             opacity: 1,          // Border opacity
             fillOpacity: 1     // Fill opacity
         };
@@ -877,7 +907,7 @@ def run_demo(demo_data):
             print('demo 1')
             demo_data['departement_actuel'] = '33'
             demo_data['commune_actuelle'] = 'Bordeaux'
-            demo_data['loc_distance_km'] = 25
+            demo_data['loc_distance_km'] = 1 #[0=10km, 1=25km, 2=50km, 3=100km, 4=France]
             demo_data['hebergement'] = "Chez l'habitant"
             demo_data['nb_adultes'] = 1
             demo_data['nb_enfants'] = 0
@@ -886,7 +916,7 @@ def run_demo(demo_data):
             print('demo 2')
             demo_data['departement_actuel'] = '75'
             demo_data['commune_actuelle'] = 'Paris'
-            demo_data['loc_distance_km'] = 25
+            demo_data['loc_distance_km'] = 2 #[0=10km, 1=25km, 2=50km, 3=100km, 4=France]
             demo_data['hebergement'] = "Location"
             demo_data['logement'] = "Logement Social"
             demo_data['nb_adultes'] = 2
@@ -901,7 +931,7 @@ def run_demo(demo_data):
             print('demo 3')
             demo_data['departement_actuel'] = '13'
             demo_data['commune_actuelle'] = 'Marseille'
-            demo_data['loc_distance_km'] = 50
+            demo_data['loc_distance_km'] = 2 #[0=10km, 1=25km, 2=50km, 3=100km, 4=France]
             demo_data['hebergement'] = "Location"
             demo_data['logement'] = "Logement Social"
             demo_data['nb_adultes'] = 1
@@ -967,8 +997,17 @@ with st.sidebar:
     
     # Distance
     st.subheader('Filtre Localisation')
-    dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 10
-    loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[10,25,50,100,500,1000], value=dist_value, disabled=False)
+    distance_options = {
+        10:'Extrêmement Important (~10km)',
+        25:'Important (~25km)',
+        50:'Assez important (~50km)',
+        100:'Peu Important (~100km)',
+        1000:'Toute la France'
+    }
+    dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 0
+    loc_distance_km = st.radio(label='Choix de mobilité', options=distance_options.keys(), format_func=lambda x: distance_options.get(x), index=dist_value)
+    # dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 10
+    # loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[10,25,50,100,500,1000], value=dist_value, disabled=False)
 
 
 #Top filter Form
@@ -1093,7 +1132,7 @@ with st.container(border=False):
         with col3:
             value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
             poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
-            penalite_binome = st.select_slider("Décote binôme %", [0, 10, 25, 50, 100], value=25) / 100
+            penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=25) / 100
 
 st.divider()
 
@@ -1110,23 +1149,23 @@ t = performance_tracker(t, 'Ready', timer_mode)
 
 
 # Main 2 sections with results and map
-col_results, col_map = st.columns([1, 1])
+col_results, col_map = st.columns([2, 3])
 t = performance_tracker(t, 'Start Results Column', timer_mode)
 
 ### Results Column
 with col_results:
-    
+    # st.write(st.session_state['processed_gdf'])
     if st.session_state['processed_gdf'] is not None:
         st.subheader("Meilleurs résultats")
         st.text('Cliquez pour plus de détails')
         st.markdown('<style>[class*="st-key-button_top"] .stButton button div {text-align:left; width:100%;}</style>', unsafe_allow_html=True)
-        # if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
-        #     for key, value in st.session_state["fg_dict_ref"].items():
-        #         if key.startswith("Top"):
-        #             show_fg(_fg_dict=st.session_state["fg_dict"], fg_key=value, clear_others=False)
 
         fg_dict_key = build_top_results(st.session_state["processed_gdf"], 5, st.session_state["prefs"])
-            
+        
+        if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
+            for key, value in st.session_state["fg_dict_ref"].items():
+                if key.startswith("Top"):
+                    show_fg(_fg_dict=st.session_state["fg_dict"], fg_key=key, clear_others=False)
 
 t = performance_tracker(t, 'Start Map Column', timer_mode)
 ### Map Column
@@ -1160,70 +1199,102 @@ with col_map:
         # We add additional informational layers
         # We keep the schools in the same academy only
         # See doc here: https://python-visualization.github.io/folium/latest/user_guide/geojson/geojson_marker.html
-        # col1, col2, col3 = st.columns(3)
+        col1, col2, col3 = st.columns(3)
 
         # col 1 = Etablissements Scolaires
-        # with col1:
-        t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
-        if st.session_state['prefs']['nb_enfants'] > 0:
-            st.session_state['fg_ecoles'] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-            checkbox_name = 'Afficher établissements scolaires'
-            st.checkbox(checkbox_name, key='afficher_ecoles', value=False)
-            toggle_extra(fg=st.session_state['fg_ecoles'], fg_name='ecoles', key=st.session_state['afficher_ecoles'])
-            # Légende (statique)
-            st.html("""<p>
-                    <span style='display: inline-block; width: 10px; height: 10px; background-color: yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Maternelles | 
-                    <span style='display: inline-block; width: 10px; height: 10px; background-color: orange; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Ecoles Primaires | 
-                    <span style='display: inline-block; width: 10px; height: 10px; background-color: blue; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Collèges | 
-                    <span style='display: inline-block; width: 10px; height: 10px; background-color: green; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Lycées
-                    </p>""")
-        t = performance_tracker(t, 'End Ecoles Display', timer_mode)
+        with col1:
+            t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
+            if st.session_state['prefs']['nb_enfants'] > 0:
+                st.session_state['fg_ecoles'] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
+                checkbox_name = 'Afficher établissements scolaires'
+                st.checkbox(checkbox_name, key='afficher_ecoles', value=False)
+                toggle_extra(fg=st.session_state['fg_ecoles'], fg_name='ecoles', key=st.session_state['afficher_ecoles'])
+                # Légende
+                if st.session_state['afficher_ecoles']:
+                    html_legend = '<p>'
+                    if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
+                        html_legend += "<span style='display: inline-block; width: 10px; height: 10px; background-color: yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Maternelles | "
+                    if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
+                        html_legend += "<span style='display: inline-block; width: 10px; height: 10px; background-color: orange; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Ecoles Primaires | "
+                    if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
+                        html_legend += "<span style='display: inline-block; width: 10px; height: 10px; background-color: blue; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Collèges | "
+                    if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
+                        html_legend += "<span style='display: inline-block; width: 10px; height: 10px; background-color: green; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Lycées "
+                    html_legend += "</p>"
+                    st.html(html_legend)
+            t = performance_tracker(t, 'End Ecoles Display', timer_mode)
 
         # col 2 = Etablissements de Santé
-        # with col2:
-        t = performance_tracker(t, 'Start Sante Display', timer_mode)
-        if st.session_state['prefs']['besoin_sante'] != "Aucun":
-            st.session_state['fg_sante'] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
-            # st.checkbox('Afficher Etablissements de Santé', key='afficher_sante', value=False, on_change=toggle_extra, kwargs={'fg':st.session_state['fg_sante'], 'fg_name':'sante', 'key':st.session_state['afficher_sante']})
-            # checkbox_name = 'Afficher ' + st.session_state['prefs']['besoin_sante']
-            checkbox_name = 'Afficher établissements de santé'
-            st.checkbox(checkbox_name, key='afficher_sante', value=False)
-            toggle_extra(fg=st.session_state['fg_sante'], fg_name='sante', key=st.session_state['afficher_sante'])
-            # Légende (statique)
-            st.html("""<p>
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid blue; border-radius: 25%; vertical-align: middle; margin: 0 4px'></span> Maternités | 
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid blue; border-radius: 25%; vertical-align: middle; margin: 0 4px'></span> Hopitaux | 
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid blue; border-radius: 25%; vertical-align: middle; margin: 0 4px'></span> Centres Addictions & Santé Mentale
-                    </p>""")
-        t = performance_tracker(t, 'End Sante Display', timer_mode)
+        with col2:
+            t = performance_tracker(t, 'Start Sante Display', timer_mode)
+            if st.session_state['prefs']['besoin_sante'] != "Aucun":
+                st.session_state['fg_sante'] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
+                # st.checkbox('Afficher Etablissements de Santé', key='afficher_sante', value=False, on_change=toggle_extra, kwargs={'fg':st.session_state['fg_sante'], 'fg_name':'sante', 'key':st.session_state['afficher_sante']})
+                # checkbox_name = 'Afficher ' + st.session_state['prefs']['besoin_sante']
+                checkbox_name = 'Afficher établissements de santé'
+                st.checkbox(checkbox_name, key='afficher_sante', value=False)
+                toggle_extra(fg=st.session_state['fg_sante'], fg_name='sante', key=st.session_state['afficher_sante'])
+                # Légende
+                if st.session_state['afficher_sante']:
+                    html_legend = '<p>'
+                    if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
+                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Maternités | "
+                    if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
+                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Hopitaux | "
+                    if 'Centre Addictions & Maladies Mentales' in st.session_state['prefs'].get('besoin_sante'):
+                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Centres Addictions & Santé Mentale"
+                    html_legend += "</p>"
+                    st.html(html_legend)
+                    # st.html("""<p>
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Maternités | 
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Hopitaux | 
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Centres Addictions & Santé Mentale
+                    #     </p>""")
+            t = performance_tracker(t, 'End Sante Display', timer_mode)
             
             # st.write(st.session_state["fg_extras_dict"])
-
         #col 3 = Services d'inclusion
-        # with col3:
-        if bool(st.session_state['prefs']['besoins_autres']):
-            st.session_state['fg_services'] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
-            checkbox_name = "Afficher les services d'inclusion"
-            st.checkbox(checkbox_name, key='afficher_services', value=False)
-            toggle_extra(fg=st.session_state['fg_services'], fg_name='services', key=st.session_state['afficher_services'])
-            st.html("""<p>
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Famille | 
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Numérique | 
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Accès aux droits | 
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: pink; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Illétrisme | 
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: blue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Apprendre le Français | 
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: red; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Santé | 
-                    <span style='display: inline-block; width: 15px; height: 15px; background-color: lightgrey; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Autres | 
-                </p>""")
-            # services_inclusion_colors = {
-            #     'famille':'orange',
-            #     'numerique':'lightblue',
-            #     'acces-aux-drois-et-citoyennete':'purple',
-            #     'illetrisme':'pink',
-            #     'apprendre-francais':'blue',
-            #     'sante':'red',
-            #     'default':'grey'
-            # }
+        with col3:
+            if bool(st.session_state['prefs']['besoins_autres']):
+                st.session_state['fg_services'] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
+                checkbox_name = "Afficher les services d'inclusion"
+                st.checkbox(checkbox_name, key='afficher_services', value=False)
+                toggle_extra(fg=st.session_state['fg_services'], fg_name='services', key=st.session_state['afficher_services'])
+                if st.session_state['afficher_services']:
+                    html_legend = '<p>'
+                    if 'famille' in st.session_state['besoins_autres']:
+                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Famille | "
+                    if 'numerique' in st.session_state['besoins_autres']:
+                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Numérique |"
+                    if 'acces-aux-droits' in st.session_state['besoins_autres']:
+                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Accès aux droits |"
+                    if 'illetrisme' in st.session_state['besoins_autres']:
+                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: pink; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Illétrisme | "
+                    if 'apprendre-francais' in st.session_state['besoins_autres']:
+                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: blue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Apprendre le Français | "
+                    if 'sante' in st.session_state['besoins_autres']:
+                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: red; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Santé | "
+                    html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: lightgrey; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Autres | "
+                    html_legend += "</p>"
+                    st.html(html_legend)
+                    # st.html("""<p>
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Famille | 
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Numérique | 
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Accès aux droits | 
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: pink; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Illétrisme | 
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: blue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Apprendre le Français | 
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: red; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Santé | 
+                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: lightgrey; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Autres | 
+                    # </p>""")
+                # services_inclusion_colors = {
+                #     'famille':'orange',
+                #     'numerique':'lightblue',
+                #     'acces-aux-drois-et-citoyennete':'purple',
+                #     'illetrisme':'pink',
+                #     'apprendre-francais':'blue',
+                #     'sante':'red',
+                #     'default':'grey'
+                # }
 
 
 

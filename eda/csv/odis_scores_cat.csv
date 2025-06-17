@@ -12,7 +12,7 @@ met_match_adult2_scaled,Match compétences et Besoin Emploi Adult 2,met_match_ad
 form_match_adult1_scaled,Match compétences et Centres de formation,form_match_adult1,sites de formations,Nombre centres de formations dans la commune,emploi,TRUE,présent
 form_match_adult2_scaled,Match compétences et Centres de formation,form_match_adult2,sites de formations,Nombre centres de formations dans la commune,emploi,TRUE,présent
 reloc_dist_scaled,Distance de la localisation actuelle,dist_current_loc,mètres,Distance en m de la position actuelle,mobilité,FALSE,réduite
-reloc_epci_scaled,Même EPCI que la localisation actuelle,None,None,,mobilité,FALSE,proche
+reloc_epci_scaled,Même agglomération que la localisation actuelle,None,None,,mobilité,FALSE,proche
 edu_enfant1_scaled,Proximité de l'établissement scolaire enfant 1,edu_dist_kid1,mètres,Distance en m de la commune proposée (0 si même commune),education,FALSE,proche
 edu_enfant2_scaled,Proximité de l'établissement scolaire enfant 2,edu_dist_kid2,mètres,Distance en m de la commune proposée (0 si même commune),education,FALSE,proche
 edu_enfant3_scaled,Proximité de l'établissement scolaire enfant 3,edu_dist_kid3,mètres,Distance en m de la commune proposée (0 si même commune),education,FALSE,proche
