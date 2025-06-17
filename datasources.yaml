@@ -107,7 +107,7 @@ domains:
     
     demandeur_emploi_regions:
       API: statistiques.francetravail.org
-      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par régions
+      description: Nombre de demandeurs d’emploi inscrits au 1er du mois à Pôle emploi par régions
       endpoint: /stmt/defmexp?li=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
@@ -118,7 +118,7 @@ domains:
 
     demandeur_emploi_departements:
       API: statistiques.francetravail.org
-      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par départements
+      description: Nombre de demandeurs d’emploi inscrits au 1er du mois à Pôle emploi par départements
       endpoint: /stmt/defmexp?lj=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
@@ -129,7 +129,7 @@ domains:
 
     demandeur_emploi_communes:
       API: statistiques.francetravail.org
-      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par communes de plus de 5000 hab
+      description: Nombre de demandeurs d’emploi inscrits au 1er du mois à Pôle emploi par communes de plus de 5000 hab
       endpoint: /stmt/defmexp?lk=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
@@ -440,7 +440,7 @@ domains:
 
       moyenne_eleve_departement:
         API: Data.Gouv.Education
-        description: moyenne d'eleve par classe par departement
+        description: nombre d'eleves et de classes en ecoles pre et elementaires par departement
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
@@ -452,7 +452,7 @@ domains:
 
       moyenne_eleve_region:
         API: Data.Gouv.Education
-        description: moyenne d'eleve par classe par region academique
+        description: nombre d'eleves et de classes en ecoles pre et elementaires par academique
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
@@ -464,7 +464,7 @@ domains:
 
       moyenne_eleve_commune:
         API: Data.Gouv.Education
-        description: moyenne d'eleve par classe par commune
+        description: nombre d'eleves et de classes en ecoles pre et elementaires par commune
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
@@ -478,7 +478,7 @@ domains:
 
       services:
         API: INSEE.Melodi
-        description: /!\ Merci d'ajouter une description valide ici /!\
+        description: nombre de services publics par commune, filtrés par certains types d'activités
         type: MelodiExtractor
         endpoint: /data/DS_BPE
         format: json
