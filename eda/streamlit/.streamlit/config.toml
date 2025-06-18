@@ -1,0 +1,32 @@
+# Singa Green #1B4429
+# Singa Green rgb(49, 122, 73)
+# Singa Yellow #F5D819
+# Singa Dark Yellow rgb(255, 208, 0)
+# Singa Grey #E8ECEA
+
+
+[theme]
+base="dark"
+backgroundColor="white"
+secondaryBackgroundColor="#E8ECEA"
+textColor="#1B4429"
+secondaryTextColor="#1B4429"
+baseRadius="full"
+primaryColor="#1B4429"
+seondaryColor="#F5D819"
+
+
+
+[theme.sidebar]
+backgroundColor="#1B4429"
+secondaryBackgroundColor="rgb(49, 122, 73)"
+textColor="#E8ECEA"
+secondaryTextColor="#1B4429"
+primaryColor="rgb(255, 208, 0)"
+seondaryColor="#F5D819"
+
+[client]
+toolbarMode = "minimal"
+
+[ui]
+hideTopBar = false

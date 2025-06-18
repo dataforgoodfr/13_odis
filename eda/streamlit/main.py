@@ -7,7 +7,7 @@ def performance_tracker(t, text, timer_mode):
         return time()
 t = time()
 print(t)
-timer_mode = False
+timer_mode = True
 
 t = performance_tracker(t, 'Start Import', timer_mode)
 # Notebook Specific
@@ -24,6 +24,7 @@ from shapely.geometry import mapping#, Polygon
 # Streamlit App Specific
 import streamlit as st
 import folium as flm
+from folium.plugins import MarkerCluster
 import plotly.express as px
 from streamlit_folium import st_folium
 from branca.colormap import linear
@@ -102,6 +103,8 @@ def init_datasets():
     
     return odis, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set
 
+
+# Scoring et affichage de la carte avec tous les résultats
 @st.cache_data
 def compute_score(_df, scores_cat, prefs, _incl_index):
     return compute_odis_score(_df, scores_cat, prefs, _incl_index)
@@ -182,48 +185,8 @@ def load_results(df, scores_cat):
     # st.session_state['afficher_sante'] = True
     # st.session_state['afficher_services'] = True
 
-# def styling_communes(style, **kwargs):
 
-#     if style == 'style_current':
-#         style_to_use = {
-#             "fillColor": 'blue',
-#             "fillOpacity": 0.8,
-#             "stroke": True
-#         }
-#     if style == 'style_score':
-#         style_to_use = {
-#             "fillColor": kwargs['colormap'](kwargs['scores_dict'][kwargs['codgeo']]),
-#             "fillOpacity": 0.8,
-#             "stroke": False,
-#         }
-#     if style == 'style_target':
-#         style_to_use = {
-#             "color": "red",
-#             "fillOpacity": 0,
-#             "weight": 3,
-#             "opacity": 1,
-#             "html":'<div style="width: 10px;height: 10px;border: 1px solid black;border-radius: 5px;background-color: orange;">1</div>'
-#         }
-#     if style == 'style_binome':
-#         style_to_use = {
-#             "color": "red",
-#             "fillOpacity": 0,
-#             "weight": 2,
-#             "opacity": 1,
-#             "dashArray": "5, 5",
-#         }
-
-#     return style_to_use
-
-# @st.cache_data
-# def add_commune_to_map(_df, _fg, style, prefs, index):
-#     style_to_use = styling_communes(feature=_df.codgeo.iloc[0], style=style)
-#     commune_json = flm.GeoJson(data=_df, style=style_to_use)
-#     _fg.add_child(commune_json)
-    
-#     return _fg
-
-
+# Affichage des Top N meilleurs résultats
 def show_fg(_fg_dict, fg_key, clear_others):
     # We first remove all the other TopX fgs and then add the one we care about
     if clear_others:
@@ -233,7 +196,6 @@ def show_fg(_fg_dict, fg_key, clear_others):
     
     return _fg_dict
 
-# @st.cache_data
 def result_highlight(row, index, prefs):
     # For each of the top N result we
     # Add the red outline to show the commune on the scored communes map
@@ -242,7 +204,7 @@ def result_highlight(row, index, prefs):
     st.session_state['pitch'] = produce_pitch_markdown(row=row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
 
 def build_top_results(_df, n, prefs):
-    cols_to_show = [col for col in _df.columns if ('_ratio' or '_score' or '_ratio') in col]
+    # cols_to_show = [col for col in _df.columns if ('_ratio' or '_score' or '_ratio') in col]
     
     for index, row in _df.head(n).iterrows():
         # We show the proposed commune with a solid red border and binome with dashed one (if any)
@@ -251,7 +213,7 @@ def build_top_results(_df, n, prefs):
 
         # Top 5 with individual feature groups for each commune+binome pair
         if row.polygon is not None:
-            print(f"{row.name}|{row.codgeo_binome}={row.binome}, ")
+
             geojson_geometry = mapping(row.polygon)
 
             # style_to_use = styling_communes(style='style_target')
@@ -536,7 +498,7 @@ def odis_base_map(_current_geo, prefs):
     m = flm.Map(location=center_loc, zoom_start=10)
     return m
 
-# Support Edication
+# Affichage Support Education
 @st.cache_data
 def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
     # we consider all the etablissements soclaires in the target codgeos and the ones around (voisins)
@@ -577,7 +539,7 @@ def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
     return filtered_ecoles
 
 @st.cache_data
-def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
+def build_local_ecoles_layer_old(_current_geo, _annuaire_ecoles, prefs):
     etablissements_scolaire_colors = {
         'maternelle': 'yellow',
         'primaire': 'orange',
@@ -662,6 +624,42 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
     return fg_ecoles
 
 @st.cache_data
+def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
+    etablissements_scolaire_colors = {
+        'maternelle': 'purple',
+        'primaire': 'orange',
+        'college': 'blue',
+        'lycee': 'red',
+        'default': 'grey'
+        }
+    fg_ecoles = flm.FeatureGroup(name="Établissements Scolaires")
+    marker_cluster = MarkerCluster().add_to(fg_ecoles)
+    filtered_ecoles = _annuaire_ecoles[_annuaire_ecoles.type_etablissement.isin(['Ecole', 'Collège', 'Lycée'])]
+    filtered_ecoles = filter_ecoles(_current_geo, filtered_ecoles, prefs)
+    
+    # Now let's add these schools to the map in the fg_ecoles feature group
+    filtered_ecoles = gpd.GeoDataFrame(filtered_ecoles, geometry='geometry', crs='EPSG:4326')
+    
+    for row in filtered_ecoles.itertuples(index=False):
+        if row.geometry is None:
+            continue
+   
+        maternelle_presente = 'Oui' if row.ecole_maternelle > 0 else 'Non'
+        
+        flm.Marker(
+            location=[row.geometry.y, row.geometry.x],
+            icon=flm.Icon(color=etablissements_scolaire_colors.get(row.type, 'default'),icon='pencil'),
+            tooltip=f"{row.nom_etablissement}<br>{row.type_etablissement}<br>Maternelle: {maternelle_presente}",
+            popup=flm.Popup(f"<b>{row.nom_etablissement}</b><br>Type: {row.type_etablissement}<br>Maternelle: {maternelle_presente}", min_width=500)
+        ).add_to(marker_cluster)
+    
+        # fg_ecoles.add_child(etablissement)
+    
+    return fg_ecoles
+
+# Affichage Support Santé
+
+@st.cache_data
 def filter_sante(target_codgeos, _annuaire_sante, prefs):
     # we consider all the etablissements soclaires in the target codgeos and the ones around (voisins)
     filtered_sante = _annuaire_sante[_annuaire_sante['codgeo'].isin(target_codgeos)]
@@ -681,10 +679,8 @@ def filter_sante(target_codgeos, _annuaire_sante, prefs):
     
     return filtered_sante[['nofinesset', 'codgeo', 'RaisonSociale', 'LibelleCategorieAgregat', 'LibelleSph', 'geometry', 'maternite', 'type']]
 
-
-# Support Santé
 @st.cache_data
-def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
+def build_local_sante_layer_old(_current_geo, _annuaire_sante, prefs):
     fg_sante = flm.FeatureGroup(name="Établissements de Santé")
 
     target_codgeos = set(
@@ -773,9 +769,48 @@ def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
 
     return fg_sante
 
-# Support Services Autres Besoins
 @st.cache_data
-def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
+def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
+    fg_sante = flm.FeatureGroup(name="Établissements de Santé")
+    marker_cluster = MarkerCluster().add_to(fg_sante)
+
+    target_codgeos = set(
+        st.session_state['processed_gdf'].codgeo.tolist() 
+        # +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
+        )
+    
+    etablissements_sante_colors = {
+        'maternite':'orange',
+        'hopital':'lightblue',
+        'addiction_maladies_mentales':'purple',
+        'default':'grey'
+    }
+
+    filtered_annuaire = filter_sante(target_codgeos, _annuaire_sante, prefs)
+    filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:2154')
+    filtered_annuaire.to_crs(epsg=4326, inplace=True)
+    
+    for row in filtered_annuaire.itertuples(index=False):
+        if row.geometry is None:
+            continue
+        
+        maternite_presente = 'Oui' if row.maternite > 0 else 'Non'
+
+        flm.Marker(
+            location=[row.geometry.y, row.geometry.x],
+            icon=flm.Icon(color=etablissements_sante_colors.get(row.type, 'default'),icon='plus'),
+            tooltip=f"{row.RaisonSociale}<br>{row.LibelleCategorieAgregat}<br>Maternité: {maternite_presente}",
+            popup=flm.Popup(f"<b>{row.RaisonSociale}</b><br>Catégorie: {row.LibelleCategorieAgregat}<br>Type: {row.LibelleSph}<br>,Maternité: {maternite_presente}", min_width=500)
+        ).add_to(marker_cluster)
+
+    return fg_sante
+
+
+
+
+# Affichage Services d'Inclusion (Autres Besoins)
+@st.cache_data
+def build_local_services_layer_old(_current_geo, _annuaire_inclusion, prefs):
     fg_services = flm.FeatureGroup(name="Services d'inclusion")
 
     target_codgeos = set(
@@ -870,6 +905,47 @@ def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
 
     return fg_services
 
+@st.cache_data
+def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
+    fg_services = flm.FeatureGroup(name="Services d'inclusion")
+    marker_cluster = MarkerCluster().add_to(fg_services)
+
+    target_codgeos = set(
+        st.session_state['processed_gdf'].codgeo.tolist() 
+        # +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
+        )
+    
+    services_inclusion_colors = {
+        'famille':'orange',
+        'numerique':'grey',
+        'acces-aux-drois-et-citoyennete':'purple',
+        'illetrisme':'darkgreen',
+        'apprendre-francais':'blue',
+        'sante':'red',
+        'default':'grey'
+    }
+    
+    filtered_annuaire = _annuaire_inclusion[_annuaire_inclusion['codgeo'].isin(target_codgeos)]
+    filtered_annuaire = filtered_annuaire[
+        (filtered_annuaire.categorie.isin(st.session_state['prefs']['besoins_autres'].keys()))
+        # & (filtered_annuaire.service.isin([x for x in st.session_state['prefs']['besoins_autres'].values()]))
+        ]
+    filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:4326')
+    
+    for row in filtered_annuaire.itertuples(index=False):
+        if row.geometry is None:
+            continue
+
+        flm.Marker(
+            location=[row.geometry.y, row.geometry.x],
+            icon=flm.Icon(color=services_inclusion_colors.get(row.categorie, 'default'), icon='heart'),
+            tooltip=f"{row.nom}<br>{row.categorie.replace('-', ' ').capitalize()}<br>Service: {row.service.replace('-', ' ').capitalize()}",
+            popup=flm.Popup(f"<b>{row.nom}</b><br>Catégorie: {row.categorie.replace('-', ' ').capitalize()}<br>Service: {row.service.replace('-', ' ').capitalize()}<br>,Description: {row.presentation_resume}", min_width=500),
+        ).add_to(marker_cluster)
+
+    return fg_services
+
+
 def toggle_extra(fg, fg_name, key):
     if key:
         st.session_state["fg_extras_dict"][fg_name] = fg
@@ -877,9 +953,7 @@ def toggle_extra(fg, fg_name, key):
         st.session_state["fg_extras_dict"].pop(fg_name)
 
 
-# Autres Support
-
-# Demo scenarii
+# Gestion des scenarii de démo
 demo_data = {
     'poids_emploi':None,
     'poids_logement':None,
@@ -897,7 +971,8 @@ demo_data = {
     'codes_metiers':None,
     'codes_formations':None,
     'classe_enfants':None,
-    'binome_penalty':None
+    'binome_penalty':None,
+    'besoins_autres': None
 }
 
 def run_demo(demo_data):
@@ -940,7 +1015,7 @@ def run_demo(demo_data):
             # demo_data['codes_metiers'] = [['Cuisiniers', 'Aides de cuisine et employés polyvalents de la restauration']]
             # [[],[330, 324]] # Spécialités plurivalentes sanitaires et sociales + Secrétariat
             demo_data['classe_enfants'] = [1, 2] #index of ['Maternelle','Primaire','Collège','Lycée']
-            demo_data['besoins_autres'] = {'apprendre-francais':None}
+            demo_data['besoins_autres'] = {'apprendre-francais':['-']}
             demo_data['poids_mobilité'] = 0
         if st.sidebar.button('Quitter Mode Démo', type='tertiary'):
             st.query_params.clear()
@@ -1107,6 +1182,8 @@ with st.container(border=False):
         with col2:
             st.text('Besoins ajoutés:')
             # st.write(st.session_state["besoins_autres"])
+            if demo_data['besoins_autres'] is not None:
+                st.session_state["besoins_autres"] = demo_data['besoins_autres']
             if bool(st.session_state["besoins_autres"]) == False:
                 st.text('   Aucun')
             else:
@@ -1206,101 +1283,77 @@ with col_map:
             t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
             if st.session_state['prefs']['nb_enfants'] > 0:
                 st.session_state['fg_ecoles'] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-                checkbox_name = 'Afficher établissements scolaires'
-                st.checkbox(checkbox_name, key='afficher_ecoles', value=False)
+
+                st.checkbox('Afficher établissements scolaires', key='afficher_ecoles', value=False)
                 toggle_extra(fg=st.session_state['fg_ecoles'], fg_name='ecoles', key=st.session_state['afficher_ecoles'])
                 # Légende
                 if st.session_state['afficher_ecoles']:
-                    html_legend = '<p>'
+                    
+                    badges = ""
                     if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
-                        html_legend += "<span style='display: inline-block; width: 10px; height: 10px; background-color: yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Maternelles | "
+                        badges += ":violet-badge[:material/edit: Maternelles] "
                     if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
-                        html_legend += "<span style='display: inline-block; width: 10px; height: 10px; background-color: orange; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Ecoles Primaires | "
+                        badges += ":orange-badge[:material/edit: Ecoles primaires] "
                     if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
-                        html_legend += "<span style='display: inline-block; width: 10px; height: 10px; background-color: blue; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Collèges | "
+                        badges += ":blue-badge[:material/edit: Collèges] "
                     if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
-                        html_legend += "<span style='display: inline-block; width: 10px; height: 10px; background-color: green; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span>Lycées "
-                    html_legend += "</p>"
-                    st.html(html_legend)
+                        badges += ":red-badge[:material/edit: Lycées] "
+                    st.markdown(badges)
+
             t = performance_tracker(t, 'End Ecoles Display', timer_mode)
 
         # col 2 = Etablissements de Santé
         with col2:
             t = performance_tracker(t, 'Start Sante Display', timer_mode)
             if st.session_state['prefs']['besoin_sante'] != "Aucun":
+
                 st.session_state['fg_sante'] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
-                # st.checkbox('Afficher Etablissements de Santé', key='afficher_sante', value=False, on_change=toggle_extra, kwargs={'fg':st.session_state['fg_sante'], 'fg_name':'sante', 'key':st.session_state['afficher_sante']})
-                # checkbox_name = 'Afficher ' + st.session_state['prefs']['besoin_sante']
-                checkbox_name = 'Afficher établissements de santé'
-                st.checkbox(checkbox_name, key='afficher_sante', value=False)
+
+                st.checkbox('Afficher établissements de santé', key='afficher_sante', value=False)
                 toggle_extra(fg=st.session_state['fg_sante'], fg_name='sante', key=st.session_state['afficher_sante'])
                 # Légende
                 if st.session_state['afficher_sante']:
-                    html_legend = '<p>'
+                    badges = ""
                     if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
-                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Maternités | "
+                        badges += ":orange-badge[:material/add_location: Maternités] "
                     if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
-                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Hopitaux | "
+                        badges += ":blue-badge[:material/add_location: Hopitaux] "
                     if 'Centre Addictions & Maladies Mentales' in st.session_state['prefs'].get('besoin_sante'):
-                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Centres Addictions & Santé Mentale"
-                    html_legend += "</p>"
-                    st.html(html_legend)
-                    # st.html("""<p>
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Maternités | 
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Hopitaux | 
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid blue; border-radius: 5%; vertical-align: middle; margin: 0 4px'></span> Centres Addictions & Santé Mentale
-                    #     </p>""")
+                        badges += ":violet-badge[:material/add_location: Centres Addictions & Santé Mentale] "
+                    st.markdown(badges)
+
             t = performance_tracker(t, 'End Sante Display', timer_mode)
             
-            # st.write(st.session_state["fg_extras_dict"])
         #col 3 = Services d'inclusion
         with col3:
+            t = performance_tracker(t, 'Start Services Inclusion Display', timer_mode)
             if bool(st.session_state['prefs']['besoins_autres']):
                 st.session_state['fg_services'] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
                 checkbox_name = "Afficher les services d'inclusion"
                 st.checkbox(checkbox_name, key='afficher_services', value=False)
                 toggle_extra(fg=st.session_state['fg_services'], fg_name='services', key=st.session_state['afficher_services'])
                 if st.session_state['afficher_services']:
-                    html_legend = '<p>'
+                    badges = ""
                     if 'famille' in st.session_state['besoins_autres']:
-                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Famille | "
+                        badges += ":orange-badge[:material/favorite: Famille] "
                     if 'numerique' in st.session_state['besoins_autres']:
-                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Numérique |"
+                        badges += ":gray-badge[:material/favorite: Numérique] "
                     if 'acces-aux-droits' in st.session_state['besoins_autres']:
-                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Accès aux droits |"
+                        badges += ":violet-badge[:material/favorite: Accès aux droits] "
                     if 'illetrisme' in st.session_state['besoins_autres']:
-                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: pink; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Illétrisme | "
+                        badges += ":primary-badge[:material/favorite: Illetrisme] "
                     if 'apprendre-francais' in st.session_state['besoins_autres']:
-                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: blue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Apprendre le Français | "
+                        badges += ":blue-badge[:material/favorite: Apprendre le français] "
                     if 'sante' in st.session_state['besoins_autres']:
-                        html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: red; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Santé | "
-                    html_legend += "<span style='display: inline-block; width: 15px; height: 15px; background-color: lightgrey; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Autres | "
-                    html_legend += "</p>"
-                    st.html(html_legend)
-                    # st.html("""<p>
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: orange; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Famille | 
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: lightblue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Numérique | 
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: purple; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Accès aux droits | 
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: pink; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Illétrisme | 
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: blue; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Apprendre le Français | 
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: red; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Santé | 
-                    #     <span style='display: inline-block; width: 15px; height: 15px; background-color: lightgrey; border: 2px solid yellow; border-radius: 50%; vertical-align: middle; margin: 0 4px'></span> Autres | 
-                    # </p>""")
-                # services_inclusion_colors = {
-                #     'famille':'orange',
-                #     'numerique':'lightblue',
-                #     'acces-aux-drois-et-citoyennete':'purple',
-                #     'illetrisme':'pink',
-                #     'apprendre-francais':'blue',
-                #     'sante':'red',
-                #     'default':'grey'
-                # }
+                        badges += ":red-badge[:material/favorite: Santé] "
+                    st.markdown(badges)
 
+            t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
 
-
+        # Affichage de la carte (toujours en dernier)
 
         t = performance_tracker(t, 'Start Map Display', timer_mode)
-
+    
         m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
         # print(st.session_state['fg_dict'])
         # st.write(list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()))
@@ -1309,13 +1362,14 @@ with col_map:
             m,
             zoom=st.session_state["zoom"],
             feature_group_to_add=list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()),
-            width=1000,
-            height=800,
+            # width=1000,
+            # height=800,
             key="odis_scored_map",
             use_container_width=True,
             returned_objects=[],
             # layer_control=flm.LayerControl(collapsed=False)
         )
+
         t = performance_tracker(t, 'End Map Display', timer_mode)
 
 # st.text('Pour Développement')
