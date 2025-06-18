@@ -226,14 +226,12 @@ domains:
       endpoint: /communes?fields=code,nom,population,departement,region,centre
       format: json
 
-    communes_et_arrondissements:
-      API: Opendatasoft
-      description: Communes et Arrondissements Municipaux - France 
-      type: FileExtractor
-      endpoint: /catalog/datasets/georef-france-commune-arrondissement-municipal/exports/csv
-      format: csv
-      load_params:
-        separator: ;
+    arrondissements:
+      API: GEO.api.gouv.fr
+      description: Référentiel géographique GEO - arrondissements
+      type: JsonExtractor
+      endpoint: /communes?type=arrondissement-municipal
+      format: json
 
   accueil:
 
