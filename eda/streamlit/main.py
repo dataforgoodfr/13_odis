@@ -1,12 +1,12 @@
-from time import time
+import time
 print('############################################')
 
 def performance_tracker(t, text, timer_mode):
     if timer_mode:
-        print(str(round(time()-t,2))+'|'+text)
-        return time()
-t = time()
-print(t)
+        print(str(round(time.time()-t,2))+'|'+text)
+        return time.time()
+t = time.time()
+print(time.ctime(t))
 timer_mode = True
 
 t = performance_tracker(t, 'Start Import', timer_mode)
@@ -55,6 +55,8 @@ def session_states_init():
         st.session_state["selected_geo"] = None
     if "fg_list" not in st.session_state:
         st.session_state["fg_list"] = []
+    if "highlighted_result" not in st.session_state:
+        st.session_state["highlighted_result"] = [False,None,None,None] # This will be the tuple where we will keep track of highlighted result (selected, row, index, prefs)
     if 'afficher_ecoles' not in st.session_state:
         st.session_state['afficher_ecoles'] = False
     if 'afficher_sante' not in st.session_state:
@@ -77,6 +79,8 @@ def session_states_init():
         st.session_state["fg_sante"] = None
     if "zoom" not in st.session_state:
         st.session_state["zoom"] = 10
+    if "center" not in st.session_state:
+        st.session_state["center"] = None
     if "besoins_autres" not in st.session_state:
         st.session_state["besoins_autres"] = {}
         
@@ -147,8 +151,8 @@ def set_prefs(scores_cat):
 def load_results(df, scores_cat): 
     print(' <---------------------> CLICK <--------------------->')
     prefs, scores_cat_prefs = set_prefs(scores_cat) # We update the prefs with the latest inputs
-    # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
     
+    # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
     odis_scored = compute_score(
         _df=df,
         scores_cat=scores_cat,
@@ -159,31 +163,17 @@ def load_results(df, scores_cat):
     # We pop the selected commune from the results
     selected_geo = odis_scored.loc[prefs['commune_actuelle']]
     odis_scored = odis_scored.drop(prefs['commune_actuelle'])
+    
     # We sort so that we can have the top results by selecting the first rows
     odis_scored = odis_scored.sort_values('weighted_score', ascending=False).reset_index()
-    
-    # 10,25,50,100,500,1000
-    match prefs['loc_distance_km']:
-        case 10:
-            st.session_state['zoom'] = 11
-        case 25:
-            st.session_state['zoom'] = 10
-        case 50:
-            st.session_state['zoom'] = 9
-        case 100:
-            st.session_state['zoom'] = 8
-        case 500:
-            st.session_state['zoom'] = 6
-        case 1000:
-            st.session_state['zoom'] = 5
 
     st.session_state['scores_cat'] = scores_cat_prefs
     st.session_state['processed_gdf'] = odis_scored
     st.session_state['selected_geo'] = selected_geo
     st.session_state['prefs'] = prefs
-    # st.session_state['afficher_ecoles'] = True
-    # st.session_state['afficher_sante'] = True
-    # st.session_state['afficher_services'] = True
+    st.session_state['afficher_ecoles'] = False
+    st.session_state['afficher_sante'] = False
+    st.session_state['afficher_services'] = False
 
 
 # Affichage des Top N meilleurs résultats
@@ -197,11 +187,21 @@ def show_fg(_fg_dict, fg_key, clear_others):
     return _fg_dict
 
 def result_highlight(row, index, prefs):
-    # For each of the top N result we
-    # Add the red outline to show the commune on the scored communes map
-    st.session_state["fg_dict"] = show_fg(_fg_dict=st.session_state["fg_dict"], fg_key='Top'+str(index+1), clear_others=True)
-    # We generate the pitch for this commune
-    st.session_state['pitch'] = produce_pitch_markdown(row=row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
+    # This is to highlight one specific result the user clicked on
+    if (st.session_state["highlighted_result"][0]) and (index == st.session_state["highlighted_result"][2]):
+            # This means the user clicked on the same button again --> intend to collapse
+            st.session_state["fg_dict"].pop('Top'+str(index+1))
+            st.session_state["highlighted_result"] = [False, None, None, None] #resest
+            
+    else:
+        # Add the red outline to show the commune on the scored communes map
+        st.session_state["fg_dict"] = show_fg(_fg_dict=st.session_state["fg_dict"], fg_key='Top'+str(index+1), clear_others=True)
+        # We generate the pitch for this commune
+        st.session_state['pitch'] = produce_pitch_markdown(row=row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
+        # We center the map and zoom on that result
+        st.session_state["center"] = [row.polygon.centroid.y, row.polygon.centroid.x]
+        # st.session_state["zoom"] = 12
+        st.session_state["highlighted_result"] = [True, row, index, prefs] # We keep track of which resulted was currently highlighted
 
 def build_top_results(_df, n, prefs):
     # cols_to_show = [col for col in _df.columns if ('_ratio' or '_score' or '_ratio') in col]
@@ -285,7 +285,7 @@ def build_top_results(_df, n, prefs):
 
         # Then we can show the expander-like button (= expander with on-click and)
         title = f"{row.weighted_score * 100:.0f}% | {row.libgeo}" + (f" (en binôme avec {row.libgeo_binome})" if row.binome else "")
-        if st.button(
+        st.button(
             title,
             on_click=result_highlight,
             kwargs={'row':row, 'index':index, 'prefs':prefs},
@@ -293,37 +293,43 @@ def build_top_results(_df, n, prefs):
             key='button_top'+str(index+1),
             type='secondary',
             icon=":material/arrow_drop_down:"
-            ):
-            with st.container(border=True):
-                st.markdown(st.session_state['pitch'])
-                data_to_plot = row[[col for col in row.index if col.endswith('_cat_score')]]
-                data_to_plot.rename(lambda x: x.split('_')[0], inplace=True)
-            
-                fig = px.line_polar(theta=data_to_plot.index, r=data_to_plot.values * 100, line_close=True)
-                st.plotly_chart(fig)
-                st.text('Infos supplémentaires sur cette commune')
-                with st.expander('Top 10 des métiers recherchés'):
-                    liste_metiers=[]
-                    if row.be_libfap_top is not None:
-                        for item in row.be_libfap_top:
-                            liste_metiers.append(f'- {item}')
-                    st.markdown("\n".join(liste_metiers))
+            )
+        # Because of streamlit limitations we can't use the st.expander so we mimic one (we can't know the state open/close of expander)
+        # If we have clicked on the button, we generate the detailed report for that specific result and we want to display it below the corresponding button
+        if st.session_state["highlighted_result"][0]:
+            if index == st.session_state["highlighted_result"][2]:
+                with st.container(border=True):
+                    st.markdown(st.session_state['pitch'])
+                    data_to_plot = row[[col for col in row.index if col.endswith('_cat_score')]]
+                    data_to_plot.rename(lambda x: x.split('_')[0], inplace=True)
                 
-                with st.expander('Formations proposées'):
-                    liste_formations=[]
-                    if row.noms_formations is not None:
-                        for item in row.noms_formations:
-                            liste_formations.append(f'- {item}')
-                    st.markdown("\n".join(liste_formations))
-                
-                with st.expander("Services d'inclusions proposés"):                
-                    services = annuaire_inclusion[annuaire_inclusion.codgeo == row.codgeo]
-                    liste_services=[]
-                    if services is not None:
-                        for item in services.itertuples():
-                            liste_services.append(f"- [{item.categorie.replace('-', ' ').capitalize()}] {item.service.replace('-', ' ').capitalize()}")
-                        st.markdown("\n".join(sorted(set(liste_services))))
+                    fig = px.line_polar(theta=data_to_plot.index, r=data_to_plot.values * 100, line_close=True)
+                    st.plotly_chart(fig)
+                    st.text('Plus d’informations sur cette commune')
+                    with st.expander('Top 10 des métiers recherchés'):
+                        liste_metiers=[]
+                        if row.be_libfap_top is not None:
+                            for item in row.be_libfap_top:
+                                liste_metiers.append(f'- {item}')
+                        st.markdown("\n".join(liste_metiers))
+                    
+                    with st.expander('Formations proposées'):
+                        liste_formations=[]
+                        if row.noms_formations is not None:
+                            for item in row.noms_formations:
+                                liste_formations.append(f'- {item}')
+                        st.markdown("\n".join(liste_formations))
+                    
+                    with st.expander("Services d'inclusions proposés"):                
+                        services = annuaire_inclusion[annuaire_inclusion.codgeo == row.codgeo]
+                        liste_services=[]
+                        if services is not None:
+                            for item in services.itertuples():
+                                liste_services.append(f"- [{item.categorie.replace('-', ' ').capitalize()}] {item.service.replace('-', ' ').capitalize()}")
+                            st.markdown("\n".join(sorted(set(liste_services))))
 
+                    st.markdown(f"[Tableau de bord de la commune](https://jaccueille-indicateurs-commune.wedodata.dev/territoire/presentation/accueil/{row.codgeo})")
+                    st.markdown(f"[Site internet de la commune](https://google.fr)")
                 # st.write(row)
             
     # This is used as a callback so we don't return anything
@@ -332,7 +338,7 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     # We produce the pitch for the top N results
     # We generate a markdown text that is natively displayed by streamlit
     pitch_md = []
-    pitch_md.append(f'**{row["libgeo"]}** dans l\'agglomération: {row["epci_nom"]}.  ')
+    pitch_md.append(f'**{row["libgeo"]}** (Pop. {row["population"]}) dans l\'agglomération: {row["epci_nom"]}.  ')
     pitch_md.append(f'Le score est de: **{row["weighted_score"] *100:.2f}** ')
  
     if row["binome"]:
@@ -362,7 +368,7 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
 
     
     #Adding the matching job families if any
-    if len(prefs['codes_metiers']) > 0:
+    if any(prefs['codes_metiers']): # We first check if we were actually looking for a fospecific job in that area
         pitch_md.append('\n**Emploi**\n') 
         metiers_col = [col for col in row.keys() if col.startswith('met_match_codes')]
         matched_codfap_names = []
@@ -382,7 +388,7 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     
 
     # Adding the matching formation families if any
-    if len(prefs['codes_formations']) > 0:
+    if any(prefs['codes_formations']): # We first check if we were actually looking for a formation in that area
         pitch_md.append('\n**Formations**\n') 
         formations_col = [col for col in row.keys() if col.startswith('form_match_codes')]
         matched_codform_names = []
@@ -399,12 +405,14 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     return "\n".join(pitch_md)
 
 @st.cache_data
-def show_scoring_results(_df, _fg_dict, n, prefs):
+def show_scoring_results(_df, _fg_dict, prefs):
+    t = time.time()
+    t = performance_tracker(t, 'Start show_scoring_results', timer_mode)
     st.session_state['fg_dict_ref'] = {}
     st.session_state['fg_dict'] = {}
-    
+
     # We show all the communes in the search radius in a shaded greeen according to their scores
-    fg_results = flm.FeatureGroup(name="Results")
+    fg_results = flm.FeatureGroup(name="Scores")
 
     # We pass all the scored communes at once inside a geojson feature group
     geojson_features = []
@@ -412,6 +420,7 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
     colormap = linear.YlGn_09.scale(score_weights_dict.min(), score_weights_dict.max())
 
     # All results colored based on score
+    t = performance_tracker(t, 'Start row iterations', timer_mode)
     for row in _df.itertuples(index=False):
        
         if row.polygon is None:
@@ -445,13 +454,14 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
         }
         geojson_features.append(commune)
 
+    t = performance_tracker(t, 'Start add current geo', timer_mode)
     # We also add the current commune in Blue
     geojson_geometry = mapping(st.session_state['selected_geo'].polygon)
     # style_to_use = styling_communes(style='style_current')
 
     style_to_use = {
         "fillColor": 'blue',
-        "fillOpacity": 0.8,
+        "fillOpacity": 0.5,
         "stroke": True
     }
 
@@ -459,15 +469,17 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
         "Nom": st.session_state['selected_geo'].libgeo,
         "style": style_to_use
     }
+    
     current_commune = {
             "type": "Feature",
             "geometry": geojson_geometry,
             "properties": properties
         }
+    
     geojson_features.append(current_commune)
     
     
-    
+    t = performance_tracker(t, 'Start wrapup everything in feature collection', timer_mode)
     # Wrap all features in a GeoJSON FeatureCollection
     geojson_data = {
         "type": "FeatureCollection",
@@ -479,12 +491,12 @@ def show_scoring_results(_df, _fg_dict, n, prefs):
         name="Communes",
         # style_function=style_function,
         tooltip=flm.GeoJsonTooltip(fields=['Nom', 'Score'], aliases=['Nom', 'Score']),
-        popup=flm.GeoJsonPopup(fields=['popup_html'], aliases=['Details'], localize=True, parse_html=True) # Use pre-rendered HTML
+        popup=flm.GeoJsonPopup(fields=['popup_html'], aliases=[''], localize=True, parse_html=True) # Use pre-rendered HTML
     )
     
     _fg_dict['Scores'] = fg_results
     fg_results.add_child(communes)
-
+    t = performance_tracker(t, 'End show_scoring_results', timer_mode)
     return _fg_dict
 
 @st.cache_data
@@ -495,7 +507,24 @@ def odis_base_map(_current_geo, prefs):
             gs.centroid.y.iloc[0],
             gs.centroid.x.iloc[0]
         ]
+    
+        # 10,25,50,100,500,1000
+    match prefs['loc_distance_km']:
+        case 10:
+            zoom_start = 11
+        case 25:
+            zoom_start = 10
+        case 50:
+            zoom_start = 8
+        case 100:
+            zoom_start = 7
+        case 500:
+            zoom_start = 6
+        case 1000:
+            zoom_start = 5
+
     m = flm.Map(location=center_loc, zoom_start=10)
+
     return m
 
 # Affichage Support Education
@@ -509,25 +538,25 @@ def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
     niveaux_enfants = set(liste_classe_enfants)
     
     if 'Maternelle' in niveaux_enfants:
-        maternelle_df = annuaire_ecoles[annuaire_ecoles.ecole_maternelle > 0]
+        maternelle_df = annuaire_ecoles[annuaire_ecoles.ecole_maternelle > 0].copy()
         maternelle_df['type']='maternelle'
     else:
         maternelle_df = None
     
     if 'Primaire' in niveaux_enfants:
-        primaire_df = annuaire_ecoles[annuaire_ecoles.ecole_elementaire > 0]
+        primaire_df = annuaire_ecoles[annuaire_ecoles.ecole_elementaire > 0].copy()
         primaire_df['type']='primaire'
     else:
         primaire_df = None
     
     if 'Collège' in niveaux_enfants:
-        college_df = annuaire_ecoles[annuaire_ecoles.type_etablissement == 'Collège']
+        college_df = annuaire_ecoles[annuaire_ecoles.type_etablissement == 'Collège'].copy()
         college_df['type']='college'
     else:
         college_df = None
     
     if 'Lycée' in niveaux_enfants:
-        lycee_df = annuaire_ecoles[annuaire_ecoles.type_etablissement == 'Lycée']
+        lycee_df = annuaire_ecoles[annuaire_ecoles.type_etablissement == 'Lycée'].copy()
         lycee_df['type']='lycee'
     else:
         lycee_df = None    
@@ -639,19 +668,24 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
     
     # Now let's add these schools to the map in the fg_ecoles feature group
     filtered_ecoles = gpd.GeoDataFrame(filtered_ecoles, geometry='geometry', crs='EPSG:4326')
+    # We remove ecoles with empty Geometries
+    filtered_ecoles = filtered_ecoles[~filtered_ecoles.is_empty]
     
     for row in filtered_ecoles.itertuples(index=False):
         if row.geometry is None:
             continue
-   
+        
         maternelle_presente = 'Oui' if row.ecole_maternelle > 0 else 'Non'
         
-        flm.Marker(
-            location=[row.geometry.y, row.geometry.x],
-            icon=flm.Icon(color=etablissements_scolaire_colors.get(row.type, 'default'),icon='pencil'),
-            tooltip=f"{row.nom_etablissement}<br>{row.type_etablissement}<br>Maternelle: {maternelle_presente}",
-            popup=flm.Popup(f"<b>{row.nom_etablissement}</b><br>Type: {row.type_etablissement}<br>Maternelle: {maternelle_presente}", min_width=500)
-        ).add_to(marker_cluster)
+        try:
+            flm.Marker(
+                location=[row.geometry.y, row.geometry.x],
+                icon=flm.Icon(color=etablissements_scolaire_colors.get(row.type, 'default'),icon='pencil'),
+                tooltip=f"{row.nom_etablissement}<br>{row.type_etablissement}<br>Maternelle: {maternelle_presente}",
+                popup=flm.Popup(f"<b>{row.nom_etablissement}</b><br>Type: {row.type_etablissement}<br>Maternelle: {maternelle_presente}", min_width=500)
+            ).add_to(marker_cluster)
+        except:
+            print(f"Problem displaying {row.nom_etablissement}, {row.geometry}")
     
         # fg_ecoles.add_child(etablissement)
     
@@ -662,8 +696,8 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
 @st.cache_data
 def filter_sante(target_codgeos, _annuaire_sante, prefs):
     # we consider all the etablissements soclaires in the target codgeos and the ones around (voisins)
-    filtered_sante = _annuaire_sante[_annuaire_sante['codgeo'].isin(target_codgeos)]
-    filtered_sante['type'] = None # Here we track the type of etablissement for durther use
+    filtered_sante = _annuaire_sante[_annuaire_sante['codgeo'].isin(target_codgeos)].copy()
+    filtered_sante['type'] = None # Here we track the type of etablissement for further use
 
     if prefs['besoin_sante'] == 'Maternité':
         filtered_sante = filtered_sante[filtered_sante.maternite]
@@ -789,6 +823,9 @@ def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
     filtered_annuaire = filter_sante(target_codgeos, _annuaire_sante, prefs)
     filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:2154')
     filtered_annuaire.to_crs(epsg=4326, inplace=True)
+    # We remove ecoles with empty Geometries
+    filtered_annuaire = filtered_annuaire[~filtered_annuaire.is_empty]
+
     
     for row in filtered_annuaire.itertuples(index=False):
         if row.geometry is None:
@@ -796,12 +833,15 @@ def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
         
         maternite_presente = 'Oui' if row.maternite > 0 else 'Non'
 
-        flm.Marker(
-            location=[row.geometry.y, row.geometry.x],
-            icon=flm.Icon(color=etablissements_sante_colors.get(row.type, 'default'),icon='plus'),
-            tooltip=f"{row.RaisonSociale}<br>{row.LibelleCategorieAgregat}<br>Maternité: {maternite_presente}",
-            popup=flm.Popup(f"<b>{row.RaisonSociale}</b><br>Catégorie: {row.LibelleCategorieAgregat}<br>Type: {row.LibelleSph}<br>,Maternité: {maternite_presente}", min_width=500)
-        ).add_to(marker_cluster)
+        try:
+            flm.Marker(
+                location=[row.geometry.y, row.geometry.x],
+                icon=flm.Icon(color=etablissements_sante_colors.get(row.type, 'default'),icon='plus'),
+                tooltip=f"{row.RaisonSociale}<br>{row.LibelleCategorieAgregat}<br>Maternité: {maternite_presente}",
+                popup=flm.Popup(f"<b>{row.RaisonSociale}</b><br>Catégorie: {row.LibelleCategorieAgregat}<br>Type: {row.LibelleSph}<br>,Maternité: {maternite_presente}", min_width=500)
+            ).add_to(marker_cluster)
+        except:
+            print(f"Problem displaying {row.RaisonSociale}, {row.geometry}")
 
     return fg_sante
 
@@ -931,30 +971,39 @@ def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
         # & (filtered_annuaire.service.isin([x for x in st.session_state['prefs']['besoins_autres'].values()]))
         ]
     filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:4326')
+    # We remove ecoles with empty Geometries
+    filtered_annuaire = filtered_annuaire[~filtered_annuaire.is_empty]
     
     for row in filtered_annuaire.itertuples(index=False):
         if row.geometry is None:
             continue
 
-        flm.Marker(
-            location=[row.geometry.y, row.geometry.x],
-            icon=flm.Icon(color=services_inclusion_colors.get(row.categorie, 'default'), icon='heart'),
-            tooltip=f"{row.nom}<br>{row.categorie.replace('-', ' ').capitalize()}<br>Service: {row.service.replace('-', ' ').capitalize()}",
-            popup=flm.Popup(f"<b>{row.nom}</b><br>Catégorie: {row.categorie.replace('-', ' ').capitalize()}<br>Service: {row.service.replace('-', ' ').capitalize()}<br>,Description: {row.presentation_resume}", min_width=500),
-        ).add_to(marker_cluster)
+        try:
+            flm.Marker(
+                location=[row.geometry.y, row.geometry.x],
+                icon=flm.Icon(color=services_inclusion_colors.get(row.categorie, 'default'), icon='heart'),
+                tooltip=f"{row.nom}<br>{row.categorie.replace('-', ' ').capitalize()}<br>Service: {row.service.replace('-', ' ').capitalize()}",
+                popup=flm.Popup(f"<b>{row.nom}</b><br>Catégorie: {row.categorie.replace('-', ' ').capitalize()}<br>Service: {row.service.replace('-', ' ').capitalize()}<br>,Description: {row.presentation_resume}", min_width=500),
+            ).add_to(marker_cluster)
+        except:
+            print(f"Problem displaying {row.nom}, {row.geometry}")
 
     return fg_services
 
 
 def toggle_extra(fg, fg_name, key):
-    if key:
+    # for some reasons the logic is reversed
+    if key:# == False: #We check the checkbox status
         st.session_state["fg_extras_dict"][fg_name] = fg
+
     if (key == False) & (fg_name in st.session_state["fg_extras_dict"].keys()):
-        st.session_state["fg_extras_dict"].pop(fg_name)
+       del st.session_state["fg_extras_dict"][fg_name]
+
 
 
 # Gestion des scenarii de démo
 demo_data = {
+    'nom': None,
     'poids_emploi':None,
     'poids_logement':None,
     'poids_education':None,
@@ -980,6 +1029,7 @@ def run_demo(demo_data):
         print("Mode démo")
         if st.query_params['demo'] == "1":
             print('demo 1')
+            demo_data['nom'] = 'Zacharie'
             demo_data['departement_actuel'] = '33'
             demo_data['commune_actuelle'] = 'Bordeaux'
             demo_data['loc_distance_km'] = 1 #[0=10km, 1=25km, 2=50km, 3=100km, 4=France]
@@ -989,6 +1039,7 @@ def run_demo(demo_data):
             demo_data['poids_mobilité'] = 50
         if st.query_params['demo'] == "2":
             print('demo 2')
+            demo_data['nom'] = 'Olga & Dimitri'
             demo_data['departement_actuel'] = '75'
             demo_data['commune_actuelle'] = 'Paris'
             demo_data['loc_distance_km'] = 2 #[0=10km, 1=25km, 2=50km, 3=100km, 4=France]
@@ -1004,6 +1055,7 @@ def run_demo(demo_data):
             demo_data['poids_mobilité'] = 0
         if st.query_params['demo'] == "3":
             print('demo 3')
+            demo_data['nom'] = 'Aïcha'
             demo_data['departement_actuel'] = '13'
             demo_data['commune_actuelle'] = 'Marseille'
             demo_data['loc_distance_km'] = 2 #[0=10km, 1=25km, 2=50km, 3=100km, 4=France]
@@ -1017,6 +1069,7 @@ def run_demo(demo_data):
             demo_data['classe_enfants'] = [1, 2] #index of ['Maternelle','Primaire','Collège','Lycée']
             demo_data['besoins_autres'] = {'apprendre-francais':['-']}
             demo_data['poids_mobilité'] = 0
+            demo_data['binome_penalty'] = 0.5
         if st.sidebar.button('Quitter Mode Démo', type='tertiary'):
             st.query_params.clear()
             st.rerun()
@@ -1069,27 +1122,18 @@ with st.sidebar:
     commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].index.item()
     
     st.divider()
-    
-    # Distance
-    st.subheader('Filtre Localisation')
-    distance_options = {
-        10:'Extrêmement Important (~10km)',
-        25:'Important (~25km)',
-        50:'Assez important (~50km)',
-        100:'Peu Important (~100km)',
-        1000:'Toute la France'
-    }
-    dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 0
-    loc_distance_km = st.radio(label='Choix de mobilité', options=distance_options.keys(), format_func=lambda x: distance_options.get(x), index=dist_value)
-    # dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 10
-    # loc_distance_km = st.select_slider("Distance Max Relocalisation (en Km)", options=[10,25,50,100,500,1000], value=dist_value, disabled=False)
 
 
 #Top filter Form
 t = performance_tracker(t, 'Start Top Filters', timer_mode)
 with st.container(border=False):
-    st.subheader('Préférences de recherche')
-    tab_foyer, tab_emploi, tab_formation, tab_logement, tab_edu, tab_sante, tab_autres, tab_ponderation = st.tabs(['Foyer', 'Emploi', 'Formation', 'Logement', 'Education', 'Santé', 'Autres', 'Pondération'])
+    if demo_data['nom'] is not None:
+        st.subheader(f"Situation et besoins de {demo_data['nom']}")
+        st.text(f"Retrouvez ici toutes les informations liées à la situation de {demo_data['nom']}. A tout moment, vous pouvez les modifier et actualiser la recherche.")
+    else:
+        st.subheader(f"Situation et besoins")
+        st.text(f"Retrouvez ici toutes les informations liées à la situation de la personne que vous accompagnez. A tout moment, vous pouvez les modifier et actualiser la recherche.")
+    tab_foyer, tab_edu, tab_emploi, tab_mobilite, tab_logement, tab_sante, tab_autres, tab_ponderation = st.tabs(['Foyer', 'Education', 'Projet Pro', 'Mobilité', 'Logement', 'Santé', 'Autres', 'Pondération'])
             
     #Foyer
     with tab_foyer:
@@ -1102,38 +1146,6 @@ with st.container(border=False):
             nb_enfants_value = demo_data['nb_enfants'] if demo_data['nb_enfants'] is not None else 0
             nb_enfants = st.select_slider("Nombre d'enfants", range(0,6), value=nb_enfants_value)
 
-    #Metiers
-    with tab_emploi:
-        liste_metiers_adult=[]
-        for adult in range(0,nb_adultes):
-            try: 
-                metiers_default = demo_data['codes_metiers'][adult]
-            except (IndexError, TypeError): 
-                metiers_default = []
-            codfap_select = codfap_index[['Code FAP 341', 'Intitulé FAP 341']].set_index('Code FAP 341')
-            # liste_metiers_adult += [st.multiselect("Métiers ciblés Adulte "+str(adult+1), libfap_set, default=metiers_default)]
-            liste_metiers_adult += [st.multiselect("Métiers ciblés Adulte "+str(adult+1), codfap_select.index, format_func=lambda x: codfap_select.loc[x].item(), default=metiers_default)]
-
-    #Formations
-    with tab_formation:
-        liste_formations_adult=[]
-        for adult in range(0,nb_adultes):
-            try:
-                formations_default = demo_data['codes_formations'][adult]
-            except (IndexError, TypeError):
-                formations_default = [] 
-            # liste_formations_adult += [st.multiselect("Formations ciblées Adulte "+str(adult+1),options=libform_set, default=formations_default)]
-            liste_formations_adult += [st.multiselect("Formations recherchées Adulte "+str(adult+1), codformations_index.index, format_func=lambda x: codformations_index.loc[x].item(), default=formations_default)]
-
-    # Logement
-    with tab_logement:
-        hebergement_options = ["Chez l'habitant", 'Location', 'Foyer']
-        hebergement_index = hebergement_options.index(demo_data['hebergement']) if demo_data['hebergement'] is not None else None
-        hebergement = st.radio('Quel hébergement à court terme',options=hebergement_options, index=hebergement_index)
-        logement_options = ['Location', 'Logement Social']
-        logement_index = logement_options.index(demo_data['logement']) if demo_data['logement'] is not None else None
-        logement = st.radio('Quel logement à long terme',options=logement_options, index=logement_index)
- 
     #Education
     with tab_edu:
         liste_classe_enfants=[]
@@ -1159,6 +1171,54 @@ with st.container(border=False):
                         except IndexError:
                             classe_index = 0
                     liste_classe_enfants += [st.selectbox('Niveau enfant '+str(enfant+1), liste_classes, index=classe_index)]
+
+    # Projet Professionel
+    with tab_emploi:
+        col_emploi, col_formations = st.columns(2)
+        
+        #Metiers
+        with col_emploi:
+            liste_metiers_adult=[]
+            for adult in range(0,nb_adultes):
+                try: 
+                    metiers_default = demo_data['codes_metiers'][adult]
+                except (IndexError, TypeError): 
+                    metiers_default = []
+                codfap_select = codfap_index[['Code FAP 341', 'Intitulé FAP 341']].set_index('Code FAP 341')
+                # liste_metiers_adult += [st.multiselect("Métiers ciblés Adulte "+str(adult+1), libfap_set, default=metiers_default)]
+                liste_metiers_adult += [st.multiselect("Métiers ciblés Adulte "+str(adult+1), codfap_select.index, format_func=lambda x: codfap_select.loc[x].item(), default=metiers_default)]
+
+        #Formations
+        with col_formations:
+            liste_formations_adult=[]
+            for adult in range(0,nb_adultes):
+                try:
+                    formations_default = demo_data['codes_formations'][adult]
+                except (IndexError, TypeError):
+                    formations_default = [] 
+                # liste_formations_adult += [st.multiselect("Formations ciblées Adulte "+str(adult+1),options=libform_set, default=formations_default)]
+                liste_formations_adult += [st.multiselect("Formations recherchées Adulte "+str(adult+1), codformations_index.index, format_func=lambda x: codformations_index.loc[x].item(), default=formations_default)]
+
+    #Mobilité
+    with tab_mobilite:
+        distance_options = {
+            10:'Extrêmement Important (~10km)',
+            25:'Important (~25km)',
+            50:'Assez important (~50km)',
+            100:'Peu Important (~100km)',
+            1000:'Toute la France'
+        }
+        dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 0
+        loc_distance_km = st.radio(label='Choix de mobilité', options=distance_options.keys(), format_func=lambda x: distance_options.get(x), index=dist_value)
+
+    #Logement
+    with tab_logement:
+        hebergement_options = ["Chez l'habitant", 'Location', 'Foyer']
+        hebergement_index = hebergement_options.index(demo_data['hebergement']) if demo_data['hebergement'] is not None else None
+        hebergement = st.radio('Quel hébergement à court terme',options=hebergement_options, index=hebergement_index)
+        logement_options = ['Location', 'Logement Social']
+        logement_index = logement_options.index(demo_data['logement']) if demo_data['logement'] is not None else None
+        logement = st.radio('Quel logement à long terme',options=logement_options, index=logement_index)
 
     #Santé
     with tab_sante:
@@ -1209,18 +1269,21 @@ with st.container(border=False):
         with col3:
             value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
             poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
-            penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=25) / 100
+            penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=50) / 100
 
 st.divider()
 
 # In the demo case where we prefilled the data, we automatically load the results (without a button click)
-if demo_data['departement_actuel'] is not None:
-    load_results(df=odis, scores_cat=scores_cat)
+# if demo_data['departement_actuel'] is not None:
+#     load_results(df=odis, scores_cat=scores_cat)
 
 # Bouton Pour lancer le scoring + affichage de la carte
-st.button(
+st.sidebar.button(
     "Afficher la carte" if st.session_state["processed_gdf"] is None else "Mettre à jour la carte",
-    on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat}, type="primary")
+    key='afficher_carte_btn',
+    on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat}, type="primary"
+    )
+st.sidebar.markdown('<style>.st-key-afficher_carte_btn .stButton button div p {color:darkgreen; font-weight:bold}</style>', unsafe_allow_html=True)
 t = performance_tracker(t, 'Ready', timer_mode)
 
 
@@ -1229,12 +1292,19 @@ t = performance_tracker(t, 'Ready', timer_mode)
 col_results, col_map = st.columns([2, 3])
 t = performance_tracker(t, 'Start Results Column', timer_mode)
 
+# We check if a result was highlighted before rerun and restore the state
+# if st.session_state["highlighted_result"][0]:
+#     result_highlight(st.session_state["highlighted_result"][1], st.session_state["highlighted_result"][2], st.session_state["highlighted_result"][3])
+
 ### Results Column
 with col_results:
     # st.write(st.session_state['processed_gdf'])
     if st.session_state['processed_gdf'] is not None:
         st.subheader("Meilleurs résultats")
-        st.text('Cliquez pour plus de détails')
+        if demo_data["nom"] is not None:
+            st.text(f'Voici des localités qui pourraient convenir au projet de vie de {demo_data["nom"]}')
+        else:
+            st.text(f'Voici des localités qui pourraient convenir pour ce projet de vie')
         st.markdown('<style>[class*="st-key-button_top"] .stButton button div {text-align:left; width:100%;}</style>', unsafe_allow_html=True)
 
         fg_dict_key = build_top_results(st.session_state["processed_gdf"], 5, st.session_state["prefs"])
@@ -1247,7 +1317,7 @@ with col_results:
 t = performance_tracker(t, 'Start Map Column', timer_mode)
 ### Map Column
 with col_map:
-    
+
     if st.session_state['processed_gdf'] is not None:
         st.subheader("Carte Interactive")
         # we have scoring results let's draw the the map
@@ -1257,7 +1327,6 @@ with col_map:
         st.session_state['fg_dict_ref'] = show_scoring_results(
             st.session_state['processed_gdf'][['codgeo','libgeo','polygon','libgeo_binome', 'polygon_binome','weighted_score']],
             st.session_state['fg_dict_ref'], 
-            5, 
             st.session_state['prefs']
         )
 
@@ -1276,20 +1345,26 @@ with col_map:
         # We add additional informational layers
         # We keep the schools in the same academy only
         # See doc here: https://python-visualization.github.io/folium/latest/user_guide/geojson/geojson_marker.html
-        col1, col2, col3 = st.columns(3)
+        
 
-        # col 1 = Etablissements Scolaires
-        with col1:
-            t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
-            if st.session_state['prefs']['nb_enfants'] > 0:
-                st.session_state['fg_ecoles'] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-
-                st.checkbox('Afficher établissements scolaires', key='afficher_ecoles', value=False)
-                toggle_extra(fg=st.session_state['fg_ecoles'], fg_name='ecoles', key=st.session_state['afficher_ecoles'])
-                # Légende
-                if st.session_state['afficher_ecoles']:
+        with st.container():
+            col1, col2 = st.columns(2)
+            with col1: #Checkbox Affichage
+                t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
+                if st.session_state['prefs']['nb_enfants'] > 0:
+                    st.session_state['fg_dict_ref']['fg_ecoles'] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
+                    st.checkbox(
+                        'Afficher établissements scolaires pertinents', 
+                        key='afficher_ecoles', 
+                        value=False, 
+                        # on_change=toggle_extra, 
+                        # kwargs={'fg':st.session_state['fg_dict_ref'].get('fg_ecoles'), 'fg_name':'ecoles', 'key':st.session_state['afficher_ecoles']}
+                    )
+                    toggle_extra(fg=st.session_state['fg_dict_ref'].get('fg_ecoles'), fg_name='ecoles', key=st.session_state['afficher_ecoles'])
                     
-                    badges = ""
+            with col2: # Légende
+                badges = ""
+                if st.session_state['afficher_ecoles']:   
                     if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
                         badges += ":violet-badge[:material/edit: Maternelles] "
                     if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
@@ -1300,40 +1375,53 @@ with col_map:
                         badges += ":red-badge[:material/edit: Lycées] "
                     st.markdown(badges)
 
-            t = performance_tracker(t, 'End Ecoles Display', timer_mode)
-
-        # col 2 = Etablissements de Santé
-        with col2:
-            t = performance_tracker(t, 'Start Sante Display', timer_mode)
-            if st.session_state['prefs']['besoin_sante'] != "Aucun":
-
-                st.session_state['fg_sante'] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
-
-                st.checkbox('Afficher établissements de santé', key='afficher_sante', value=False)
-                toggle_extra(fg=st.session_state['fg_sante'], fg_name='sante', key=st.session_state['afficher_sante'])
-                # Légende
-                if st.session_state['afficher_sante']:
-                    badges = ""
+                t = performance_tracker(t, 'End Ecoles Display', timer_mode)
+        with st.container():
+            col1, col2 = st.columns(2)
+            with col1: #Checkbox Affichage
+                t = performance_tracker(t, 'Start Sante Display', timer_mode)
+                if st.session_state['prefs']['besoin_sante'] != "Aucun":
+                    st.session_state['fg_dict_ref']['fg_sante'] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
+                    st.checkbox(
+                        'Afficher établissements de santé pertinents', 
+                        key='afficher_sante', 
+                        value=False, 
+                        # on_change=toggle_extra, 
+                        # kwargs={'fg':st.session_state['fg_dict_ref'].get('fg_sante'), 'fg_name':'sante', 'key':st.session_state['afficher_sante']}
+                    )
+                    toggle_extra(fg=st.session_state['fg_dict_ref'].get('fg_sante'), fg_name='sante', key=st.session_state['afficher_sante'])
+            
+            with col2: # Légende
+                badges = ""
+                if st.session_state['afficher_sante']:    
                     if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
-                        badges += ":orange-badge[:material/add_location: Maternités] "
+                        badges += ":orange-badge[:material/local_hospital: Maternités] "
                     if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
-                        badges += ":blue-badge[:material/add_location: Hopitaux] "
+                        badges += ":blue-badge[:material/local_hospital: Hopitaux] "
                     if 'Centre Addictions & Maladies Mentales' in st.session_state['prefs'].get('besoin_sante'):
-                        badges += ":violet-badge[:material/add_location: Centres Addictions & Santé Mentale] "
+                        badges += ":violet-badge[:material/local_hospital: Centres Addictions & Santé Mentale] "
                     st.markdown(badges)
 
-            t = performance_tracker(t, 'End Sante Display', timer_mode)
+                t = performance_tracker(t, 'End Sante Display', timer_mode)
+        with st.container():
+            col1, col2 = st.columns(2)
+            with col1: #Checkbox Affichage
+                t = performance_tracker(t, 'Start Services Inclusion Display', timer_mode)
+                if bool(st.session_state['prefs']['besoins_autres']):
+                    st.session_state['fg_dict_ref']['fg_services'] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
+                    checkbox_name = "Afficher les services d'inclusion pertinents"
+                    st.checkbox(
+                        checkbox_name, 
+                        key='afficher_services', 
+                        value=False, 
+                        # on_change=toggle_extra, 
+                        # kwargs={'fg':st.session_state['fg_dict_ref'].get('fg_services'), 'fg_name':'services', 'key':st.session_state['afficher_services']}
+                    )
+                    toggle_extra(fg=st.session_state['fg_dict_ref'].get('fg_services'), fg_name='services', key=st.session_state['afficher_services'])
             
-        #col 3 = Services d'inclusion
-        with col3:
-            t = performance_tracker(t, 'Start Services Inclusion Display', timer_mode)
-            if bool(st.session_state['prefs']['besoins_autres']):
-                st.session_state['fg_services'] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
-                checkbox_name = "Afficher les services d'inclusion"
-                st.checkbox(checkbox_name, key='afficher_services', value=False)
-                toggle_extra(fg=st.session_state['fg_services'], fg_name='services', key=st.session_state['afficher_services'])
+            with col2: # Légende
+                badges = ""
                 if st.session_state['afficher_services']:
-                    badges = ""
                     if 'famille' in st.session_state['besoins_autres']:
                         badges += ":orange-badge[:material/favorite: Famille] "
                     if 'numerique' in st.session_state['besoins_autres']:
@@ -1348,22 +1436,25 @@ with col_map:
                         badges += ":red-badge[:material/favorite: Santé] "
                     st.markdown(badges)
 
-            t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
+                t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
 
         # Affichage de la carte (toujours en dernier)
-
         t = performance_tracker(t, 'Start Map Display', timer_mode)
     
         m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
+        
         # print(st.session_state['fg_dict'])
-        # st.write(list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()))
-        # st_data = 
+        # print(list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()))
+        # st.write(st.session_state['fg_dict'])
+        # st.write(st.session_state['fg_extras_dict'])
+        # print(st.session_state["zoom"])
+        # print(st.session_state["center"])
+        
         st_folium(
             m,
             zoom=st.session_state["zoom"],
+            center=st.session_state["center"],
             feature_group_to_add=list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()),
-            # width=1000,
-            # height=800,
             key="odis_scored_map",
             use_container_width=True,
             returned_objects=[],

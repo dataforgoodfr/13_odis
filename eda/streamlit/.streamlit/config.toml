@@ -13,17 +13,17 @@ textColor="#1B4429"
 secondaryTextColor="#1B4429"
 baseRadius="full"
 primaryColor="#1B4429"
-seondaryColor="#F5D819"
+secondaryColor="#F5D819"
 
 
 
 [theme.sidebar]
 backgroundColor="#1B4429"
 secondaryBackgroundColor="rgb(49, 122, 73)"
-textColor="#E8ECEA"
-secondaryTextColor="#1B4429"
+textColor="white"
+# secondaryTextColor="#1B4429"
 primaryColor="rgb(255, 208, 0)"
-seondaryColor="#F5D819"
+secondaryColor="#F5D819"
 
 [client]
 toolbarMode = "minimal"
