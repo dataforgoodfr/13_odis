@@ -67,7 +67,9 @@ APIs:
 
   Opendatasoft:
     name: Opendatasoft
-    description: API de données ouverte
+    description: |
+      Framework pour API REST avec un format de params spéficique pour passer des query. 
+      Utilisé par divers fournisseurs de data
     base_url: https://public.opendatasoft.com/api/explore/v2.1
     apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
     throttle: 100
@@ -98,6 +100,7 @@ APIs:
 domains:
 
   emploi:
+
     eff_secteur_prive_gds_secteurs:
       API: URSSAF
       description : Effectifs salariés du secteur privé par grands secteurs
@@ -226,14 +229,12 @@ domains:
       endpoint: /communes?fields=code,nom,population,departement,region,centre
       format: json
 
-    communes_et_arrondissements:
-      API: Opendatasoft
-      description: Communes et Arrondissements Municipaux - France 
-      type: FileExtractor
-      endpoint: /catalog/datasets/georef-france-commune-arrondissement-municipal/exports/csv
-      format: csv
-      load_params:
-        separator: ;
+    arrondissements:
+      API: GEO.api.gouv.fr
+      description: Référentiel géographique GEO - arrondissements
+      type: JsonExtractor
+      endpoint: /communes?type=arrondissement-municipal
+      format: json
 
   accueil:
 
@@ -274,7 +275,7 @@ domains:
           header: 2 # index de la première ligne utile du csv
           skipfooter: 0 # combien de lignes inutiles à skipper en fin de document
 
-      logements_total:
+      logements_all:
         API: INSEE.Melodi
         description: nombre de logement
         type: MelodiExtractor
@@ -283,6 +284,53 @@ domains:
         extract_params:
           maxResult: 10000
           TIME_PERIOD: 2021
+          # startPeriod: "2016-01-01"
+          # endPeriod: "2022-01-01"
+          GEO: # géographies
+            - COM # communes
+            - DEP # départements
+            - REG # régions
+          RP_MEASURE: DWELLINGS # nombre de logements
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: # statut d'occupation du logement
+            - 0 # logement vacant
+            - 1 # habitant propriétaire
+            - 2 # habitant locataire
+            - _T # total général
+          BUILD_END: _T 
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC # résidence secondaire
+            - DW_OCC # logements occasionels (RP et RS confondus)
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: # type de logement
+            - 1 # maisons
+            - 2 # appartements
+            - 3 # foyers d'accueil
+            - 3T6 # autres logements de métropole 
+            - 6 # chambre indépendante
+            - _T # total général
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+
+      logements_total:
+        API: INSEE.Melodi
+        description: nombre de logement
+        type: MelodiExtractor
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
+        format: json
+        extract_params:
+          maxResult: 10000
+          # TIME_PERIOD: 2021
+          startPeriod: "2016-01-01"
+          endPeriod: "2022-01-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
@@ -291,7 +339,7 @@ domains:
           NOR: _T
           TSH: _T
           BUILD_END: _T
-          OCS: _T
+          OCS: ["DW_VAC","DW_MAIN","DW_SEC"]
           TDW: _T
         response_map:
           data: observations
@@ -339,8 +387,8 @@ domains:
           NOR: _T
           TSH: _T
           BUILD_END: _T
-          OCS: _T
-          TDW: 2
+          OCS: _T # Type de Résidence = total tout confondu
+          TDW: 2 # Type de logement = Appartement
         response_map:
           data: observations
           next: paging.next
@@ -419,12 +467,6 @@ domains:
           is_last: paging.isLast
 
   logement_social:
-
-      # logement_sociaux:
-      #   notebook_path: notebook/logements_sociaux_2024.ipynb
-      #   description: recuperation des indicateurs des logements sociaux via notebook
-      #   type: NotebookExtractor
-      #   format: csv
       
       logements_sociaux:
         API: devdurable.gouv.fr
