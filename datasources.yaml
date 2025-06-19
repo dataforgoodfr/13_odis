@@ -354,16 +354,24 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: [2010,2015,2021]
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
           TOH: _T
           CARS: _T
           NOR: _T
-          TSH: _T
+          TSH: # statut d'occupation du logement
+            - 0 # logement vacant
+            - 1 # habitant propriétaire
+            - 2 # habitant locataire
+            - _T # total général
           BUILD_END: _T
-          OCS: _T
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
           TDW: 1
         response_map:
           data: observations
