@@ -12,7 +12,7 @@ timer_mode = True
 t = performance_tracker(t, 'Start Import', timer_mode)
 # Notebook Specific
 import pandas as pd
-# import numpy as np
+import numpy as np
 import matplotlib.pyplot as plt
 import geopandas as gpd
 # from scipy import stats
@@ -24,7 +24,7 @@ from shapely.geometry import mapping#, Polygon
 # Streamlit App Specific
 import streamlit as st
 import folium as flm
-from folium.plugins import MarkerCluster
+from folium.plugins import MarkerCluster, FastMarkerCluster
 import plotly.express as px
 from streamlit_folium import st_folium
 from branca.colormap import linear
@@ -661,33 +661,49 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
         'lycee': 'red',
         'default': 'grey'
         }
+    
+    callback = """
+    function (row) {
+        var icon, marker;
+        icon = L.AwesomeMarkers.icon({
+            icon: "pencil", markerColor: row[2]});
+        marker = L.marker(new L.LatLng(row[0], row[1]));
+        marker.setIcon(icon);
+        
+        var tooltip_text = "<b>"+row[3]+"</b><br>Type: "+row[4]+"<br>Maternelle: "+row[5];
+        marker.bindTooltip(tooltip_text);
+        
+        var popup_text = "<b>"+row[3]+"</b><br>Type: "+row[4]+"<br>Maternelle: "+row[5];
+        marker.bindPopup(popup_text);
+
+        return marker;
+    };
+    """
     fg_ecoles = flm.FeatureGroup(name="Établissements Scolaires")
-    marker_cluster = MarkerCluster().add_to(fg_ecoles)
+    
     filtered_ecoles = _annuaire_ecoles[_annuaire_ecoles.type_etablissement.isin(['Ecole', 'Collège', 'Lycée'])]
     filtered_ecoles = filter_ecoles(_current_geo, filtered_ecoles, prefs)
     
     # Now let's add these schools to the map in the fg_ecoles feature group
     filtered_ecoles = gpd.GeoDataFrame(filtered_ecoles, geometry='geometry', crs='EPSG:4326')
-    # We remove ecoles with empty Geometries
+    # We remove ecoles with empty and None Geometries
     filtered_ecoles = filtered_ecoles[~filtered_ecoles.is_empty]
+    filtered_ecoles = filtered_ecoles[filtered_ecoles.notna()]
     
-    for row in filtered_ecoles.itertuples(index=False):
-        if row.geometry is None:
-            continue
-        
-        maternelle_presente = 'Oui' if row.ecole_maternelle > 0 else 'Non'
-        
-        try:
-            flm.Marker(
-                location=[row.geometry.y, row.geometry.x],
-                icon=flm.Icon(color=etablissements_scolaire_colors.get(row.type, 'default'),icon='pencil'),
-                tooltip=f"{row.nom_etablissement}<br>{row.type_etablissement}<br>Maternelle: {maternelle_presente}",
-                popup=flm.Popup(f"<b>{row.nom_etablissement}</b><br>Type: {row.type_etablissement}<br>Maternelle: {maternelle_presente}", min_width=500)
-            ).add_to(marker_cluster)
-        except:
-            print(f"Problem displaying {row.nom_etablissement}, {row.geometry}")
-    
-        # fg_ecoles.add_child(etablissement)
+    # We add necessary columns to properly display markers and their tooltups
+    filtered_ecoles['marker_color'] = filtered_ecoles.apply(lambda x: etablissements_scolaire_colors.get(x.type, 'default'), axis=1)
+    filtered_ecoles['maternelle_presente'] = np.where(filtered_ecoles.ecole_maternelle > 0, "Oui", "Non")
+
+    locations = list(zip(
+        filtered_ecoles.geometry.y, 
+        filtered_ecoles.geometry.x, 
+        filtered_ecoles.marker_color,
+        filtered_ecoles.nom_etablissement,
+        filtered_ecoles.type_etablissement,
+        filtered_ecoles.maternelle_presente
+        ))
+
+    FastMarkerCluster(locations, callback=callback).add_to(fg_ecoles)
     
     return fg_ecoles
 
@@ -806,8 +822,7 @@ def build_local_sante_layer_old(_current_geo, _annuaire_sante, prefs):
 @st.cache_data
 def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
     fg_sante = flm.FeatureGroup(name="Établissements de Santé")
-    marker_cluster = MarkerCluster().add_to(fg_sante)
-
+    
     target_codgeos = set(
         st.session_state['processed_gdf'].codgeo.tolist() 
         # +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
@@ -823,29 +838,47 @@ def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
     filtered_annuaire = filter_sante(target_codgeos, _annuaire_sante, prefs)
     filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:2154')
     filtered_annuaire.to_crs(epsg=4326, inplace=True)
-    # We remove ecoles with empty Geometries
-    filtered_annuaire = filtered_annuaire[~filtered_annuaire.is_empty]
-
     
-    for row in filtered_annuaire.itertuples(index=False):
-        if row.geometry is None:
-            continue
-        
-        maternite_presente = 'Oui' if row.maternite > 0 else 'Non'
+    # We remove ecoles with empty and None Geometries
+    filtered_annuaire = filtered_annuaire[~filtered_annuaire.is_empty]
+    filtered_annuaire = filtered_annuaire[filtered_annuaire.notna()]
 
-        try:
-            flm.Marker(
-                location=[row.geometry.y, row.geometry.x],
-                icon=flm.Icon(color=etablissements_sante_colors.get(row.type, 'default'),icon='plus'),
-                tooltip=f"{row.RaisonSociale}<br>{row.LibelleCategorieAgregat}<br>Maternité: {maternite_presente}",
-                popup=flm.Popup(f"<b>{row.RaisonSociale}</b><br>Catégorie: {row.LibelleCategorieAgregat}<br>Type: {row.LibelleSph}<br>,Maternité: {maternite_presente}", min_width=500)
-            ).add_to(marker_cluster)
-        except:
-            print(f"Problem displaying {row.RaisonSociale}, {row.geometry}")
+
+    callback = """
+    function (row) {
+        var icon, marker;
+        icon = L.AwesomeMarkers.icon({
+            icon: "plus", markerColor: row[2]});
+        marker = L.marker(new L.LatLng(row[0], row[1]));
+        marker.setIcon(icon);
+        
+        var tooltip_text = "<b>"+row[3]+"</b><br>Maternité: "+row[6];
+        marker.bindTooltip(tooltip_text);
+        
+        var popup_text = "<b>"+row[3]+"</b><br>Catégorie: "+row[4]+"<br>Type: "+row[5]+"<br>Maternité: "+row[6];
+        marker.bindPopup(popup_text);
+
+        return marker;
+    };
+    """
+    
+    # We add necessary columns to properly display markers and their tooltups
+    filtered_annuaire['marker_color'] = filtered_annuaire.apply(lambda x: etablissements_sante_colors.get(x.type, 'default'), axis=1)
+    filtered_annuaire['maternite_presente'] = np.where(filtered_annuaire.maternite, "Oui", "Non")
+
+    locations = list(zip(
+        filtered_annuaire.geometry.y, 
+        filtered_annuaire.geometry.x, 
+        filtered_annuaire.marker_color,
+        filtered_annuaire.RaisonSociale,
+        filtered_annuaire.LibelleCategorieAgregat,
+        filtered_annuaire.LibelleSph,
+        filtered_annuaire.maternite_presente
+        ))
+
+    FastMarkerCluster(locations, callback=callback).add_to(fg_sante)
 
     return fg_sante
-
-
 
 
 # Affichage Services d'Inclusion (Autres Besoins)
@@ -948,7 +981,6 @@ def build_local_services_layer_old(_current_geo, _annuaire_inclusion, prefs):
 @st.cache_data
 def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
     fg_services = flm.FeatureGroup(name="Services d'inclusion")
-    marker_cluster = MarkerCluster().add_to(fg_services)
 
     target_codgeos = set(
         st.session_state['processed_gdf'].codgeo.tolist() 
@@ -971,25 +1003,46 @@ def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
         # & (filtered_annuaire.service.isin([x for x in st.session_state['prefs']['besoins_autres'].values()]))
         ]
     filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:4326')
-    # We remove ecoles with empty Geometries
-    filtered_annuaire = filtered_annuaire[~filtered_annuaire.is_empty]
     
-    for row in filtered_annuaire.itertuples(index=False):
-        if row.geometry is None:
-            continue
+    # We remove ecoles with empty and None Geometries
+    filtered_annuaire = filtered_annuaire[~filtered_annuaire.is_empty]
+    filtered_annuaire = filtered_annuaire[filtered_annuaire.notna()]
 
-        try:
-            flm.Marker(
-                location=[row.geometry.y, row.geometry.x],
-                icon=flm.Icon(color=services_inclusion_colors.get(row.categorie, 'default'), icon='heart'),
-                tooltip=f"{row.nom}<br>{row.categorie.replace('-', ' ').capitalize()}<br>Service: {row.service.replace('-', ' ').capitalize()}",
-                popup=flm.Popup(f"<b>{row.nom}</b><br>Catégorie: {row.categorie.replace('-', ' ').capitalize()}<br>Service: {row.service.replace('-', ' ').capitalize()}<br>,Description: {row.presentation_resume}", min_width=500),
-            ).add_to(marker_cluster)
-        except:
-            print(f"Problem displaying {row.nom}, {row.geometry}")
+
+    callback = """
+    function (row) {
+        var icon, marker;
+        icon = L.AwesomeMarkers.icon({
+            icon: "heart", markerColor: row[2]});
+        marker = L.marker(new L.LatLng(row[0], row[1]));
+        marker.setIcon(icon);
+        
+        var tooltip_text = "<b>"+row[3]+"</b><br>Catégorie: "+row[4]+"<br>Service: "+row[5];
+        marker.bindTooltip(tooltip_text);
+        
+        var popup_text = "<b>"+row[3]+"</b><br>Catégorie: "+row[4]+"<br>Service: "+row[5]+"<br>Description: "+row[6];
+        marker.bindPopup(popup_text);
+
+        return marker;
+    };
+    """
+    
+    # We add necessary columns to properly display markers and their tooltups
+    filtered_annuaire['marker_color'] = filtered_annuaire.apply(lambda x: services_inclusion_colors.get(x.categorie, 'default'), axis=1)
+
+    locations = list(zip(
+        filtered_annuaire.geometry.y, 
+        filtered_annuaire.geometry.x, 
+        filtered_annuaire.marker_color,
+        filtered_annuaire.nom,
+        filtered_annuaire.categorie.replace('-', ' ').str.capitalize(),
+        filtered_annuaire.service.replace('-', ' ').str.capitalize(),
+        filtered_annuaire.presentation_resume
+        ))
+
+    FastMarkerCluster(locations, callback=callback).add_to(fg_services)
 
     return fg_services
-
 
 def toggle_extra(fg, fg_name, key):
     # for some reasons the logic is reversed
@@ -1068,8 +1121,10 @@ def run_demo(demo_data):
             # [[],[330, 324]] # Spécialités plurivalentes sanitaires et sociales + Secrétariat
             demo_data['classe_enfants'] = [1, 2] #index of ['Maternelle','Primaire','Collège','Lycée']
             demo_data['besoins_autres'] = {'apprendre-francais':['-']}
-            demo_data['poids_mobilité'] = 0
-            demo_data['binome_penalty'] = 0.5
+            demo_data['poids_mobilité'] = 50
+            demo_data['poids_soutien'] = 50
+            demo_data['poids_emploi'] = 100
+
         if st.sidebar.button('Quitter Mode Démo', type='tertiary'):
             st.query_params.clear()
             st.rerun()
