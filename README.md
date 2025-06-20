@@ -30,10 +30,11 @@ Pour démarrer la base de données :
 ```bash
 docker compose up -d
 ```
+Ou bien utilisez Docker Desktop et activez le container (après avoir run cp .env.dist .env et docker compose up -d une première fois)
 
 La base de données sera ensuite accessible sur `localhost:5432` et le pgadmin sur :`localhost:5050` 
 
-Pour initialiser ou réinitialiser la base de données :
+Pour initialiser ou réinitialiser toute la base de données :
 
 ```bash
 poetry run python bin/db.py init
@@ -70,7 +71,7 @@ Le script “extract.py” permet de récupérer des jeux de données en ligne d
 poetry run bin/odis.py extract --domain geographical_references
 
 # Extraire seulement les datasets "regions" et "departements du domaine "geographical_references"
-poetry run bin/extract.py --sources geographical_references.regions, geographical_references.departements
+poetry run bin/odis.py extract --sources geographical_references.regions, geographical_references.departements
 ```
 
 Pour comprendre en détail comment ça fonctionne : 
@@ -105,7 +106,7 @@ poetry run bin/odis.py explain --api DiDo --source logement.dido_catalogue
 La fonction load permet de charger un fichier local dans la base de données.
 
 ```bash
-poetry run python bin/odis.py load -s logement.dido_catalogue
+poetry run bin/odis.py load -s logement.logements_maison
 ```
 
 ## Télécharger la méthodologie et les modèles de données cibles
@@ -122,27 +123,57 @@ poetry run python ./common/utils/download_target_data.py
 ### Installation de dbt
 
 ```yaml
+# Vérifier l’installation effectuée avec Poetry install
+dbt --version
+
+# Sinon pour réinstaller
 pip install dbt-core
 # Adapter pour PostgreSQL
 pip install dbt-postgres
-# Vérifier l’installation
-dbt --version
 ```
 
-### Installation des dépendances
-
-```yaml
-dbt deps
-```
-
-### **Se placer sur le dossier DBT pour commencer à travailler**
-
+### Rentrer sur le dossier DBT pour continuer l'init sur projet et commencer à travailler
 (pour reconnaître votre dbt_project.yml)
 
 ```yaml
+# Sous_dossier su projet DBT
 cd dbt_odis
+
+# Installer les dépendances et packages
+dbt deps
+
+# Vérifier l'intégrité du projet
+dbt debug
 ```
 
-Toutes les commandes DBT intégrées directement dans la CI ici : 
+La première fois, DBT core n'est pas forcément reconnu, relancez VScode
+
+### Installez l'extension Power User for DBT sur VScode
+
+Cela permettra de tester vos requêtes SQL sans matérialiser une table dans Postgre
+
+### Premières commandes DBT, ou utilisez l'extension Power User
+```yaml
+# Si vous n'avez pas encore loadé vos sources bronze, retournez sur la racine du projet
+cd -
+
+# Revenez sur le dossier dbt
+cd dbt_odis
+
+# Si vous avez besoin du fichier de correspondances Codes Postaux - Codes INSEE
+dbt seed
+
+# Construisez vos premiers models
+dbt build --select model 'nom_de_votre_model'
+
+```
+
+En utilisant Power User, vous n'avez pas besoin d'être sur dbt_odis, l'extension ouvre un terminal dédiée pour vos commandes DBT
+- Bouton Play en blanc = requête SQL sur tout le model ou seulement les lignes que vous sélectionnez
+- Bouton Bonhomme = dbt run
+- Bouton Check = dbt test
+- Bouton Marteau = différentes options de dbt build
+
+### Toutes les commandes DBT intégrées directement dans la CI ici : 
 
 - [Commandes DBT](./docs/DBT.md)
