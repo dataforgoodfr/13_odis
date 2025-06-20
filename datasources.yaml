@@ -354,7 +354,7 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021]
+          TIME_PERIOD: [2010,2015,2021,2025]
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
