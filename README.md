@@ -177,3 +177,49 @@ En utilisant Power User, vous n'avez pas besoin d'être sur dbt_odis, l'extensio
 ### Toutes les commandes DBT intégrées directement dans la CI ici : 
 
 - [Commandes DBT](./docs/DBT.md)
+
+## Méthodologie Médaillon et Raisonnement DBT
+
+Adoption d'une architecture médaillon sur DBT
+- Bronze = staging et transformation des sources en tabulaire
+- Silver = intermediate : normalisation des données, unions et enrrichissement
+- Gold = calculs d'indicateurs et aggrégations demandées, sélection pour Tables WDD
+
+### Raisonnement Structure Postgre / Relationnel DBT
+
+* Bronze_Table = Source loadée
+    * JSON 1 colonne data
+    * CSV (sources xlsx, csv, zip)
+
+* Bronze_View = Extraction de la source 
+    * from {{ source ( 'bronze' , 'nom_de_source' ) }}
+    * Parsing de Json en Jinja : (data::jsonb) → 'sous_niveau' ->> 'valeur'
+    * Select all de CSV : format variable en Macros dbt_utils.star ou dbt_utils.get_filtered_columns_in_relation
+
+* Silver_View (si besoin d'un layer) ou Silver_Table
+    * from {{ ref ( 'nom_de_model_bronze' ) }}
+    * 1 seule table finale silver : avoir toutes les données disponibles pour le futur agent IA recherche inversée
+    * join de toutes les Bronze_View
+    * enrichissement avec les zones géographiques, code_INSEE (dispos dans geographical_references)
+    * union all des 3 zones géographiques communes-départements-régions
+    * union all des 3 types de zones communes-départements-régions
+    * macro pivot si besoin ->  avoir les colonnes temporelles en variable
+    * reformater les datatypes si besoin en integer (attention absolument garder les codegeo en texte)
+
+* Gold_Table
+    * from {{ ref ( 'nom_de_model_silver' ) }}
+    * Adhérer aux tables de destination demandées par WDD
+    * Select des colonnes nécessaires
+    * Renommage comme WDD : champ as "Nouveau_Nom" (pour garder les majuscules et accents)
+
+
+En têtes des models à utiliser :
+
+```sql
+{{ config(
+    tags = ['bronze/silver/gold', 'domaine_du_model'],
+    alias = 'nom_de_la_table/view_dans_postgre'
+    )
+}}
+```
+
