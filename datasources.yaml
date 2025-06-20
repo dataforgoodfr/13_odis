@@ -236,6 +236,13 @@ domains:
       endpoint: /communes?type=arrondissement-municipal
       format: json
 
+    epcis:
+      API: GEO.api.gouv.fr
+      description: Référentiel géographique GEO - niveau epcis
+      type: JsonExtractor
+      endpoint: /epcis
+      format: json
+
   accueil:
 
     cada_cph_huda:
