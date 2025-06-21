@@ -10,7 +10,7 @@ with dwelling_stats as
     select 
         id,
         {# {{ extract_json_keys_recursive(
-            table_ref = source('bronze', 'logement_logements_appartement_et_residences_principales'),
+            table_ref = source('bronze', 'logement_logements_all'),
             json_column = 'data'
         ) }}, #}
         (data::jsonb)->'dimensions'->>'GEO'::text as dimensions_GEO,

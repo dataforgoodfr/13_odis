@@ -155,8 +155,11 @@ domains:
 
     etablissements_employeurs_secteur_prive:
       API: INSEE.Melodi
-      description: Nombre d'établissements actifs employeurs selon les sphères de l'économie au niveau communal et supracommunal pour la France hors Mayotte.
-      endpoint: /file/DS_FLORES_ECONOMIC_SPHERE/DS_FLORES_ECONOMIC_SPHERE_2022_CSV_FR
+      description: |
+        Nombre d'établissements actifs employeurs, 
+        selon les sphères de l'économie au niveau communal et supracommunal,
+        pour la France hors Mayotte.
+      endpoint: /file/DS_FLORES_ECONOMIC_SPHERE/DS_FLORES_ECONOMIC_SPHERE_2023_CSV_FR
       type: FileExtractor
       format: zip
       headers:
@@ -164,6 +167,19 @@ domains:
       preprocessor:
         type: notebook
         name: unzip_load_csv_files
+
+    ds_flores:
+      API: INSEE.Melodi
+      description: |
+        Nombre d'établissements actifs employeurs, 
+        selon les sphères de l'économie au niveau communal et supracommunal,
+        pour la France hors Mayotte.
+      type: MelodiExtractor
+      endpoint: /data/DS_FLORES_ECONOMIC_SPHERE
+      format: json
+      extract_params:
+        maxResult: 10000
+        totalCount: true
 
     deplacement_domicile_travail:
       API: INSEE.Melodi

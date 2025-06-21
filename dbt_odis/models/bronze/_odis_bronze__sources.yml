@@ -21,6 +21,10 @@ sources:
         loaded_at_field : created_at
         freshness :
         warn_after: {count: 1, period : year}
+
+      - name: emploi_ds_flores
+        description: Effectifs salariés et BU par sphère économique
+        loaded_at_field : created_at
         
       - name: emploi_bmo_2024_file
         description: Source CSV 
@@ -83,6 +87,10 @@ sources:
         loaded_at_field: created_at
 
       - name: logement_logements_total
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: logement_logements_all
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 
