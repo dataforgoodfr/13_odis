@@ -180,6 +180,14 @@ domains:
       extract_params:
         maxResult: 10000
         totalCount: true
+        TIME_PERIOD:
+          - 2023
+          - 2022
+          - 2019
+      response_map:
+        data: observations
+        next: paging.next
+        is_last: paging.isLast
 
     deplacement_domicile_travail:
       API: INSEE.Melodi
