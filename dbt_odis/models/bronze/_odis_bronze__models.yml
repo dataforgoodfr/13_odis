@@ -1357,23 +1357,23 @@ models:
   - name: logement_logements_sociaux_communes
     description: CSV contenant le nombre de logements sociaux déclarés par communes
     columns:
-      - name: DEPCOM_ARM
+      - name: codgeo
         description: Code INSEE de la commune et arrondissement
         data_type: text
         quote: true
-      - name: REG
+      - name: reg
         description: Code de la région rattachée à la commune
         data_type: bigint
         quote: true
-      - name: DEP
+      - name: dep
         description: Code du épartement rattaché à la commune
         data_type: text
         quote: true
-      - name: LIBCOM_DEP
+      - name: libcom_dep
         description: Nom de la commune et numéro de département
         data_type: text
         quote: true
-      - name: LIBCOM
+      - name: libcom
         description: Nom de la commune
         data_type: text
         quote: true
