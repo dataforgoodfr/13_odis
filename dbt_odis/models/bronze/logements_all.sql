@@ -1,6 +1,6 @@
 {{ config(
     tags = ['bronze', 'logement'],
-    alias = 'vw_logements_all'
+    alias = 'vw_logement_logements_all'
     )
 }}
 
