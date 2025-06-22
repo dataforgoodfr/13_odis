@@ -7,7 +7,7 @@ def performance_tracker(t, text, timer_mode):
         return time.time()
 t = time.time()
 print(time.ctime(t))
-timer_mode = True
+timer_mode = False
 
 t = performance_tracker(t, 'Start Import', timer_mode)
 # Notebook Specific
@@ -15,11 +15,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import geopandas as gpd
-# from scipy import stats
-# import shapely as shp
-# from shapely.wkt import loads
-from shapely.geometry import mapping#, Polygon 
-# from sklearn import preprocessing
+from shapely.geometry import mapping
 
 # Streamlit App Specific
 import streamlit as st
@@ -28,7 +24,7 @@ from folium.plugins import MarkerCluster, FastMarkerCluster
 import plotly.express as px
 from streamlit_folium import st_folium
 from branca.colormap import linear
-from odis_stream2_scoring import compute_odis_score, init_loading_datasets#, produce_pitch_markdown 
+from odis_stream2_scoring import compute_odis_score, init_loading_datasets
 
 t = performance_tracker(t, 'End Import', timer_mode)
 
@@ -49,34 +45,26 @@ def session_states_init():
         st.session_state["scores_cat"] = None
 
     # Local variables
+    if 'prefs' not in st.session_state:
+        st.session_state["prefs"] = {}
     if "processed_gdf" not in st.session_state:
         st.session_state["processed_gdf"] = None
     if "selected_geo" not in st.session_state:
         st.session_state["selected_geo"] = None
-    if "fg_list" not in st.session_state:
-        st.session_state["fg_list"] = []
     if "highlighted_result" not in st.session_state:
         st.session_state["highlighted_result"] = [False,None,None,None] # This will be the tuple where we will keep track of highlighted result (selected, row, index, prefs)
-    if 'afficher_ecoles' not in st.session_state:
-        st.session_state['afficher_ecoles'] = False
-    if 'afficher_sante' not in st.session_state:
-        st.session_state['afficher_sante'] = False
-    if 'afficher_services' not in st.session_state:
-        st.session_state['afficher_services'] = False
-    if 'fg_extras_dict' not in st.session_state:
-        st.session_state["fg_extras_dict"] = {}
+    if 'fg_ecoles' not in st.session_state:
+        st.session_state['fg_ecoles'] = False
+    if 'fg_sante' not in st.session_state:
+        st.session_state['fg_sante'] = False
+    if 'fg_services' not in st.session_state:
+        st.session_state['fg_services'] = False
     if 'fg_dict_ref' not in st.session_state:
         st.session_state["fg_dict_ref"] = {}
-    if 'fg_dict' not in st.session_state:
-        st.session_state["fg_dict"] = {}
+    if 'fgs_to_show' not in st.session_state:
+        st.session_state['fgs_to_show'] = set()
     if 'pitch' not in st.session_state:
         st.session_state["pitch"] = []
-    if 'prefs' not in st.session_state:
-        st.session_state["prefs"] = {}
-    if "fg_ecoles" not in st.session_state:
-        st.session_state["fg_ecoles"] = None
-    if "fg_sante" not in st.session_state:
-        st.session_state["fg_sante"] = None
     if "zoom" not in st.session_state:
         st.session_state["zoom"] = 10
     if "center" not in st.session_state:
@@ -149,7 +137,7 @@ def set_prefs(scores_cat):
     return prefs, scores_cat_prefs
 
 def load_results(df, scores_cat): 
-    print(' <---------------------> CLICK <--------------------->')
+    print(' <---------------------> Click Afficher Résultats <--------------------->')
     prefs, scores_cat_prefs = set_prefs(scores_cat) # We update the prefs with the latest inputs
     
     # Computing Weighted Scores given a source dataframe with geo info and a scoring categorisation
@@ -167,48 +155,41 @@ def load_results(df, scores_cat):
     # We sort so that we can have the top results by selecting the first rows
     odis_scored = odis_scored.sort_values('weighted_score', ascending=False).reset_index()
 
+    # We reset a bunch of session states as we reload the results
     st.session_state['scores_cat'] = scores_cat_prefs
     st.session_state['processed_gdf'] = odis_scored
     st.session_state['selected_geo'] = selected_geo
     st.session_state['prefs'] = prefs
-    st.session_state['afficher_ecoles'] = False
-    st.session_state['afficher_sante'] = False
-    st.session_state['afficher_services'] = False
-
-
-# Affichage des Top N meilleurs résultats
-def show_fg(_fg_dict, fg_key, clear_others):
-    # We first remove all the other TopX fgs and then add the one we care about
-    if clear_others:
-        for fg in [k for k in _fg_dict.keys() if k.startswith('Top')]:
-            _fg_dict.pop(fg)
-    _fg_dict[fg_key] = st.session_state["fg_dict_ref"][fg_key]
-    
-    return _fg_dict
+    st.session_state['fg_ecoles'] = False
+    st.session_state['fg_sante'] = False
+    st.session_state['fg_services'] = False
+    st.session_state['fg_dict_ref'] = {}
+    st.session_state["highlighted_result"] = [False, None, None, None]
 
 def result_highlight(row, index, prefs):
     # This is to highlight one specific result the user clicked on
+    # First we clear up all the other TopN fg (if any)
+    st.session_state['fgs_to_show'] = {k for k in st.session_state['fgs_to_show'] if not k.startswith('Top')}
+    
     if (st.session_state["highlighted_result"][0]) and (index == st.session_state["highlighted_result"][2]):
-            # This means the user clicked on the same button again --> intend to collapse
-            st.session_state["fg_dict"].pop('Top'+str(index+1))
-            st.session_state["highlighted_result"] = [False, None, None, None] #resest
+        # This means the user clicked on the same button again --> intends to collapse
+        st.session_state["highlighted_result"] = [False, None, None, None] #reset
             
     else:
         # Add the red outline to show the commune on the scored communes map
-        st.session_state["fg_dict"] = show_fg(_fg_dict=st.session_state["fg_dict"], fg_key='Top'+str(index+1), clear_others=True)
-        # We generate the pitch for this commune
-        st.session_state['pitch'] = produce_pitch_markdown(row=row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
+        fg_key = 'Top'+str(index+1)
+        st.session_state['fgs_to_show'].add(fg_key)
+        
         # We center the map and zoom on that result
         st.session_state["center"] = [row.polygon.centroid.y, row.polygon.centroid.x]
-        # st.session_state["zoom"] = 12
+        st.session_state["zoom"] = 11
         st.session_state["highlighted_result"] = [True, row, index, prefs] # We keep track of which resulted was currently highlighted
 
 def build_top_results(_df, n, prefs):
-    # cols_to_show = [col for col in _df.columns if ('_ratio' or '_score' or '_ratio') in col]
-    
+    # Buils the list of Top n results as expander-like buttons
     for index, row in _df.head(n).iterrows():
         # We show the proposed commune with a solid red border and binome with dashed one (if any)
-        fg_name = flm.FeatureGroup(name="Commune Top"+str(index+1))
+        fg = flm.FeatureGroup(name="Commune Top"+str(index+1))
         geojson_features = []
 
         # Top 5 with individual feature groups for each commune+binome pair
@@ -277,14 +258,15 @@ def build_top_results(_df, n, prefs):
                 "features": geojson_features
             }
             commune_json = flm.GeoJson(geojson_data, tooltip=flm.GeoJsonTooltip(fields=['Nom', 'Score'], aliases=['Nom', 'Score']))
-            fg_name.add_child(commune_json)
+            fg.add_child(commune_json)
         
         # We register this fg into our refence dict of all possible fgs
-        st.session_state['fg_dict_ref']['Top'+str(index+1)] = fg_name
+        fg_key = 'Top'+str(index+1)
+        st.session_state['fg_dict_ref'][fg_key] = fg
 
 
         # Then we can show the expander-like button (= expander with on-click and)
-        title = f"{row.weighted_score * 100:.0f}% | {row.libgeo}" + (f" (en binôme avec {row.libgeo_binome})" if row.binome else "")
+        title = f"{row.weighted_score * 100:.0f}% | {row.libgeo}"# + (f" (en binôme avec {row.libgeo_binome})" if row.binome else "")
         st.button(
             title,
             on_click=result_highlight,
@@ -294,17 +276,24 @@ def build_top_results(_df, n, prefs):
             type='secondary',
             icon=":material/arrow_drop_down:"
             )
+        
         # Because of streamlit limitations we can't use the st.expander so we mimic one (we can't know the state open/close of expander)
         # If we have clicked on the button, we generate the detailed report for that specific result and we want to display it below the corresponding button
         if st.session_state["highlighted_result"][0]:
             if index == st.session_state["highlighted_result"][2]:
                 with st.container(border=True):
+                    # We print the Markdown pitch generated when we click on the button
+                    st.session_state['pitch'] = produce_pitch_markdown(row=row, prefs=st.session_state["prefs"], scores_cat=st.session_state['scores_cat'], codfap_index=codfap_index, codformations_index=codformations_index)
                     st.markdown(st.session_state['pitch'])
+
+                    # Radar Chart that shows categories scores
                     data_to_plot = row[[col for col in row.index if col.endswith('_cat_score')]]
                     data_to_plot.rename(lambda x: x.split('_')[0], inplace=True)
-                
-                    fig = px.line_polar(theta=data_to_plot.index, r=data_to_plot.values * 100, line_close=True)
+                    fig = px.line_polar(theta=data_to_plot.index.str.capitalize(), r=data_to_plot.values * 100, line_close=True)
+                    fig.update_traces(fill='toself')
                     st.plotly_chart(fig)
+
+                    # Additional info about the communes that are not related to the search
                     st.text('Plus d’informations sur cette commune')
                     with st.expander('Top 10 des métiers recherchés'):
                         liste_metiers=[]
@@ -318,7 +307,17 @@ def build_top_results(_df, n, prefs):
                         if row.noms_formations is not None:
                             for item in row.noms_formations:
                                 liste_formations.append(f'- {item}')
-                        st.markdown("\n".join(liste_formations))
+                        
+                        #Let's includes the formations offered by the binome (if any)
+                        try:
+                            formations_binome = _df[_df.codgeo == row.codgeo_binome].noms_formations.item()
+                        except:
+                            print(f"{_df.codgeo}| Could not fetch binome's formations")
+                        else: 
+                            if formations_binome is not None:
+                                for item in formations_binome:
+                                    liste_formations.append(f'- {item}')
+                            st.markdown("\n".join(set(liste_formations)))
                     
                     with st.expander("Services d'inclusions proposés"):                
                         services = annuaire_inclusion[annuaire_inclusion.codgeo == row.codgeo]
@@ -328,9 +327,8 @@ def build_top_results(_df, n, prefs):
                                 liste_services.append(f"- [{item.categorie.replace('-', ' ').capitalize()}] {item.service.replace('-', ' ').capitalize()}")
                             st.markdown("\n".join(sorted(set(liste_services))))
 
-                    st.markdown(f"[Tableau de bord de la commune](https://jaccueille-indicateurs-commune.wedodata.dev/territoire/presentation/accueil/{row.codgeo})")
-                    st.markdown(f"[Site internet de la commune](https://google.fr)")
-                # st.write(row)
+                    st.markdown(f"[Page OD&IS de la commune](https://jaccueille-indicateurs-commune.wedodata.dev/territoire/presentation/accueil/{row.codgeo})")
+                    st.markdown(f"[Page Wikipedia de la commune]({row.url_wikipedia})")
             
     # This is used as a callback so we don't return anything
 
@@ -338,11 +336,11 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     # We produce the pitch for the top N results
     # We generate a markdown text that is natively displayed by streamlit
     pitch_md = []
-    pitch_md.append(f'**{row["libgeo"]}** (Pop. {row["population"]}) dans l\'agglomération: {row["epci_nom"]}.  ')
-    pitch_md.append(f'Le score est de: **{row["weighted_score"] *100:.2f}** ')
+    pitch_md.append(f'**{row["libgeo"]}** (Pop. {row["population"]}) commune dans l\'agglomération: {row["epci_nom"]}.  ')
+    pitch_md.append(f'Le score de corespondance est de: **{row["weighted_score"] *100:.2f}**% ')
  
     if row["binome"]:
-        pitch_md.append(f'obtenu en binome avec la commune {row["libgeo_binome"]}')
+        pitch_md.append(f'(obtenu en [binôme](# "Aggrégation des points forts des deux communes") avec {row["libgeo_binome"]})')
         if row["epci_code"] != row["epci_code_binome"]:
             pitch_md.append(f' située dans l\'agglomération: {row["epci_nom_binome"]}')
     else:
@@ -359,7 +357,7 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     # Then we sort an print the top 5
     weighted_row = weighted_row[crit_scores_col].dropna().sort_values(ascending=False)
 
-    pitch_md.append(f'\nVoici les critères pour lesquelles cette commune se démarque des autres communes de la région:  ')
+    pitch_md.append(f'\nCritères qui la démarque des autres communes de la région:  ')
     for i in range(0, 5):
         if weighted_row.iloc[i] > 50:
             score = weighted_row.index[i]
@@ -386,7 +384,6 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
             pitch_md.append(f'- Les familles de métiers **{", ".join(matched_codfap_names)}** sont rechechées dans cette zone ')
         
     
-
     # Adding the matching formation families if any
     if any(prefs['codes_formations']): # We first check if we were actually looking for a formation in that area
         pitch_md.append('\n**Formations**\n') 
@@ -405,11 +402,10 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     return "\n".join(pitch_md)
 
 @st.cache_data
-def show_scoring_results(_df, _fg_dict, prefs):
+def show_scoring_results(_df, prefs):
     t = time.time()
     t = performance_tracker(t, 'Start show_scoring_results', timer_mode)
-    st.session_state['fg_dict_ref'] = {}
-    st.session_state['fg_dict'] = {}
+
 
     # We show all the communes in the search radius in a shaded greeen according to their scores
     fg_results = flm.FeatureGroup(name="Scores")
@@ -454,10 +450,10 @@ def show_scoring_results(_df, _fg_dict, prefs):
         }
         geojson_features.append(commune)
 
-    t = performance_tracker(t, 'Start add current geo', timer_mode)
+    
     # We also add the current commune in Blue
+    t = performance_tracker(t, 'Start add current geo', timer_mode)
     geojson_geometry = mapping(st.session_state['selected_geo'].polygon)
-    # style_to_use = styling_communes(style='style_current')
 
     style_to_use = {
         "fillColor": 'blue',
@@ -494,10 +490,10 @@ def show_scoring_results(_df, _fg_dict, prefs):
         popup=flm.GeoJsonPopup(fields=['popup_html'], aliases=[''], localize=True, parse_html=True) # Use pre-rendered HTML
     )
     
-    _fg_dict['Scores'] = fg_results
     fg_results.add_child(communes)
     t = performance_tracker(t, 'End show_scoring_results', timer_mode)
-    return _fg_dict
+
+    return fg_results
 
 @st.cache_data
 def odis_base_map(_current_geo, prefs):
@@ -722,7 +718,7 @@ def filter_sante(target_codgeos, _annuaire_sante, prefs):
         cat_list = ['355', '362', '101', '106']
         filtered_sante = filtered_sante[filtered_sante.Categorie.isin(cat_list)]
         filtered_sante['type'] = 'hopital'
-    elif prefs['besoin_sante'] == "Centre Addictions & Maladies Mentales":
+    elif prefs['besoin_sante'] == "Soutien Psychologique & Addictologie":
         cat_list = ['156', '292', '425', '412', '366', '415', '430', '444']
         filtered_sante = filtered_sante[filtered_sante.Categorie.isin(cat_list)]
         filtered_sante['type'] = 'addiction_maladies_mentales'
@@ -1045,7 +1041,6 @@ def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
     return fg_services
 
 def toggle_extra(fg, fg_name, key):
-    # for some reasons the logic is reversed
     if key:# == False: #We check the checkbox status
         st.session_state["fg_extras_dict"][fg_name] = fg
 
@@ -1164,7 +1159,7 @@ demo_data = run_demo(demo_data)
 t = performance_tracker(t, 'Start App Sidebar', timer_mode)
 with st.sidebar:
     
-    st.header("Application Prototype")
+    st.header("Recherche d'un nouveau lieu de vie selon son projet")
     st.subheader('Localisation Actuelle')
     # Département
     dep_index = coddep_set.index(demo_data['departement_actuel'] if demo_data['departement_actuel'] is not None else '33')
@@ -1177,18 +1172,46 @@ with st.sidebar:
     commune_codgeo = codgeo_df[(codgeo_df.dep_code==departement_actuel) & (codgeo_df.libgeo==commune_actuelle)].index.item()
     
     st.divider()
+    with st.expander('Pondérations des critères'):
+        value_emploi = demo_data['poids_emploi'] if demo_data['poids_emploi'] is not None else 100
+        poids_emploi = st.select_slider("Pondération Emploi", [0, 25, 50, 100], value=value_emploi)
+        value_logement = demo_data['poids_logement'] if demo_data['poids_logement'] is not None else 100
+        poids_logement = st.select_slider("Pondération Logement", [0, 25, 50, 100], value=value_logement)
+
+        value_education = demo_data['poids_education'] if demo_data['poids_education'] is not None else 100
+        poids_education = st.select_slider("Pondération Education", [0, 25, 50, 100], value=value_education)
+        value_soutien = demo_data['poids_soutien'] if demo_data['poids_soutien'] is not None else 25
+        poids_soutien = st.select_slider("Pondération Soutien", [0, 25, 50, 100], value=value_soutien)
+
+        value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
+        poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
+        penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=50) / 100
 
 
 #Top filter Form
 t = performance_tracker(t, 'Start Top Filters', timer_mode)
-with st.container(border=False):
+with st.container(border=False, key='top_menu'):
+    st.markdown('<style>.st-key-top_menu  {background-color:whitesmoke; padding:30px; border-radius:10px}</style>', unsafe_allow_html=True)
     if demo_data['nom'] is not None:
         st.subheader(f"Situation et besoins de {demo_data['nom']}")
-        st.text(f"Retrouvez ici toutes les informations liées à la situation de {demo_data['nom']}. A tout moment, vous pouvez les modifier et actualiser la recherche.")
     else:
         st.subheader(f"Situation et besoins")
-        st.text(f"Retrouvez ici toutes les informations liées à la situation de la personne que vous accompagnez. A tout moment, vous pouvez les modifier et actualiser la recherche.")
-    tab_foyer, tab_edu, tab_emploi, tab_mobilite, tab_logement, tab_sante, tab_autres, tab_ponderation = st.tabs(['Foyer', 'Education', 'Projet Pro', 'Mobilité', 'Logement', 'Santé', 'Autres', 'Pondération'])
+
+    col_intro, col_button = st.columns([4,1])
+
+    with col_intro:
+        st.text(f"Retrouvez ici toutes les informations liées à la situation de la personne que vous accompagnez. \nA tout moment, vous pouvez les modifier et actualiser la recherche.")
+    
+    # Bouton Pour lancer le scoring + affichage de la carte
+    with col_button: 
+        st.button(
+            "Lancer la recherche" if st.session_state["processed_gdf"] is None else "Mettre à jour la carte",
+            key='afficher_carte_btn',
+            on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat}, type="primary"
+            )
+        # st.markdown('<style>.st-key-afficher_carte_btn .stButton button div p {color:yellow; font-weight:bold}</style>', unsafe_allow_html=True)
+
+    tab_foyer, tab_edu, tab_emploi, tab_logement, tab_sante, tab_autres, tab_mobilite= st.tabs(['Foyer', 'Education', 'Projet Pro', 'Logement', 'Santé', 'Autres Besoins', 'Mobilité'])
             
     #Foyer
     with tab_foyer:
@@ -1264,7 +1287,7 @@ with st.container(border=False):
             1000:'Toute la France'
         }
         dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 0
-        loc_distance_km = st.radio(label='Choix de mobilité', options=distance_options.keys(), format_func=lambda x: distance_options.get(x), index=dist_value)
+        loc_distance_km = st.radio(label='Attachement au lieu de vie actuel :', options=distance_options.keys(), format_func=lambda x: distance_options.get(x), index=dist_value)
 
     #Logement
     with tab_logement:
@@ -1277,7 +1300,7 @@ with st.container(border=False):
 
     #Santé
     with tab_sante:
-        sante_options = ["Aucun", "Hopital", 'Maternité', "Centre Addictions & Maladies Mentales"]
+        sante_options = ["Aucun", "Hopital", 'Maternité', "Soutien Psychologique & Addictologie"]
         sante_index = sante_options.index(demo_data['sante']) if demo_data['sante'] is not None else 0
         besoin_sante = st.radio('Support médical à proximité',options=sante_options, index=sante_index)
 
@@ -1309,216 +1332,207 @@ with st.container(border=False):
         st.text_input('Autres préférences (champ libre)')
 
     #Poids
-    with tab_ponderation:
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            value_emploi = demo_data['poids_emploi'] if demo_data['poids_emploi'] is not None else 100
-            poids_emploi = st.select_slider("Pondération Emploi", [0, 25, 50, 100], value=value_emploi)
-            value_logement = demo_data['poids_logement'] if demo_data['poids_logement'] is not None else 100
-            poids_logement = st.select_slider("Pondération Logement", [0, 25, 50, 100], value=value_logement)
-        with col2:
-            value_education = demo_data['poids_education'] if demo_data['poids_education'] is not None else 100
-            poids_education = st.select_slider("Pondération Education", [0, 25, 50, 100], value=value_education)
-            value_soutien = demo_data['poids_soutien'] if demo_data['poids_soutien'] is not None else 25
-            poids_soutien = st.select_slider("Pondération Soutien", [0, 25, 50, 100], value=value_soutien)
-        with col3:
-            value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
-            poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
-            penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=50) / 100
+    # with tab_ponderation:
+    #     col1, col2, col3 = st.columns(3)
+    #     with col1:
+    #         value_emploi = demo_data['poids_emploi'] if demo_data['poids_emploi'] is not None else 100
+    #         poids_emploi = st.select_slider("Pondération Emploi", [0, 25, 50, 100], value=value_emploi)
+    #         value_logement = demo_data['poids_logement'] if demo_data['poids_logement'] is not None else 100
+    #         poids_logement = st.select_slider("Pondération Logement", [0, 25, 50, 100], value=value_logement)
+    #     with col2:
+    #         value_education = demo_data['poids_education'] if demo_data['poids_education'] is not None else 100
+    #         poids_education = st.select_slider("Pondération Education", [0, 25, 50, 100], value=value_education)
+    #         value_soutien = demo_data['poids_soutien'] if demo_data['poids_soutien'] is not None else 25
+    #         poids_soutien = st.select_slider("Pondération Soutien", [0, 25, 50, 100], value=value_soutien)
+    #     with col3:
+    #         value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
+    #         poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
+    #         penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=50) / 100
 
-st.divider()
-
-# In the demo case where we prefilled the data, we automatically load the results (without a button click)
-# if demo_data['departement_actuel'] is not None:
-#     load_results(df=odis, scores_cat=scores_cat)
-
-# Bouton Pour lancer le scoring + affichage de la carte
-st.sidebar.button(
-    "Afficher la carte" if st.session_state["processed_gdf"] is None else "Mettre à jour la carte",
-    key='afficher_carte_btn',
-    on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat}, type="primary"
-    )
-st.sidebar.markdown('<style>.st-key-afficher_carte_btn .stButton button div p {color:darkgreen; font-weight:bold}</style>', unsafe_allow_html=True)
-t = performance_tracker(t, 'Ready', timer_mode)
+   
+        t = performance_tracker(t, 'Ready', timer_mode)
 
 
-
-# Main 2 sections with results and map
+# Main two sections: results and map
 col_results, col_map = st.columns([2, 3])
-t = performance_tracker(t, 'Start Results Column', timer_mode)
 
-# We check if a result was highlighted before rerun and restore the state
-# if st.session_state["highlighted_result"][0]:
-#     result_highlight(st.session_state["highlighted_result"][1], st.session_state["highlighted_result"][2], st.session_state["highlighted_result"][3])
 
 ### Results Column
+t = performance_tracker(t, 'Start Results Column', timer_mode)
 with col_results:
     # st.write(st.session_state['processed_gdf'])
     if st.session_state['processed_gdf'] is not None:
         st.subheader("Meilleurs résultats")
         if demo_data["nom"] is not None:
-            st.text(f'Voici des localités qui pourraient convenir au projet de vie de {demo_data["nom"]}')
+            st.text(f'Voici des localités qui pourraient convenir à {demo_data["nom"]}')
         else:
             st.text(f'Voici des localités qui pourraient convenir pour ce projet de vie')
         st.markdown('<style>[class*="st-key-button_top"] .stButton button div {text-align:left; width:100%;}</style>', unsafe_allow_html=True)
 
-        fg_dict_key = build_top_results(st.session_state["processed_gdf"], 5, st.session_state["prefs"])
+        # We build the list of top 5 results
+        build_top_results(st.session_state["processed_gdf"], 5, st.session_state["prefs"])
         
         if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
             for key, value in st.session_state["fg_dict_ref"].items():
                 if key.startswith("Top"):
-                    show_fg(_fg_dict=st.session_state["fg_dict"], fg_key=key, clear_others=False)
+                    st.session_state['fgs_to_show'].add(key)
 
-t = performance_tracker(t, 'Start Map Column', timer_mode)
+
+
 ### Map Column
+t = performance_tracker(t, 'Start Map Column', timer_mode)
 with col_map:
 
     if st.session_state['processed_gdf'] is not None:
-        st.subheader("Carte Interactive")
+        # st.subheader("Carte Interactive")
         # we have scoring results let's draw the the map
+        
+        #scoring results layer with shades + highlighted top 5 binomes 
+        st.session_state['fg_dict_ref']['Scores'] = show_scoring_results(
+                st.session_state['processed_gdf'][['codgeo','libgeo','polygon','libgeo_binome', 'polygon_binome','weighted_score']],
+                st.session_state['prefs']
+            )
+        st.session_state['fgs_to_show'].add('Scores')
 
-        fg_dict = {}
-        #scoring results map with shades + highlighted top 5 binomes 
-        st.session_state['fg_dict_ref'] = show_scoring_results(
-            st.session_state['processed_gdf'][['codgeo','libgeo','polygon','libgeo_binome', 'polygon_binome','weighted_score']],
-            st.session_state['fg_dict_ref'], 
-            st.session_state['prefs']
-        )
-
-        # We now have a fg_dict_ref that looks like this:
-        # {
-        #     'Scores': fg_results,
-        #     'Top1': fg_com1,
-        #     'Top2': fg_com1,
-        #     'Top...': fg_com...,
-        #     'TopN': fg_comN
-        # }
-
-        # We default to the 'Scores' which shows all the scored results in shaded green and selected Geo in blue
-        st.session_state['fg_dict']['Scores'] = st.session_state['fg_dict_ref']['Scores'] 
     
         # We add additional informational layers
-        # We keep the schools in the same academy only
-        # See doc here: https://python-visualization.github.io/folium/latest/user_guide/geojson/geojson_marker.html
-        
 
-        with st.container():
-            col1, col2 = st.columns(2)
-            with col1: #Checkbox Affichage
-                t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
-                if st.session_state['prefs']['nb_enfants'] > 0:
-                    st.session_state['fg_dict_ref']['fg_ecoles'] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-                    st.checkbox(
-                        'Afficher établissements scolaires pertinents', 
-                        key='afficher_ecoles', 
-                        value=False, 
-                        # on_change=toggle_extra, 
-                        # kwargs={'fg':st.session_state['fg_dict_ref'].get('fg_ecoles'), 'fg_name':'ecoles', 'key':st.session_state['afficher_ecoles']}
-                    )
-                    toggle_extra(fg=st.session_state['fg_dict_ref'].get('fg_ecoles'), fg_name='ecoles', key=st.session_state['afficher_ecoles'])
+        # ECOLES
+        t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
+        if st.session_state['prefs']['nb_enfants'] > 0:
+            key_extra = 'fg_ecoles'
+            if st.checkbox(
+                'Afficher établissements scolaires pertinents', 
+                key=key_extra, 
+                value=False, 
+            ):
+                st.session_state['fg_dict_ref'][key_extra] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
+                st.session_state['fgs_to_show'].add(key_extra)
+            else:
+                st.session_state['fgs_to_show'].discard(key_extra)
                     
-            with col2: # Légende
-                badges = ""
-                if st.session_state['afficher_ecoles']:   
-                    if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
-                        badges += ":violet-badge[:material/edit: Maternelles] "
-                    if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
-                        badges += ":orange-badge[:material/edit: Ecoles primaires] "
-                    if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
-                        badges += ":blue-badge[:material/edit: Collèges] "
-                    if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
-                        badges += ":red-badge[:material/edit: Lycées] "
-                    st.markdown(badges)
 
-                t = performance_tracker(t, 'End Ecoles Display', timer_mode)
-        with st.container():
-            col1, col2 = st.columns(2)
-            with col1: #Checkbox Affichage
-                t = performance_tracker(t, 'Start Sante Display', timer_mode)
-                if st.session_state['prefs']['besoin_sante'] != "Aucun":
-                    st.session_state['fg_dict_ref']['fg_sante'] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
-                    st.checkbox(
-                        'Afficher établissements de santé pertinents', 
-                        key='afficher_sante', 
-                        value=False, 
-                        # on_change=toggle_extra, 
-                        # kwargs={'fg':st.session_state['fg_dict_ref'].get('fg_sante'), 'fg_name':'sante', 'key':st.session_state['afficher_sante']}
-                    )
-                    toggle_extra(fg=st.session_state['fg_dict_ref'].get('fg_sante'), fg_name='sante', key=st.session_state['afficher_sante'])
+        badges = ""
+        if st.session_state['fg_ecoles']:   
+            if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
+                badges += ":violet-badge[:material/edit: Maternelles] "
+            if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
+                badges += ":orange-badge[:material/edit: Ecoles primaires] "
+            if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
+                badges += ":blue-badge[:material/edit: Collèges] "
+            if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
+                badges += ":red-badge[:material/edit: Lycées] "
+
+            st.markdown(badges)
+        t = performance_tracker(t, 'End Ecoles Display', timer_mode)
+
+
+
+        # SANTE
+        t = performance_tracker(t, 'Start Sante Display', timer_mode)
+        if st.session_state['prefs']['besoin_sante'] != "Aucun":
+            key_extra = 'fg_sante'
+            st.session_state['fg_dict_ref'][key_extra] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
+            if st.checkbox(
+                'Afficher établissements de santé pertinents', 
+                key=key_extra, 
+                value=False, 
+            ):
+                st.session_state['fgs_to_show'].add(key_extra)
+            else:
+                st.session_state['fgs_to_show'].discard(key_extra)
+                    
+
+    
+        if st.session_state['fg_sante']:    
+            if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
+                badges += ":orange-badge[:material/local_hospital: Maternités] "
+            if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
+                badges += ":blue-badge[:material/local_hospital: Hopitaux] "
+            if 'Soutien Psychologique & Addictologie' in st.session_state['prefs'].get('besoin_sante'):
+                badges += ":violet-badge[:material/local_hospital: Centres Addictions & Santé Mentale] "
+            st.markdown(badges)
+        
+        t = performance_tracker(t, 'End Sante Display', timer_mode)
+
+        # SERVICES INCLUSION
+        t = performance_tracker(t, 'Start Services Inclusion Display', timer_mode)
+        if bool(st.session_state['prefs']['besoins_autres']):
+            key_extra = 'fg_services'
+            st.session_state['fg_dict_ref'][key_extra] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
+            if st.checkbox(
+                "Afficher les services d'inclusion pertinents", 
+                key=key_extra, 
+                value=False, 
+            ):
+                st.session_state['fgs_to_show'].add(key_extra)
+            else:
+                st.session_state['fgs_to_show'].discard(key_extra)
+
             
-            with col2: # Légende
-                badges = ""
-                if st.session_state['afficher_sante']:    
-                    if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
-                        badges += ":orange-badge[:material/local_hospital: Maternités] "
-                    if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
-                        badges += ":blue-badge[:material/local_hospital: Hopitaux] "
-                    if 'Centre Addictions & Maladies Mentales' in st.session_state['prefs'].get('besoin_sante'):
-                        badges += ":violet-badge[:material/local_hospital: Centres Addictions & Santé Mentale] "
-                    st.markdown(badges)
-
-                t = performance_tracker(t, 'End Sante Display', timer_mode)
-        with st.container():
-            col1, col2 = st.columns(2)
-            with col1: #Checkbox Affichage
-                t = performance_tracker(t, 'Start Services Inclusion Display', timer_mode)
-                if bool(st.session_state['prefs']['besoins_autres']):
-                    st.session_state['fg_dict_ref']['fg_services'] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
-                    checkbox_name = "Afficher les services d'inclusion pertinents"
-                    st.checkbox(
-                        checkbox_name, 
-                        key='afficher_services', 
-                        value=False, 
-                        # on_change=toggle_extra, 
-                        # kwargs={'fg':st.session_state['fg_dict_ref'].get('fg_services'), 'fg_name':'services', 'key':st.session_state['afficher_services']}
-                    )
-                    toggle_extra(fg=st.session_state['fg_dict_ref'].get('fg_services'), fg_name='services', key=st.session_state['afficher_services'])
-            
-            with col2: # Légende
-                badges = ""
-                if st.session_state['afficher_services']:
-                    if 'famille' in st.session_state['besoins_autres']:
-                        badges += ":orange-badge[:material/favorite: Famille] "
-                    if 'numerique' in st.session_state['besoins_autres']:
-                        badges += ":gray-badge[:material/favorite: Numérique] "
-                    if 'acces-aux-droits' in st.session_state['besoins_autres']:
-                        badges += ":violet-badge[:material/favorite: Accès aux droits] "
-                    if 'illetrisme' in st.session_state['besoins_autres']:
-                        badges += ":primary-badge[:material/favorite: Illetrisme] "
-                    if 'apprendre-francais' in st.session_state['besoins_autres']:
-                        badges += ":blue-badge[:material/favorite: Apprendre le français] "
-                    if 'sante' in st.session_state['besoins_autres']:
-                        badges += ":red-badge[:material/favorite: Santé] "
-                    st.markdown(badges)
-
-                t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
+        badges = ""
+        if st.session_state['fg_services']:
+            if 'famille' in st.session_state['besoins_autres']:
+                badges += ":orange-badge[:material/favorite: Famille] "
+            if 'numerique' in st.session_state['besoins_autres']:
+                badges += ":gray-badge[:material/favorite: Numérique] "
+            if 'acces-aux-droits' in st.session_state['besoins_autres']:
+                badges += ":violet-badge[:material/favorite: Accès aux droits] "
+            if 'illetrisme' in st.session_state['besoins_autres']:
+                badges += ":primary-badge[:material/favorite: Illetrisme] "
+            if 'apprendre-francais' in st.session_state['besoins_autres']:
+                badges += ":blue-badge[:material/favorite: Apprendre le français] "
+            if 'sante' in st.session_state['besoins_autres']:
+                badges += ":red-badge[:material/favorite: Santé] "
+            st.markdown(badges)
+        t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
 
         # Affichage de la carte (toujours en dernier)
         t = performance_tracker(t, 'Start Map Display', timer_mode)
     
         m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
         
-        # print(st.session_state['fg_dict'])
-        # print(list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()))
-        # st.write(st.session_state['fg_dict'])
-        # st.write(st.session_state['fg_extras_dict'])
-        # print(st.session_state["zoom"])
-        # print(st.session_state["center"])
+        # We now have a fg_dict_ref that looks like this:
+        # {
+        #     'Scores': fg_results,
+        #     'Top1': fg_com1,
+        #     'Top2': fg_com1,
+        #     'Top...': fg_com...,
+        #     'fg_ecoles': fg_ecoles,
+        #      ...
+        # }
+        
+        # Now we can build the list of feature groups to display (fgs_list) based on:
+        # 1. The list of feature groups names we want to show (fgs_to_show)
+        # 2. The reference dict of all available fgs (fg_dict_ref)
+         
+        fgs_list = []
+        print(st.session_state['fgs_to_show'])
+        for fg_name in st.session_state['fgs_to_show']:
+            if fg_name == 'Scores':
+                # We always insert Scores as the base (bottom) layer to improve visibility
+                fgs_list.insert(0, st.session_state['fg_dict_ref'].get(fg_name))
+            else:
+                fgs_list.append(st.session_state['fg_dict_ref'].get(fg_name))
+
         
         st_folium(
             m,
             zoom=st.session_state["zoom"],
             center=st.session_state["center"],
-            feature_group_to_add=list(st.session_state['fg_dict'].values())+list(st.session_state["fg_extras_dict"].values()),
+            feature_group_to_add=fgs_list, #list(st.session_state['fg_dict'].values()),#list(st.session_state['fg_dict'].values()),
             key="odis_scored_map",
             use_container_width=True,
             returned_objects=[],
             # layer_control=flm.LayerControl(collapsed=False)
         )
+        st.markdown('<style>.stCustomComponentV1   {border-radius:10px}</style>', unsafe_allow_html=True) # Rounded corners for the map widget
 
         t = performance_tracker(t, 'End Map Display', timer_mode)
 
 # st.text('Pour Développement')
+# st.write(st.session_state['fg_dict_ref'])
+# st.write(st.session_state['fg_dict'])
 # st.write(st.session_state['processed_gdf'])
 # cols_to_show = [col for col in st.session_state['processed_gdf'].columns if (col.endswith('scaled')) or (col.endswith('_score'))]
 # st.write(st.session_state['processed_gdf'][['libgeo']+cols_to_show])
