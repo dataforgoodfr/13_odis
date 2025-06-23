@@ -963,7 +963,7 @@ models:
       - name: YEAR
         description: Année de l'étude
         data_type: integer
-      - name: Mediane_Annuelle
+      - name: "Mediane_Annuelle"
         description: Salaire médian sur l'année
         data_type: integer
 

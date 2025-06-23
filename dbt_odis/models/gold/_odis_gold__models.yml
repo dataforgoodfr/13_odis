@@ -148,3 +148,16 @@ models:
         description: Nombre de demandeurs d'emploi
         data_type: integer
         quote: true
+
+  - name: emploi_salaire_median
+    description: Salaire Médian
+    columns:
+      - name: codgeo
+        description: code commune
+        data_type: integer
+      - name: YEAR
+        description: Année de l'étude
+        data_type: integer
+      - name: Mediane_Annuelle
+        description: Salaire médian sur l'année
+        data_type: integer
