@@ -164,3 +164,47 @@ models:
       - name: Nb actifs travaillant dans autre commune
         description: Nb actifs travaillant dans autre commune
         data_type: decimal
+
+  - name: emploi_gds_secteurs
+    description: Table recensant le nombre de demandeurs d'emploi pour une zone géographique identifiée et un mois de mesure donné
+    columns:
+      - name: codgeo
+        description: code INSEE de la zone géographique
+        data_type: text
+      - name: YEAR
+        description: mois_année de mesure des données
+        data_type: text
+        quote: true
+      - name: Type
+        description: Effectif salariés  ou  Nombre d'établissements
+        data_type: test
+        quote: true
+      - name: GS1 Industrie
+        description: Grand secteur numéro 1
+        data_type: integer
+        quote: true
+      - name: GS2 Construction
+        description: Grand secteur numéro 2
+        data_type: integer
+        quote: true
+      - name: GS3 Commerce
+        description: Grand secteur numéro 3
+        data_type: integer
+        quote: true
+      - name: GS4 Hôtellerie-restaurant
+        description: Grand secteur numéro 4
+        data_type: integer
+        quote: true
+      - name: GS5 Autres services
+        description: Grand secteur numéro 5
+        data_type: integer
+        quote: true
+      - name: GS6 Intérim
+        description: Grand secteur numéro 6
+        data_type: integer
+        quote: true
+      - name: GS7 Service non marchands
+        description: Grand secteur numéro 7
+        data_type: integer
+        quote: true
+
