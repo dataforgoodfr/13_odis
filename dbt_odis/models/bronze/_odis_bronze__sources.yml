@@ -34,6 +34,10 @@ sources:
         description: Source CSV loadée dans le champ data contenant 
         loaded_at_field: created_at
 
+      - name: emploi_salaire_median_filo2021_disp_com
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
       - name: emploi_demandeur_emploi_regions
         description: Source CSV loadée dans le champ data contenant 
         loaded_at_field: created_at
