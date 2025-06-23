@@ -1,4 +1,4 @@
-{# select *
+select *
 from {{ ref("education_moyenne_eleve") }}
 where type_geo = 'commune'
   and code_geo in (
@@ -7,14 +7,14 @@ where type_geo = 'commune'
     where type_geo = 'commune'
     group by code_geo
     having count(*) > 1
-  ) #}
+  )
 
-select
+{# select
     code_geo,
     count(*) as nb
 from {{ ref("education_moyenne_eleve") }}
 group by code_geo
-having count(*) > 1
+having count(*) > 1 #}
 
 {# with geo_commune as (
     select
