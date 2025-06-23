@@ -36,25 +36,14 @@ geo_commune as(
         commune
 ),
 
-
-jointure as (
+join_communes as ( 
     select 
         c.*,
-        gc.code_geo as code_geo,
-        row_number() over (
-            partition by c.code_postal, c.intitule
-            order by length(c.intitule) desc
-        ) as row_doublon
+        gc.code_geo as code_geo
     from commune c    
-    left join geo_commune gc
+        left join geo_commune gc
         on c.code_postal = gc.code_postal
-        and '%' || c.intitule || '%' like '%' || gc.commune || '%'
-),
-
-join_communes as (
-    select *
-    from jointure
-    where row_doublon = 1
+        and c.intitule like gc.commune
 ),
 
 departements as 
@@ -72,8 +61,7 @@ departements as
             )),
             '[-'']', ' ', 'g'
         ) as intitule,
-        replace(right(zone_geo, 3), ' ', '') as code_geo,
-        1 as row_doublon
+        replace(right(zone_geo, 3), ' ', '') as code_geo
     from {{ ref('emploi_demandeur_emploi_departements') }} 
 ),
 
@@ -92,8 +80,7 @@ regions as
             )),
             '[-'']', ' ', 'g'
         ) as intitule,
-        gr.code as code_geo,
-        1 as row_doublon
+        gr.code as code_geo
     from {{ ref('emploi_demandeur_emploi_regions') }} r
         left join {{ ref('geographical_references_regions') }} gr
     on replace(r.zone_geo, ' ', '-') = gr.intitule 
