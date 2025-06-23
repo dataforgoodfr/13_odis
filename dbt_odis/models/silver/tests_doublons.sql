@@ -1,13 +1,20 @@
 {# select *
-from {{ ref("emploi_demandeur_emploi") }}
+from {{ ref("education_moyenne_eleve") }}
 where type_geo = 'commune'
   and code_geo in (
     select code_geo
-    from {{ ref("emploi_demandeur_emploi") }}
+    from {{ ref("education_moyenne_eleve") }}
     where type_geo = 'commune'
     group by code_geo
     having count(*) > 1
   ) #}
+
+select
+    code_geo,
+    count(*) as nb
+from {{ ref("education_moyenne_eleve") }}
+group by code_geo
+having count(*) > 1
 
 {# with geo_commune as (
     select
@@ -28,7 +35,7 @@ select
 from geo_commune
 where commune like '%PREVESSIN%' #}
 
-
+{# 
 with commune as (
     select 
         *,
@@ -59,8 +66,8 @@ geo_commune as(
         code_postal,
         commune
 )
-{# 
-jointure as (
+#}
+{# jointure as (
     select 
         c.*,
         gc.code_geo as code_geo,
@@ -76,7 +83,7 @@ jointure as (
 
 select *
 from jointure
-where row_doublon = 1 #}
+where row_doublon = 1
 
     select 
         c.*,
@@ -84,4 +91,4 @@ where row_doublon = 1 #}
     from commune c    
     left join geo_commune gc
         on c.code_postal = gc.code_postal
-        and c.intitule  like  gc.commune
+        and c.intitule  like  gc.commune #}
