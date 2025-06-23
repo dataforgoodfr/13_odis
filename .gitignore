@@ -166,8 +166,6 @@ log/*
 data/imports/*
 !data/imports/.gitkeep
 .DS_Store
-dbt_odis/seeds/*
-!dbt_odis/seeds/.gitkeep
 log/*
 !log/.gitkeep
 
@@ -176,3 +174,6 @@ notebooks/*_processed.ipynb
 
 # ignore .env files for Bruno to avoid sharing secrets
 common/collections/** */.env
+
+# ignore exprts tables.csv files
+exports_wdd/*

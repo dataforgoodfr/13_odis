@@ -12,53 +12,32 @@ vars:pre-request {
 }
 
 docs {
-  # 🚀 Get started here
+  # 🚀 Intro
   
-  This template guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.
+  L'API Melodi est faite par l'INSEE pour fournir de très nombreux jeux de données divers, sur des granularités très fines avec de multiples dimensions, et avec une grande flexibilité dans les paramètres.
   
-  ## 🔖 **How to use this template**
+  # Comment s'y retrouver
   
-  #### **Step 1: Send requests**
+  Surtout, utiliser le catalogue en ligne de l'INSEE pour trouver les dataset intéressants (voir liens ci-dessous).
   
-  RESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.
+  C'est une API avec beaucoup de paramètres possibles et plein d'acronymes. Pour comprendre les acronymes, comprendre les jeux de données et ce que veulent dire les différents paramètres, on peut utiliser la requête `List All Dataset Descriptions` ou celle de `Get Dataset Description by ID`.
   
-  This collection contains each of these [request](https://learning.postman.com/docs/sending-requests/requests/) types. Open each request and click "Send" to see what happens.
+  L'API retourne des résultats unitaires appelés "observations". Une "observation" contient toujours : 
+  - la liste de ses dimensions, ie le recoupement de tous les paramètres
+  - la valeur numérique : une et une seule par observation.
   
-  #### **Step 2: View responses**
+  # Documentations officielles
   
-  Observe the response tab for status code (200 OK), response time, and size.
+  - [Documentation Swagger](https://portail-api.insee.fr/catalog/api/a890b735-159c-4c91-90b7-35159c7c9126/doc?page=712a242a-9d5c-4675-aa24-2a9d5c4675c4)
+  - [Catalogue en ligne des données de l'INSEE](https://catalogue-donnees.insee.fr/fr/catalogue/recherche)
   
-  #### **Step 3: Send new Body data**
+  Quelques documentations de datasets utiles pour OD&IS :
+  - [Dataset Logement](https://catalogue-donnees.insee.fr/fr/catalogue/recherche/DS_RP_LOGEMENT_COMP)
+  - [Dataset Education - Scolarisation](https://catalogue-donnees.insee.fr/fr/catalogue/recherche/DS_RP_EDUCATION)
+  - [Dataset Déplacements Domicile - Travail](https://catalogue-donnees.insee.fr/fr/catalogue/recherche/DS_RP_NAVETTES_PRINC)
   
-  Update or add new data in "Body" in the POST request. Typically, Body data is also used in PUT request.
+  # Limitations de l'API
   
-  ```
-  {
-      "name": "Add your name in the body"
-  }
-  
-   ```
-  
-  #### **Step 4: Update the variable**
-  
-  Variables enable you to store and reuse values in Postman. We have created a [variable](https://learning.postman.com/docs/sending-requests/variables/) called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.
-  
-  #### **Step 5: Add tests in the "Scripts" tab**
-  
-  Adding tests to your requests can help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the "Test Results" tab.
-  
-  <img src="https://content.pstmn.io/fa30ea0a-373d-4545-a668-e7b283cca343/aW1hZ2UucG5n" alt="" height="1530" width="2162">
-  
-  ## 💪 Pro tips
-  
-  - Use folders to group related requests and organize the collection.
-      
-  - Add more [scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/) to verify if the API works as expected and execute workflows.
-      
-  
-  ## 💡Related templates
-  
-  [API testing basics](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9a37a28-055b-49cd-8c7e-97494a21eb54&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  
-  [API documentation](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9c28f47-1253-44af-a2f3-20dce4da1f18&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  
-  [Authorization methods](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=31a9a6ed-4cdf-4ced-984c-d12c9aec1c27&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)
+  Throttling : 30 requêtes / minute (1 requête toutes les 2 secondes max)
+  Max Results : 10000 résultats par page maximum
 }

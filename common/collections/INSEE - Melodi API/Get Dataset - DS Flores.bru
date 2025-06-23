@@ -1,13 +1,26 @@
 meta {
-  name: Get Datastructure by ID
+  name: Get Dataset : DS Flores
   type: http
-  seq: 5
+  seq: 7
 }
 
 get {
-  url: {{base_url}}/{{melodi_path}}/datastructure/DS_IPCH_A
+  url: {{base_url}}/data/DS_RP_LOGEMENT_PRINC?page=1&maxResult=20&totalCount=true&TIME_PERIOD=2021&idObservation=true&range=true&idTerritoire=true&includeHistory=true&OCS=_T
   body: none
   auth: none
+}
+
+params:query {
+  page: 1
+  maxResult: 20
+  totalCount: true
+  TIME_PERIOD: 2021
+  idObservation: true
+  range: true
+  idTerritoire: true
+  includeHistory: true
+  OCS: _T
+  ~endPeriod: 2019-01-01
 }
 
 tests {

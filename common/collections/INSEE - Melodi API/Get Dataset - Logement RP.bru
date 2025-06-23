@@ -1,11 +1,11 @@
 meta {
-  name: Get Dataset
+  name: Get Dataset : Logement RP
   type: http
   seq: 7
 }
 
 get {
-  url: {{base_url}}/data/DS_IPCH_A?page=1&maxResult=20&totalCount=true&startPeriod=2020-01-01&endPeriod=2021-01-01&idObservation=true&range=true&idTerritoire=true&includeHistory=true
+  url: {{base_url}}/data/DS_RP_LOGEMENT_PRINC?page=1&maxResult=20&totalCount=true&TIME_PERIOD=2021&idObservation=true&range=true&idTerritoire=true&includeHistory=true&OCS=_T
   body: none
   auth: none
 }
@@ -14,12 +14,13 @@ params:query {
   page: 1
   maxResult: 20
   totalCount: true
-  startPeriod: 2020-01-01
-  endPeriod: 2021-01-01
+  TIME_PERIOD: 2021
   idObservation: true
   range: true
   idTerritoire: true
   includeHistory: true
+  OCS: _T
+  ~endPeriod: 2019-01-01
 }
 
 tests {

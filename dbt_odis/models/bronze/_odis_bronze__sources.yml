@@ -21,6 +21,10 @@ sources:
         loaded_at_field : created_at
         freshness :
         warn_after: {count: 1, period : year}
+
+      - name: emploi_ds_flores
+        description: Effectifs salariés et BU par sphère économique
+        loaded_at_field : created_at
         
       - name: emploi_bmo_2024_file
         description: Source CSV 
@@ -37,6 +41,10 @@ sources:
       - name: emploi_demandeur_emploi_regions
         description: Source CSV loadée dans le champ data contenant 
         loaded_at_field: created_at
+
+      - name: emploi_deplacement_domicile_travail_ds_rp_navettes_princ_data
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field : created_at
 
       - name: education_moyenne_eleve_commune
         description: Source JSON loadée dans le champ data contenant 
@@ -55,6 +63,10 @@ sources:
         loaded_at_field: created_at  
 
       - name: logement_dido_catalogue
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: logement_logements_all
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 
@@ -113,3 +125,8 @@ sources:
       - name: logement_social_logements_sociaux_epci
         description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
         loaded_at_field : created_at
+
+      - name: population_categorie_socio_pro
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+

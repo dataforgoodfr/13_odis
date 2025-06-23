@@ -67,7 +67,9 @@ APIs:
 
   Opendatasoft:
     name: Opendatasoft
-    description: API de données ouverte
+    description: |
+      Framework pour API REST avec un format de params spéficique pour passer des query. 
+      Utilisé par divers fournisseurs de data
     base_url: https://public.opendatasoft.com/api/explore/v2.1
     apidoc: https://help.opendatasoft.com/apis/ods-explore-v2/
     throttle: 100
@@ -98,6 +100,7 @@ APIs:
 domains:
 
   emploi:
+
     eff_secteur_prive_gds_secteurs:
       API: URSSAF
       description : Effectifs salariés du secteur privé par grands secteurs
@@ -107,7 +110,7 @@ domains:
     
     demandeur_emploi_regions:
       API: statistiques.francetravail.org
-      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par régions
+      description: Nombre de demandeurs d’emploi inscrits au 1er du mois à Pôle emploi par régions
       endpoint: /stmt/defmexp?li=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
@@ -118,7 +121,7 @@ domains:
 
     demandeur_emploi_departements:
       API: statistiques.francetravail.org
-      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par départements
+      description: Nombre de demandeurs d’emploi inscrits au 1er du mois à Pôle emploi par départements
       endpoint: /stmt/defmexp?lj=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
@@ -129,7 +132,7 @@ domains:
 
     demandeur_emploi_communes:
       API: statistiques.francetravail.org
-      description: Nombre de demandeurs d’emploi inscrits au 1er janvier à Pôle emploi par communes de plus de 5000 hab
+      description: Nombre de demandeurs d’emploi inscrits au 1er du mois à Pôle emploi par communes de plus de 5000 hab
       endpoint: /stmt/defmexp?lk=0&mm=0&pp=202001-&ss=1
       type: FileExtractor
       format: csv
@@ -152,8 +155,11 @@ domains:
 
     etablissements_employeurs_secteur_prive:
       API: INSEE.Melodi
-      description: Nombre d'établissements actifs employeurs selon les sphères de l'économie au niveau communal et supracommunal pour la France hors Mayotte.
-      endpoint: /file/DS_FLORES_ECONOMIC_SPHERE/DS_FLORES_ECONOMIC_SPHERE_2022_CSV_FR
+      description: |
+        Nombre d'établissements actifs employeurs, 
+        selon les sphères de l'économie au niveau communal et supracommunal,
+        pour la France hors Mayotte.
+      endpoint: /file/DS_FLORES_ECONOMIC_SPHERE/DS_FLORES_ECONOMIC_SPHERE_2023_CSV_FR
       type: FileExtractor
       format: zip
       headers:
@@ -161,6 +167,19 @@ domains:
       preprocessor:
         type: notebook
         name: unzip_load_csv_files
+
+    ds_flores:
+      API: INSEE.Melodi
+      description: |
+        Nombre d'établissements actifs employeurs, 
+        selon les sphères de l'économie au niveau communal et supracommunal,
+        pour la France hors Mayotte.
+      type: MelodiExtractor
+      endpoint: /data/DS_FLORES_ECONOMIC_SPHERE
+      format: json
+      extract_params:
+        maxResult: 10000
+        totalCount: true
 
     deplacement_domicile_travail:
       API: INSEE.Melodi
@@ -226,14 +245,19 @@ domains:
       endpoint: /communes?fields=code,nom,population,departement,region,centre
       format: json
 
-    communes_et_arrondissements:
-      API: Opendatasoft
-      description: Communes et Arrondissements Municipaux - France 
-      type: FileExtractor
-      endpoint: /catalog/datasets/georef-france-commune-arrondissement-municipal/exports/csv
-      format: csv
-      load_params:
-        separator: ;
+    arrondissements:
+      API: GEO.api.gouv.fr
+      description: Référentiel géographique GEO - arrondissements
+      type: JsonExtractor
+      endpoint: /communes?type=arrondissement-municipal
+      format: json
+
+    epcis:
+      API: GEO.api.gouv.fr
+      description: Référentiel géographique GEO - niveau epcis
+      type: JsonExtractor
+      endpoint: /epcis
+      format: json
 
   accueil:
 
@@ -248,31 +272,74 @@ domains:
     
   logement:
 
-      dido_catalogue:
-        API: DiDo
-        description: Catalogue de tous les datasets dispo sur l'API DiDo (logement / développement durable)
+      # dido_catalogue:
+      #   API: DiDo
+      #   description: Catalogue de tous les datasets dispo sur l'API DiDo (logement / développement durable)
+      #   type: MelodiExtractor
+      #   endpoint: /datasets
+      #   format: json
+      #   extract_params:
+      #     page: 1
+      #     pageSize: all
+      #   response_map:
+      #     data: data
+
+      # annual_dept_data:
+      #   API: DiDo
+      #   description: Données Annuelles Départementales de l'API DiDo
+      #   type: FileExtractor
+      #   endpoint: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
+      #   format: csv
+      #   extract_params:
+      #     withColumnName: true
+      #     withColumnDescription: true
+      #     withColumnUnit: true
+      #   load_params:
+      #     header: 2 # index de la première ligne utile du csv
+      #     skipfooter: 0 # combien de lignes inutiles à skipper en fin de document
+
+      logements_all:
+        API: INSEE.Melodi
+        description: nombre de logement
         type: MelodiExtractor
-        endpoint: /datasets
+        endpoint: /data/DS_RP_LOGEMENT_PRINC
         format: json
         extract_params:
-          page: 1
-          pageSize: all
+          maxResult: 10000
+          # TIME_PERIOD: 2021
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-01-01"
+          GEO: # géographies
+            - COM # communes
+            - DEP # départements
+            - REG # régions
+          RP_MEASURE: DWELLINGS # nombre de logements
+          L_STAY: _T
+          TOH: _T
+          CARS: _T
+          NOR: _T
+          TSH: # statut d'occupation du logement
+            - 0 # logement vacant
+            - 1 # habitant propriétaired
+            - 2 # habitant locataire
+            - _T # total général
+          BUILD_END: _T 
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: # type de logement
+            - 1 # maisons
+            - 2 # appartements
+            - 3 # foyers d'accueil
+            - 3T6 # autres logements de métropole 
+            - 6 # chambre indépendante
+            - _T # total général
         response_map:
-          data: data
-
-      annual_dept_data:
-        API: DiDo
-        description: Données Annuelles Départementales de l'API DiDo
-        type: FileExtractor
-        endpoint: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
-        format: csv
-        extract_params:
-          withColumnName: true
-          withColumnDescription: true
-          withColumnUnit: true
-        load_params:
-          header: 2 # index de la première ligne utile du csv
-          skipfooter: 0 # combien de lignes inutiles à skipper en fin de document
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
 
       logements_total:
         API: INSEE.Melodi
@@ -282,22 +349,31 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: [2010,2015,2021,2025]
           GEO: ["COM", "DEP", "REG"]
-          RP_MEASURE: DWELLINGS
+          RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
           TOH: _T
           CARS: _T
           NOR: _T
-          TSH: _T
-          BUILD_END: _T
-          OCS: _T
-          TDW: _T
+          TSH: # statut d'occupation du logement
+            - _T # total général
+          BUILD_END: _T 
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: # type de logement
+            - 1 # maisons
+            - 2 # appartements
+            - 3T6 # autres logements de métropole 
+            - _T # total général
         response_map:
           data: observations
           next: paging.next
-          is_last: paging.isLast
-          
+          is_last: paging.isLast     
+
       logements_maison:
         API: INSEE.Melodi
         description: nombre de maison
@@ -306,17 +382,23 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: [2010,2015,2021,2025]
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
           TOH: _T
           CARS: _T
           NOR: _T
-          TSH: _T
+          TSH:
+            - _T # total général
           BUILD_END: _T
-          OCS: _T
-          TDW: 1
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: 
+            - 1 # maisons
         response_map:
           data: observations
           next: paging.next
@@ -330,69 +412,75 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: [2010,2015,2021,2025]
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
           TOH: _T
           CARS: _T
           NOR: _T
-          TSH: _T
+          TSH:
+            - _T # total général
           BUILD_END: _T
-          OCS: _T
-          TDW: 2
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: 
+            - 2 # appartements
         response_map:
           data: observations
           next: paging.next
           is_last: paging.isLast
 
-      logements_maison_et_residences_principales:
-        API: INSEE.Melodi
-        description: nombre de maison residence principale
-        type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC
-        format: json
-        extract_params:
-          maxResult: 10000
-          TIME_PERIOD: 2021
-          GEO: ["COM", "DEP", "REG"]
-          RP_MEASURE: DWELLINGS
-          L_STAY: _T
-          TOH: _T
-          CARS: _T
-          NOR: _T
-          TSH: _T
-          BUILD_END: _T
-          OCS: DW_MAIN
-          TDW: 1
-        response_map:
-          data: observations
-          next: paging.next
-          is_last: paging.isLast
+      # logements_maison_et_residences_principales:
+      #   API: INSEE.Melodi
+      #   description: nombre de maison residence principale
+      #   type: MelodiExtractor
+      #   endpoint: /data/DS_RP_LOGEMENT_PRINC
+      #   format: json
+      #   extract_params:
+      #     maxResult: 10000
+      #     TIME_PERIOD: 2021
+      #     GEO: ["COM", "DEP", "REG"]
+      #     RP_MEASURE: DWELLINGS
+      #     L_STAY: _T
+      #     TOH: _T
+      #     CARS: _T
+      #     NOR: _T
+      #     TSH: _T
+      #     BUILD_END: _T
+      #     OCS: DW_MAIN
+      #     TDW: 1
+      #   response_map:
+      #     data: observations
+      #     next: paging.next
+      #     is_last: paging.isLast
 
-      logements_appartement_et_residences_principales:
-        API: INSEE.Melodi
-        description: nombre d'appartement residence principale
-        type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC
-        format: json
-        extract_params:
-          maxResult: 10000
-          TIME_PERIOD: 2021
-          GEO: ["COM", "DEP", "REG"]
-          RP_MEASURE: DWELLINGS
-          L_STAY: _T
-          TOH: _T
-          CARS: _T
-          NOR: _T
-          TSH: _T
-          BUILD_END: _T
-          OCS: DW_MAIN
-          TDW: 2
-        response_map:
-          data: observations
-          next: paging.next
-          is_last: paging.isLast
+      # logements_appartement_et_residences_principales:
+      #   API: INSEE.Melodi
+      #   description: nombre d'appartement residence principale
+      #   type: MelodiExtractor
+      #   endpoint: /data/DS_RP_LOGEMENT_PRINC
+      #   format: json
+      #   extract_params:
+      #     maxResult: 10000
+      #     TIME_PERIOD: 2021
+      #     GEO: ["COM", "DEP", "REG"]
+      #     RP_MEASURE: DWELLINGS
+      #     L_STAY: _T
+      #     TOH: _T
+      #     CARS: _T
+      #     NOR: _T
+      #     TSH: _T
+      #     BUILD_END: _T
+      #     OCS: DW_MAIN
+      #     TDW: 2
+      #   response_map:
+      #     data: observations
+      #     next: paging.next
+      #     is_last: paging.isLast
 
       logements_pieces:
         API: INSEE.Melodi
@@ -402,29 +490,32 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: [2010,2015,2021,2025]
           GEO: ["COM", "DEP", "REG"]
-          RP_MEASURE: DWELLINGS_ROOMS
+          RP_MEASURE: DWELLINGS_ROOMS # nombre de pièces
           L_STAY: _T
           TOH: _T
           CARS: _T
           NOR: _T
-          TSH: _T
-          BUILD_END: _T
-          OCS: DW_MAIN
-          TDW: _T
+          TSH: # statut d'occupation du logement
+            - _T # total général
+          BUILD_END: _T 
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: # type de logement
+            - 1 # maisons
+            - 2 # appartements
+            - 3T6 # autres logements de métropole 
+            - _T # total général
         response_map:
           data: observations
           next: paging.next
           is_last: paging.isLast
 
   logement_social:
-
-      # logement_sociaux:
-      #   notebook_path: notebook/logements_sociaux_2024.ipynb
-      #   description: recuperation des indicateurs des logements sociaux via notebook
-      #   type: NotebookExtractor
-      #   format: csv
       
       logements_sociaux:
         API: devdurable.gouv.fr
@@ -440,7 +531,7 @@ domains:
 
       moyenne_eleve_departement:
         API: Data.Gouv.Education
-        description: moyenne d'eleve par classe par departement
+        description: nombre d'eleves et de classes en ecoles pre et elementaires par departement
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
@@ -452,7 +543,7 @@ domains:
 
       moyenne_eleve_region:
         API: Data.Gouv.Education
-        description: moyenne d'eleve par classe par region academique
+        description: nombre d'eleves et de classes en ecoles pre et elementaires par academique
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
@@ -464,7 +555,7 @@ domains:
 
       moyenne_eleve_commune:
         API: Data.Gouv.Education
-        description: moyenne d'eleve par classe par commune
+        description: nombre d'eleves et de classes en ecoles pre et elementaires par commune
         type: JsonExtractor
         endpoint: /fr-en-ecoles-effectifs-nb_classes/exports/json
         format: json
@@ -478,7 +569,7 @@ domains:
 
       services:
         API: INSEE.Melodi
-        description: /!\ Merci d'ajouter une description valide ici /!\
+        description: nombre de services publics par commune, filtrés par certains types d'activités
         type: MelodiExtractor
         endpoint: /data/DS_BPE
         format: json
