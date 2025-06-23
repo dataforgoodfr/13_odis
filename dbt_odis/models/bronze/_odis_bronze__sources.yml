@@ -42,6 +42,10 @@ sources:
         description: Source CSV loadée dans le champ data contenant 
         loaded_at_field: created_at
 
+      - name: emploi_deplacement_domicile_travail_ds_rp_navettes_princ_data
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field : created_at
+
       - name: education_moyenne_eleve_commune
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at

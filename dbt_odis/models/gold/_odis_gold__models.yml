@@ -149,6 +149,22 @@ models:
         data_type: integer
         quote: true
 
+  - name: emploi_volumes_mobilites
+    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+    columns:
+      - name: codgeo
+        description: Identifiant géographique
+        data_type: text
+      - name: YEAR
+        description: Période temporelle
+        data_type: integer
+      - name: Nb actifs travaillant dans commune
+        description: Nb actifs travaillant dans commune
+        data_type: decimal
+      - name: Nb actifs travaillant dans autre commune
+        description: Nb actifs travaillant dans autre commune
+        data_type: decimal
+
   - name: emploi_gds_secteurs
     description: Table recensant le nombre de demandeurs d'emploi pour une zone géographique identifiée et un mois de mesure donné
     columns:
