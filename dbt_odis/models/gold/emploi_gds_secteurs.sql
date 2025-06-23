@@ -43,8 +43,26 @@ effectifs as (
         sum(case when grand_secteur_d_activite = 'GS7 Services non marchands' then effectifs_salaries else 0 end) as "GS7 Services non marchands"
     from base
     group by codgeo, year
+),
+
+unioned as (
+    select * from etablissements
+    union all
+    select * from effectifs
 )
 
-select * from etablissements
-union all
-select * from effectifs
+select
+    codgeo,
+    year,
+    case
+        when type = 'nombre_d_etablissements' then 'Nombre d''établissements'
+        when type = 'effectifs_salaries' then 'Effectifs salariés'
+    end as type,
+    "GS1 Industrie",
+    "GS2 Construction",
+    "GS3 Commerce",
+    "GS4 Hôtellerie-restauration",
+    "GS5 Autres services marchands hors intérim",
+    "GS6 Intérim",
+    "GS7 Services non marchands"
+from unioned
