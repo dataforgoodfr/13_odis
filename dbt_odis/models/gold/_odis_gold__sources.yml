@@ -17,3 +17,7 @@ sources:
 
       - name: emploi_demandeur_pivot
         description: Table contenant
+
+      - name: vw_emploi_deplacement_domicile_travail_filtered
+        description: Table contenant
+        loaded_at_field: created_at
