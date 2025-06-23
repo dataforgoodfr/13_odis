@@ -26,3 +26,7 @@ sources:
       - name: emploi_eff_prive
         description: Table contenant
         #loaded_at_field: created_at
+        
+      - name: silver_logements_sociaux
+        description: join silver logement social
+        
