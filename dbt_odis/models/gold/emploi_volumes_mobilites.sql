@@ -20,8 +20,8 @@ pivoted as (
     select
         codgeo,
         2021 as YEAR,
-        max(case when "WORK_AREA" = '10' then "OBS_VALUE" end) as "'Nb actifs travaillant dans commune'",
-        max(case when "WORK_AREA" = '20_30' then "OBS_VALUE" end) as "'Nb actifs travaillant dans autre commune'"
+        max(case when "WORK_AREA" = '10' then "OBS_VALUE" end) as "Nb actifs travaillant dans commune",
+        max(case when "WORK_AREA" = '20_30' then "OBS_VALUE" end) as "Nb actifs travaillant dans autre commune"
     from source_data
     group by codgeo
 
