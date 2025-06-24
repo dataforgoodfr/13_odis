@@ -1145,123 +1145,121 @@ with col_map:
 
 
         
-        col1, col2 = st.columns([1,4])
+        col1, col2 = st.columns([1,4], vertical_alignment='center')
         with col1:
             st.text("Afficher:")
         
         with col2:
             # st.write(st.session_state["highlighted_result"])
-            if st.checkbox("Les 5 meilleurs résultats sur la carte"):
-                for key, value in st.session_state["fg_dict_ref"].items():
-                    if key.startswith("Top"):
-                        st.session_state['fgs_to_show'].add(key)
-                st.session_state["zoom"] = None
+            with st.container(key='display_toggles'):
+                st.markdown('<style>.st-key-display_toggles {gap:0rem}</style>',unsafe_allow_html=True)
+                if st.checkbox("Les 5 meilleurs résultats sur la carte"):
+                    for key, value in st.session_state["fg_dict_ref"].items():
+                        if key.startswith("Top"):
+                            st.session_state['fgs_to_show'].add(key)
+                    st.session_state["zoom"] = None           
+                elif st.session_state["highlighted_result"][0]: # We hihglight the existing result
+                    # result_highlight(st.session_state["highlighted_result"][1], st.session_state["highlighted_result"][2], st.session_state["highlighted_result"][3])
+                    st.session_state['fgs_to_show'] = {k for k in st.session_state['fgs_to_show'] if not k.startswith('Top')}
+                    fg_key = 'Top'+str(st.session_state["highlighted_result"][2]+1)
+                    st.session_state['fgs_to_show'].add(fg_key)
+                else: # we clear all
+                    st.session_state['fgs_to_show'] = {k for k in st.session_state['fgs_to_show'] if not k.startswith('Top')}
             
-            elif st.session_state["highlighted_result"][0]: # We hihglight the existing result
-                # result_highlight(st.session_state["highlighted_result"][1], st.session_state["highlighted_result"][2], st.session_state["highlighted_result"][3])
-                st.session_state['fgs_to_show'] = {k for k in st.session_state['fgs_to_show'] if not k.startswith('Top')}
-                fg_key = 'Top'+str(st.session_state["highlighted_result"][2]+1)
-                st.session_state['fgs_to_show'].add(fg_key)
-            else: # we clear all
-                st.session_state['fgs_to_show'] = {k for k in st.session_state['fgs_to_show'] if not k.startswith('Top')}
- 
+                # We add additional informational layers
+                legend_items = []
 
-           
-            # We add additional informational layers
-            legend_items = []
+                # ECOLES
+                t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
+                if st.session_state['prefs']['nb_enfants'] > 0:
+                    key_extra = 'fg_ecoles'
+                    if st.checkbox(
+                        'Les établissements scolaires pertinents', 
+                        key=key_extra, 
+                        value=False, 
+                    ):
+                        st.session_state['fg_dict_ref'][key_extra] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
+                        st.session_state['fgs_to_show'].add(key_extra)
+                        # Légende
+                        icon = 'pencil'
+                        if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
+                            legend_items.append({'color':'violet', 'icon':icon, 'text':'Maternelles'})
+                        if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
+                            legend_items.append({'color':'orange', 'icon':icon, 'text':'Ecoles Primaires'})
+                        if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
+                            legend_items.append({'color':'blue', 'icon':icon, 'text':'Collèges'})
+                        if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
+                            legend_items.append({'color':'red', 'icon':icon, 'text':'Lycées'})
+                    else:
+                        st.session_state['fgs_to_show'].discard(key_extra)
+                            
+                t = performance_tracker(t, 'End Ecoles Display', timer_mode)
 
-            # ECOLES
-            t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
-            if st.session_state['prefs']['nb_enfants'] > 0:
-                key_extra = 'fg_ecoles'
-                if st.checkbox(
-                    'Les établissements scolaires pertinents', 
-                    key=key_extra, 
-                    value=False, 
-                ):
-                    st.session_state['fg_dict_ref'][key_extra] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-                    st.session_state['fgs_to_show'].add(key_extra)
-                    # Légende
-                    icon = 'pencil'
-                    if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
-                        legend_items.append({'color':'violet', 'icon':icon, 'text':'Maternelles'})
-                    if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
-                        legend_items.append({'color':'orange', 'icon':icon, 'text':'Ecoles Primaires'})
-                    if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
-                        legend_items.append({'color':'blue', 'icon':icon, 'text':'Collèges'})
-                    if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
-                        legend_items.append({'color':'red', 'icon':icon, 'text':'Lycées'})
-                else:
-                    st.session_state['fgs_to_show'].discard(key_extra)
+                # SANTE
+                t = performance_tracker(t, 'Start Sante Display', timer_mode)
+                if st.session_state['prefs']['besoin_sante'] != "Aucun":
+                    key_extra = 'fg_sante'
+                    st.session_state['fg_dict_ref'][key_extra] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
+                    if st.checkbox(
+                        'Les établissements de santé pertinents', 
+                        key=key_extra, 
+                        value=False, 
+                    ):
+                        st.session_state['fgs_to_show'].add(key_extra)
+                        # Légende
+                        icon = 'plus'
+                        if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
+                            legend_items.append({'color':'orange', 'icon':icon, 'text':'Maternité'})
+                        if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
+                            legend_items.append({'color':'blue', 'icon':icon, 'text':'Hopitaux'})
+                        if 'Soutien Psychologique & Addictologie' in st.session_state['prefs'].get('besoin_sante'):
+                            legend_items.append({'color':'violet', 'icon':icon, 'text':'Centres Addictions & Santé Mentale'})
                         
-            t = performance_tracker(t, 'End Ecoles Display', timer_mode)
+                    else:
+                        st.session_state['fgs_to_show'].discard(key_extra)
+                            
+                t = performance_tracker(t, 'End Sante Display', timer_mode)
 
-            # SANTE
-            t = performance_tracker(t, 'Start Sante Display', timer_mode)
-            if st.session_state['prefs']['besoin_sante'] != "Aucun":
-                key_extra = 'fg_sante'
-                st.session_state['fg_dict_ref'][key_extra] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
-                if st.checkbox(
-                    'Les établissements de santé pertinents', 
-                    key=key_extra, 
-                    value=False, 
-                ):
-                    st.session_state['fgs_to_show'].add(key_extra)
-                    # Légende
-                    icon = 'plus'
-                    if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
-                        legend_items.append({'color':'orange', 'icon':icon, 'text':'Maternité'})
-                    if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
-                        legend_items.append({'color':'blue', 'icon':icon, 'text':'Hopitaux'})
-                    if 'Soutien Psychologique & Addictologie' in st.session_state['prefs'].get('besoin_sante'):
-                        legend_items.append({'color':'violet', 'icon':icon, 'text':'Centres Addictions & Santé Mentale'})
-                    
-                else:
-                    st.session_state['fgs_to_show'].discard(key_extra)
-                        
-            t = performance_tracker(t, 'End Sante Display', timer_mode)
+                # SERVICES INCLUSION
+                t = performance_tracker(t, 'Start Services Inclusion Display', timer_mode)
+                if bool(st.session_state['prefs']['besoins_autres']):
+                    key_extra = 'fg_services'
+                    st.session_state['fg_dict_ref'][key_extra] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
+                    if st.checkbox(
+                        "Les services d'inclusion pertinents", 
+                        key=key_extra, 
+                        value=False, 
+                    ):
+                        st.session_state['fgs_to_show'].add(key_extra)
+                        # Légende
+                        icon = 'heart'
+                        if 'famille' in st.session_state['besoins_autres']:
+                            legend_items.append({'color':'orange', 'icon':icon, 'text':'Famille'})
+                        if 'numerique' in st.session_state['besoins_autres']:
+                            legend_items.append({'color':'grey', 'icon':icon, 'text':'Numérique'})
+                        if 'acces-aux-droits' in st.session_state['besoins_autres']:
+                            legend_items.append({'color':'violet', 'icon':icon, 'text':'Accès aux droits'})
+                        if 'illetrisme' in st.session_state['besoins_autres']:
+                            legend_items.append({'color':'darkgreen', 'icon':icon, 'text':'Illetrisme'})
+                        if 'apprendre-francais' in st.session_state['besoins_autres']:
+                            legend_items.append({'color':'blue', 'icon':icon, 'text':'Apprendre le français'})
+                        if 'sante' in st.session_state['besoins_autres']:
+                            legend_items.append({'color':'red', 'icon':icon, 'text':'Santé'})
+                    else:
+                        st.session_state['fgs_to_show'].discard(key_extra)
 
-            # SERVICES INCLUSION
-            t = performance_tracker(t, 'Start Services Inclusion Display', timer_mode)
-            if bool(st.session_state['prefs']['besoins_autres']):
-                key_extra = 'fg_services'
-                st.session_state['fg_dict_ref'][key_extra] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
-                if st.checkbox(
-                    "Les services d'inclusion pertinents", 
-                    key=key_extra, 
-                    value=False, 
-                ):
-                    st.session_state['fgs_to_show'].add(key_extra)
-                    # Légende
-                    icon = 'heart'
-                    if 'famille' in st.session_state['besoins_autres']:
-                        legend_items.append({'color':'orange', 'icon':icon, 'text':'Famille'})
-                    if 'numerique' in st.session_state['besoins_autres']:
-                        legend_items.append({'color':'grey', 'icon':icon, 'text':'Numérique'})
-                    if 'acces-aux-droits' in st.session_state['besoins_autres']:
-                        legend_items.append({'color':'violet', 'icon':icon, 'text':'Accès aux droits'})
-                    if 'illetrisme' in st.session_state['besoins_autres']:
-                        legend_items.append({'color':'darkgreen', 'icon':icon, 'text':'Illetrisme'})
-                    if 'apprendre-francais' in st.session_state['besoins_autres']:
-                        legend_items.append({'color':'blue', 'icon':icon, 'text':'Apprendre le français'})
-                    if 'sante' in st.session_state['besoins_autres']:
-                        legend_items.append({'color':'red', 'icon':icon, 'text':'Santé'})
-                else:
-                    st.session_state['fgs_to_show'].discard(key_extra)
+                t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
 
-            t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
+                # Légende
+                legend = build_legend(legend_items)
+                st.markdown(legend, unsafe_allow_html=True)
 
-            # Affichage de la carte (toujours en dernier)
-            t = performance_tracker(t, 'Start Map Display', timer_mode)
-            
-            # Base Map
-            m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
-
-            # Légende
-            legend = build_legend(legend_items)
-            st.markdown(legend, unsafe_allow_html=True)
-
+        # Affichage de la carte (toujours en dernier)
+        t = performance_tracker(t, 'Start Map Display', timer_mode)
         
+        # Base Map
+        m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
+
         # FeatureGroups
         # We now have a fg_dict_ref that looks like this:
         # {
@@ -1293,7 +1291,7 @@ with col_map:
             key="odis_scored_map",
             use_container_width=True,
             returned_objects=[],
-            layer_control=flm.LayerControl(collapsed=False)
+            # layer_control=flm.LayerControl(collapsed=False)
         )
         st.markdown('<style>.stCustomComponentV1   {border-radius:10px}</style>', unsafe_allow_html=True) # Rounded corners for the map widget
 
