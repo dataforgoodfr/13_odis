@@ -7,7 +7,7 @@ def performance_tracker(t, text, timer_mode):
         return time.time()
 t = time.time()
 print(time.ctime(t))
-timer_mode = False
+timer_mode = True
 
 t = performance_tracker(t, 'Start Import', timer_mode)
 # Notebook Specific
@@ -24,12 +24,18 @@ from folium.plugins import MarkerCluster, FastMarkerCluster
 import plotly.express as px
 from streamlit_folium import st_folium
 from branca.colormap import linear
+from branca.element import Template, MacroElement
 from odis_stream2_scoring import compute_odis_score, init_loading_datasets
 
 t = performance_tracker(t, 'End Import', timer_mode)
 
 st.set_page_config(layout="wide", page_title='Odis Stream2 Prototype')
-
+st.markdown(
+    """
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    """,
+    unsafe_allow_html=True
+)
 ### INIT OF THE STREAMLIT APP ###
 
 def session_states_init():
@@ -71,7 +77,9 @@ def session_states_init():
         st.session_state["center"] = None
     if "besoins_autres" not in st.session_state:
         st.session_state["besoins_autres"] = {}
-        
+
+
+
 # This @st.cache_resource dramatically improves performance of the app
 @st.cache_resource
 def init_datasets():
@@ -107,7 +115,7 @@ def set_prefs(scores_cat):
         'poids_emploi':poids_emploi,
         'poids_logement':poids_logement,
         'poids_education':poids_education,
-        'poids_soutien':poids_soutien,
+        'poids_inclusion':poids_inclusion,
         'poids_mobilité':poids_mobilité,
         'commune_actuelle':commune_codgeo,
         'loc_distance_km':loc_distance_km,
@@ -208,7 +216,7 @@ def build_top_results(_df, n, prefs):
 
             properties = {
                 "Nom": row.libgeo,
-                "Score": round(row.weighted_score, 2),
+                "Score": str(int(row.weighted_score*100))+'%',
                 "style": style_to_use,
                 "popup_html": ( # Pre-render popup HTML for convenience
                     f"<b>{row.libgeo}</b><br>"
@@ -266,14 +274,14 @@ def build_top_results(_df, n, prefs):
 
 
         # Then we can show the expander-like button (= expander with on-click and)
-        title = f"{row.weighted_score * 100:.0f}% | {row.libgeo}"# + (f" (en binôme avec {row.libgeo_binome})" if row.binome else "")
+        title = f"Top {index+1} | {row.libgeo}"# + (f" (en binôme avec {row.libgeo_binome})" if row.binome else "")
         st.button(
             title,
             on_click=result_highlight,
             kwargs={'row':row, 'index':index, 'prefs':prefs},
             use_container_width=True,
             key='button_top'+str(index+1),
-            type='secondary',
+            type='primary',
             icon=":material/arrow_drop_down:"
             )
         
@@ -292,9 +300,11 @@ def build_top_results(_df, n, prefs):
                     fig = px.line_polar(theta=data_to_plot.index.str.capitalize(), r=data_to_plot.values * 100, line_close=True)
                     fig.update_traces(fill='toself')
                     st.plotly_chart(fig)
+                    st.caption('Plus le critère s’approche du bord du cercle, plus il est attractif dans cette zone')
 
+                    st.divider()
                     # Additional info about the communes that are not related to the search
-                    st.text('Plus d’informations sur cette commune')
+                    st.text('Plus d’informations sur cette localité :')
                     with st.expander('Top 10 des métiers recherchés'):
                         liste_metiers=[]
                         if row.be_libfap_top is not None:
@@ -336,15 +346,14 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     # We produce the pitch for the top N results
     # We generate a markdown text that is natively displayed by streamlit
     pitch_md = []
-    pitch_md.append(f'**{row["libgeo"]}** (Pop. {row["population"]}) commune dans l\'agglomération: {row["epci_nom"]}.  ')
-    pitch_md.append(f'Le score de corespondance est de: **{row["weighted_score"] *100:.2f}**% ')
- 
+    population = "{:,.0f}".format(row["population"])
+    pitch_md.append(f'**{row["libgeo"]}** ({population.replace(","," ")} habitants) fait partie de l\'agglomération: {row["epci_nom"]}.  ')
+    
     if row["binome"]:
-        pitch_md.append(f'(obtenu en [binôme](# "Aggrégation des points forts des deux communes") avec {row["libgeo_binome"]})')
-        if row["epci_code"] != row["epci_code_binome"]:
-            pitch_md.append(f' située dans l\'agglomération: {row["epci_nom_binome"]}')
+        pitch_md.append(f'\nCette commune, en [binôme](# "Lorsque des communes sont proposées en binômes, c’est qu’ensemble elles correspondent au projet de vie de la personne. L’une peut présenter des opportunités d’emplois, l’autre de logements. Une installation pourrait alors être envisagée aux alentours de leur délimitation commune.") avec sa voisine **{row["libgeo_binome"]}**, pourrait être intéressante {"pour "+demo_data["nom"] if demo_data["nom"] is not None else ""}. La correspondance de ses besoins et opportunités est évaluée à **{row["weighted_score"] *100:.0f}**% ')
     else:
-        pitch_md.append(f'obtenu sans commune binôme.  ')
+        pitch_md.append(f'\nCette commune pourrait être intéressante pour [nom de la personne]. La correspondance de ses besoins et opportunités est évaluée à **{row["weighted_score"] *100:.0f}**% ')
+
 
     # Adding the top contributing criterias
     crit_scores_col = [col for col in row.keys() if '_scaled' in col]
@@ -357,47 +366,69 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     # Then we sort an print the top 5
     weighted_row = weighted_row[crit_scores_col].dropna().sort_values(ascending=False)
 
-    pitch_md.append(f'\nCritères qui la démarque des autres communes de la région:  ')
+    pitch_md.append(f"\nCette commune, ou ce binôme de communes, comporte en effet :")
     for i in range(0, 5):
         if weighted_row.iloc[i] > 50:
             score = weighted_row.index[i]
-            score_name = scores_cat.loc[score]['score_name']
-            pitch_md.append(f'- **{score_name}**')# avec un score de: **{weighted_row.iloc[i]:.2f}**')
+            score_affichage = scores_cat.loc[score]['score_affichage']
+            score_metric = scores_cat.loc[score]['metric']
+            score_unit = scores_cat.loc[score]['unit']
+            display_factor = scores_cat.loc[score]['display_factor']
+            show_metric = scores_cat.loc[score]['show_metric']
+            if show_metric:
+                pitch_md.append(f'- {score_affichage} ({display_factor*row[score_metric]:.0f} {score_unit})')
+            else:
+                pitch_md.append(f'- {score_affichage}')
+
+            #Let's handle the case where we want to display the list of matched items (if any)
+            if '_match_' in score:
+                # st.write(row)
+                adult = score[-8:][:1] # e.g. met_match_code_adult1_scaled --> 1
+                matched_names = []
+                if score.startswith('met'): #metiers
+                    matched_names += list(codfap_index[codfap_index['Code FAP 341'].isin(row['met_match_codes_adult'+str(adult)])]['Intitulé FAP 341'])
+                elif score.startswith('form'): #formations
+                    matched_names += list(codformations_index[codformations_index.index.isin(row['form_match_codes_adult'+str(adult)])]['libformation'])
+                else:
+                    continue
+                if matched_names:
+                    for name in matched_names:
+                        pitch_md.append(f'    - {name}')
 
     
     #Adding the matching job families if any
-    if any(prefs['codes_metiers']): # We first check if we were actually looking for a fospecific job in that area
-        pitch_md.append('\n**Emploi**\n') 
-        metiers_col = [col for col in row.keys() if col.startswith('met_match_codes')]
-        matched_codfap_names = []
-        for metiers_adultx in metiers_col:
-            matched_codfap_names += list(codfap_index[codfap_index['Code FAP 341'].isin(row[metiers_adultx])]['Intitulé FAP 341'])
-        matched_codfap_names = list(set(matched_codfap_names))
-        if len(matched_codfap_names) == 0:
-            pitch_md.append(f'Aucun des métiers recherchés ne figure dans le Top 10 des métiers à pourvoir sur cette zone.  ')
-            pitch_md.append('\n')
-            # pitch_md.append(f'Top 10 des métiers à pourvoir sur cette zone:  ')
-            # pitch_md.append(f'{", ".join(row["be_libfap_top"])}  ')
-        if len(matched_codfap_names) == 1:
-            pitch_md.append(f' La famille de métiers **{matched_codfap_names[0]}** est rechechée dans cette zone ')
-        elif len(matched_codfap_names) >= 1:
-            pitch_md.append(f'- Les familles de métiers **{", ".join(matched_codfap_names)}** sont rechechées dans cette zone ')
+    # if any(prefs['codes_metiers']): # We first check if we were actually looking for a fospecific job in that area
+    #     pitch_md.append('\n**Emploi**  ') 
+    #     metiers_col = [col for col in row.keys() if col.startswith('met_match_codes')]
+    #     matched_codfap_names = []
+    #     for metiers_adultx in metiers_col:
+    #         matched_codfap_names += list(codfap_index[codfap_index['Code FAP 341'].isin(row[metiers_adultx])]['Intitulé FAP 341'])
+    #     matched_codfap_names = list(set(matched_codfap_names))
+    #     if len(matched_codfap_names) == 0:
+    #         pitch_md.append(f'Aucun des métiers recherchés ne figure dans le Top 10 des métiers à pourvoir sur cette zone.  ')
+    #         pitch_md.append('\n')
+    #         # pitch_md.append(f'Top 10 des métiers à pourvoir sur cette zone:  ')
+    #         # pitch_md.append(f'{", ".join(row["be_libfap_top"])}  ')
+    #     if len(matched_codfap_names) == 1:
+    #         pitch_md.append(f' La famille de métiers **{matched_codfap_names[0]}** est rechechée dans cette zone ')
+    #     elif len(matched_codfap_names) >= 1:
+    #         pitch_md.append(f'- Les familles de métiers **{", ".join(matched_codfap_names)}** sont rechechées dans cette zone ')
         
     
-    # Adding the matching formation families if any
-    if any(prefs['codes_formations']): # We first check if we were actually looking for a formation in that area
-        pitch_md.append('\n**Formations**\n') 
-        formations_col = [col for col in row.keys() if col.startswith('form_match_codes')]
-        matched_codform_names = []
-        for formations_adultx in formations_col:
-            matched_codform_names += list(codformations_index[codformations_index.index.isin(row[formations_adultx])]['libformation'])
-        matched_codform_names = list(set(matched_codform_names))
-        if len(matched_codform_names) == 0:
-            pitch_md.append(f'Aucune des formations recherchées ne figure dans les formations offertes sur cette zone.  ')
-        if len(matched_codform_names) == 1:
-            pitch_md.append(f'- La formation recherchée **{matched_codform_names[0]}** est proposée  ')
-        elif len(matched_codform_names) >= 1:
-            pitch_md.append(f'- Les formations recherchés **{", ".join(matched_codform_names)}** sont proposées  ')
+    # # Adding the matching formation families if any
+    # if any(prefs['codes_formations']): # We first check if we were actually looking for a formation in that area
+    #     pitch_md.append('\n**Formations**\n') 
+    #     formations_col = [col for col in row.keys() if col.startswith('form_match_codes')]
+    #     matched_codform_names = []
+    #     for formations_adultx in formations_col:
+    #         matched_codform_names += list(codformations_index[codformations_index.index.isin(row[formations_adultx])]['libformation'])
+    #     matched_codform_names = list(set(matched_codform_names))
+    #     if len(matched_codform_names) == 0:
+    #         pitch_md.append(f'Aucune des formations recherchées ne figure dans les formations offertes sur cette zone.  ')
+    #     if len(matched_codform_names) == 1:
+    #         pitch_md.append(f'- La formation recherchée **{matched_codform_names[0]}** est proposée  ')
+    #     elif len(matched_codform_names) >= 1:
+    #         pitch_md.append(f'- Les formations recherchés **{", ".join(matched_codform_names)}** sont proposées  ')
 
     return "\n".join(pitch_md)
 
@@ -414,6 +445,7 @@ def show_scoring_results(_df, prefs):
     geojson_features = []
     score_weights_dict = st.session_state["processed_gdf"].set_index("codgeo")["weighted_score"]
     colormap = linear.YlGn_09.scale(score_weights_dict.min(), score_weights_dict.max())
+    # colormap.caption = "Score"
 
     # All results colored based on score
     t = performance_tracker(t, 'Start row iterations', timer_mode)
@@ -434,7 +466,7 @@ def show_scoring_results(_df, prefs):
 
         properties = {
             "Nom": row.libgeo,
-            "Score": round(row.weighted_score, 2),
+            "Score": str(int(row.weighted_score*100))+'%',
             "style": style_to_use,
             "popup_html": ( # Pre-render popup HTML for convenience
                 f"<b>{row.libgeo}</b><br>"
@@ -493,7 +525,7 @@ def show_scoring_results(_df, prefs):
     fg_results.add_child(communes)
     t = performance_tracker(t, 'End show_scoring_results', timer_mode)
 
-    return fg_results
+    return fg_results, colormap
 
 @st.cache_data
 def odis_base_map(_current_geo, prefs):
@@ -522,6 +554,54 @@ def odis_base_map(_current_geo, prefs):
     m = flm.Map(location=center_loc, zoom_start=10)
 
     return m
+
+@st.cache_data
+def build_legend(items_list):
+    # https://github.com/pointhi/leaflet-color-markers
+    leaflet_colors = {
+        "red": "#D63E2A",
+        "blue": "#38A9DC",
+        "green": "#72B026",
+        "purple": "#5B396B",
+        "violet": "#D252B9",
+        "orange": "#F69730",
+        "darkred": "#A23336",
+        "lightred": "#EB7D7F",
+        "darkblue": "#0066A2",
+        "darkgreen": "#728224",
+        "teal": "#436978",
+        "grey": "#A3A3A3"
+    }
+    
+    legend_html = """
+            <div id='maplegend' class='maplegend' 
+                style='position: absolute; z-index: 9999; background-color: rgba(255, 255, 255, 0.7);
+                border-radius: 6px; padding: 5px; font-size: 11px; right: 5px; top: 20px;'>     
+            <div class='legend-scale'>
+            <ul class='legend-labels'>
+            <li><span>Score: Faible</span><span class='scale'></span><span> Elevé</span></li>
+        """
+    # items_list = [{'icon':'heart', 'color':'red', 'text':'red_heart'}, {'icon':'pencil', 'color':'green', 'text':'green_pencil'}]
+    #items_list = [[icon, color, text]]
+    for item in items_list:
+        legend_html += f"""
+            <li><span class='marker-circle' style='background:{leaflet_colors.get(item['color'])}');'><i class='fa fa-{item['icon']}' style='color:white'></i></span><span>{item['text']}</span></li>
+        """
+
+    legend_html += """
+            </ul>
+            </div>
+            </div> 
+            <style type='text/css'>
+            .maplegend .legend-scale ul {margin: 0; padding: 0; color: #0f0f0f;}
+            .maplegend .legend-scale ul li {list-style: none; line-height: 18px; margin: 0px;}
+            .maplegend ul.legend-labels li span {height: 16px; margin-right: 5px; vertical-align:middle}
+            .maplegend ul.legend-labels li .scale {display: inline-block; width:100px; background: linear-gradient(90deg,rgba(250, 241, 157, 1) 0%, rgba(67, 153, 100, 1) 100%)}
+            .maplegend ul.legend-labels li .marker-circle {display: inline-flex; width:22px; height:22px; border-radius:50%; margin: 2px}
+            .maplegend ul.legend-labels li .marker-circle i {padding:6px}
+            </style>
+        """
+    return legend_html
 
 # Affichage Support Education
 @st.cache_data
@@ -699,7 +779,7 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
         filtered_ecoles.maternelle_presente
         ))
 
-    FastMarkerCluster(locations, callback=callback).add_to(fg_ecoles)
+    FastMarkerCluster(locations, callback=callback, showCoverageOnHover=False).add_to(fg_ecoles)
     
     return fg_ecoles
 
@@ -872,7 +952,7 @@ def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
         filtered_annuaire.maternite_presente
         ))
 
-    FastMarkerCluster(locations, callback=callback).add_to(fg_sante)
+    FastMarkerCluster(locations, callback=callback, showCoverageOnHover=False).add_to(fg_sante)
 
     return fg_sante
 
@@ -1036,7 +1116,7 @@ def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
         filtered_annuaire.presentation_resume
         ))
 
-    FastMarkerCluster(locations, callback=callback).add_to(fg_services)
+    FastMarkerCluster(locations, callback=callback, showCoverageOnHover=False).add_to(fg_services)
 
     return fg_services
 
@@ -1055,7 +1135,7 @@ demo_data = {
     'poids_emploi':None,
     'poids_logement':None,
     'poids_education':None,
-    'poids_soutien':None,
+    'poids_inclusion':None,
     'poids_mobilité':None,
     'departement_actuel': None,
     'commune_actuelle':None,
@@ -1080,7 +1160,7 @@ def run_demo(demo_data):
             demo_data['nom'] = 'Zacharie'
             demo_data['departement_actuel'] = '33'
             demo_data['commune_actuelle'] = 'Bordeaux'
-            demo_data['loc_distance_km'] = 1 #[0=10km, 1=25km, 2=50km, 3=100km, 4=France]
+            demo_data['loc_distance_km'] = 1 #[0=25km, 1=50km, 2=France]
             demo_data['hebergement'] = "Chez l'habitant"
             demo_data['nb_adultes'] = 1
             demo_data['nb_enfants'] = 0
@@ -1090,7 +1170,7 @@ def run_demo(demo_data):
             demo_data['nom'] = 'Olga & Dimitri'
             demo_data['departement_actuel'] = '75'
             demo_data['commune_actuelle'] = 'Paris'
-            demo_data['loc_distance_km'] = 2 #[0=10km, 1=25km, 2=50km, 3=100km, 4=France]
+            demo_data['loc_distance_km'] = 2 #[0=25km, 1=50km, 2=France]
             demo_data['hebergement'] = "Location"
             demo_data['logement'] = "Logement Social"
             demo_data['nb_adultes'] = 2
@@ -1106,7 +1186,7 @@ def run_demo(demo_data):
             demo_data['nom'] = 'Aïcha'
             demo_data['departement_actuel'] = '13'
             demo_data['commune_actuelle'] = 'Marseille'
-            demo_data['loc_distance_km'] = 2 #[0=10km, 1=25km, 2=50km, 3=100km, 4=France]
+            demo_data['loc_distance_km'] = 1 #[0=25km, 1=50km, 2=France]
             demo_data['hebergement'] = "Location"
             demo_data['logement'] = "Logement Social"
             demo_data['nb_adultes'] = 1
@@ -1117,7 +1197,7 @@ def run_demo(demo_data):
             demo_data['classe_enfants'] = [1, 2] #index of ['Maternelle','Primaire','Collège','Lycée']
             demo_data['besoins_autres'] = {'apprendre-francais':['-']}
             demo_data['poids_mobilité'] = 50
-            demo_data['poids_soutien'] = 50
+            demo_data['poids_inclusion'] = 50
             demo_data['poids_emploi'] = 100
 
         if st.sidebar.button('Quitter Mode Démo', type='tertiary'):
@@ -1129,9 +1209,6 @@ def run_demo(demo_data):
     
     # print(demo_data)
     return demo_data
-
-
-
 
 # Loading and caching Datasets
 t = performance_tracker(t, 'Start Dataset Import', timer_mode)
@@ -1159,7 +1236,7 @@ demo_data = run_demo(demo_data)
 t = performance_tracker(t, 'Start App Sidebar', timer_mode)
 with st.sidebar:
     
-    st.header("Recherche d'un nouveau lieu de vie selon son projet")
+    # st.header("Recherche d'un nouveau lieu de vie selon son projet")
     st.subheader('Localisation Actuelle')
     # Département
     dep_index = coddep_set.index(demo_data['departement_actuel'] if demo_data['departement_actuel'] is not None else '33')
@@ -1173,25 +1250,35 @@ with st.sidebar:
     
     st.divider()
     with st.expander('Pondérations des critères'):
+        value_education = demo_data['poids_education'] if demo_data['poids_education'] is not None else 100
+        poids_education = st.select_slider("Pondération Education", [0, 25, 50, 100], value=value_education)
+        
         value_emploi = demo_data['poids_emploi'] if demo_data['poids_emploi'] is not None else 100
-        poids_emploi = st.select_slider("Pondération Emploi", [0, 25, 50, 100], value=value_emploi)
+        poids_emploi = st.select_slider("Pondération Prejet Professionnel", [0, 25, 50, 100], value=value_emploi)
+        
         value_logement = demo_data['poids_logement'] if demo_data['poids_logement'] is not None else 100
         poids_logement = st.select_slider("Pondération Logement", [0, 25, 50, 100], value=value_logement)
 
-        value_education = demo_data['poids_education'] if demo_data['poids_education'] is not None else 100
-        poids_education = st.select_slider("Pondération Education", [0, 25, 50, 100], value=value_education)
-        value_soutien = demo_data['poids_soutien'] if demo_data['poids_soutien'] is not None else 25
-        poids_soutien = st.select_slider("Pondération Soutien", [0, 25, 50, 100], value=value_soutien)
+        value_soutien = demo_data['poids_inclusion'] if demo_data['poids_inclusion'] is not None else 25
+        poids_inclusion = st.select_slider("Pondération Soutien à l'inclusion", [0, 25, 50, 100], value=value_soutien)
 
         value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
         poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
+
         penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=50) / 100
 
+st.write(':red[Dev In Progress...]')
 
 #Top filter Form
 t = performance_tracker(t, 'Start Top Filters', timer_mode)
 with st.container(border=False, key='top_menu'):
-    st.markdown('<style>.st-key-top_menu  {background-color:whitesmoke; padding:30px; border-radius:10px}</style>', unsafe_allow_html=True)
+    st.markdown("""
+                <style>
+                    .st-key-top_menu  {background-color:whitesmoke; padding:30px; border-radius:10px}
+                    .stTabs div div button div p {font-size:1rem}
+                </style>
+                """
+                , unsafe_allow_html=True)
     if demo_data['nom'] is not None:
         st.subheader(f"Situation et besoins de {demo_data['nom']}")
     else:
@@ -1218,11 +1305,11 @@ with st.container(border=False, key='top_menu'):
         col_left,col_right =st.columns(2)
         with col_left:
             nb_adultes_options = [1, 2]
-            nb_adultes_index = nb_adultes_options.index(demo_data['nb_adultes']) if demo_data['nb_adultes'] is not None else 0
-            nb_adultes = st.radio("Nombre d'adultes", options=nb_adultes_options, index=nb_adultes_index)
+            nb_adultes_index = demo_data['nb_adultes']-1 if demo_data['nb_adultes'] is not None else 0
+            nb_adultes = st.radio("Nombre d'adultes", options=nb_adultes_options, index=nb_adultes_index, horizontal=True)
         with col_right:
             nb_enfants_value = demo_data['nb_enfants'] if demo_data['nb_enfants'] is not None else 0
-            nb_enfants = st.select_slider("Nombre d'enfants", range(0,6), value=nb_enfants_value)
+            nb_enfants = st.radio("Nombre d'enfants", [0,1,2,3,4,5], index=nb_enfants_value, horizontal=True)
 
     #Education
     with tab_edu:
@@ -1280,10 +1367,10 @@ with st.container(border=False, key='top_menu'):
     #Mobilité
     with tab_mobilite:
         distance_options = {
-            10:'Extrêmement Important (~10km)',
+            # 10:'Extrêmement Important (~10km)',
             25:'Important (~25km)',
             50:'Assez important (~50km)',
-            100:'Peu Important (~100km)',
+            # 100:'Peu Important (~100km)',
             1000:'Toute la France'
         }
         dist_value = demo_data['loc_distance_km'] if demo_data['loc_distance_km'] is not None else 0
@@ -1342,8 +1429,8 @@ with st.container(border=False, key='top_menu'):
     #     with col2:
     #         value_education = demo_data['poids_education'] if demo_data['poids_education'] is not None else 100
     #         poids_education = st.select_slider("Pondération Education", [0, 25, 50, 100], value=value_education)
-    #         value_soutien = demo_data['poids_soutien'] if demo_data['poids_soutien'] is not None else 25
-    #         poids_soutien = st.select_slider("Pondération Soutien", [0, 25, 50, 100], value=value_soutien)
+    #         value_soutien = demo_data['poids_inclusion'] if demo_data['poids_inclusion'] is not None else 25
+    #         poids_inclusion = st.select_slider("Pondération Soutien", [0, 25, 50, 100], value=value_soutien)
     #     with col3:
     #         value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
     #         poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
@@ -1354,7 +1441,7 @@ with st.container(border=False, key='top_menu'):
 
 
 # Main two sections: results and map
-col_results, col_map = st.columns([2, 3])
+col_results, col_map = st.columns([1, 1])
 
 
 ### Results Column
@@ -1387,8 +1474,9 @@ with col_map:
         # st.subheader("Carte Interactive")
         # we have scoring results let's draw the the map
         
+        
         #scoring results layer with shades + highlighted top 5 binomes 
-        st.session_state['fg_dict_ref']['Scores'] = show_scoring_results(
+        st.session_state['fg_dict_ref']['Scores'], colormap = show_scoring_results(
                 st.session_state['processed_gdf'][['codgeo','libgeo','polygon','libgeo_binome', 'polygon_binome','weighted_score']],
                 st.session_state['prefs']
             )
@@ -1396,6 +1484,7 @@ with col_map:
 
     
         # We add additional informational layers
+        legend_items = []
 
         # ECOLES
         t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
@@ -1408,25 +1497,20 @@ with col_map:
             ):
                 st.session_state['fg_dict_ref'][key_extra] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
                 st.session_state['fgs_to_show'].add(key_extra)
+                # Légende
+                icon = 'pencil'
+                if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
+                    legend_items.append({'color':'violet', 'icon':icon, 'text':'Maternelles'})
+                if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
+                    legend_items.append({'color':'orange', 'icon':icon, 'text':'Ecoles Primaires'})
+                if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
+                    legend_items.append({'color':'blue', 'icon':icon, 'text':'Collèges'})
+                if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
+                    legend_items.append({'color':'red', 'icon':icon, 'text':'Lycées'})
             else:
                 st.session_state['fgs_to_show'].discard(key_extra)
                     
-
-        badges = ""
-        if st.session_state['fg_ecoles']:   
-            if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
-                badges += ":violet-badge[:material/edit: Maternelles] "
-            if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
-                badges += ":orange-badge[:material/edit: Ecoles primaires] "
-            if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
-                badges += ":blue-badge[:material/edit: Collèges] "
-            if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
-                badges += ":red-badge[:material/edit: Lycées] "
-
-            st.markdown(badges)
         t = performance_tracker(t, 'End Ecoles Display', timer_mode)
-
-
 
         # SANTE
         t = performance_tracker(t, 'Start Sante Display', timer_mode)
@@ -1439,20 +1523,18 @@ with col_map:
                 value=False, 
             ):
                 st.session_state['fgs_to_show'].add(key_extra)
+                # Légende
+                icon = 'plus'
+                if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
+                    legend_items.append({'color':'orange', 'icon':icon, 'text':'Maternité'})
+                if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
+                    legend_items.append({'color':'blue', 'icon':icon, 'text':'Hopitaux'})
+                if 'Soutien Psychologique & Addictologie' in st.session_state['prefs'].get('besoin_sante'):
+                    legend_items.append({'color':'violet', 'icon':icon, 'text':'Centres Addictions & Santé Mentale'})
+                
             else:
                 st.session_state['fgs_to_show'].discard(key_extra)
                     
-
-    
-        if st.session_state['fg_sante']:    
-            if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
-                badges += ":orange-badge[:material/local_hospital: Maternités] "
-            if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
-                badges += ":blue-badge[:material/local_hospital: Hopitaux] "
-            if 'Soutien Psychologique & Addictologie' in st.session_state['prefs'].get('besoin_sante'):
-                badges += ":violet-badge[:material/local_hospital: Centres Addictions & Santé Mentale] "
-            st.markdown(badges)
-        
         t = performance_tracker(t, 'End Sante Display', timer_mode)
 
         # SERVICES INCLUSION
@@ -1466,32 +1548,37 @@ with col_map:
                 value=False, 
             ):
                 st.session_state['fgs_to_show'].add(key_extra)
+                # Légende
+                icon = 'heart'
+                if 'famille' in st.session_state['besoins_autres']:
+                    legend_items.append({'color':'orange', 'icon':icon, 'text':'Famille'})
+                if 'numerique' in st.session_state['besoins_autres']:
+                    legend_items.append({'color':'grey', 'icon':icon, 'text':'Numérique'})
+                if 'acces-aux-droits' in st.session_state['besoins_autres']:
+                    legend_items.append({'color':'violet', 'icon':icon, 'text':'Accès aux droits'})
+                if 'illetrisme' in st.session_state['besoins_autres']:
+                    legend_items.append({'color':'darkgreen', 'icon':icon, 'text':'Illetrisme'})
+                if 'apprendre-francais' in st.session_state['besoins_autres']:
+                    legend_items.append({'color':'blue', 'icon':icon, 'text':'Apprendre le français'})
+                if 'sante' in st.session_state['besoins_autres']:
+                    legend_items.append({'color':'red', 'icon':icon, 'text':'Santé'})
             else:
                 st.session_state['fgs_to_show'].discard(key_extra)
 
-            
-        badges = ""
-        if st.session_state['fg_services']:
-            if 'famille' in st.session_state['besoins_autres']:
-                badges += ":orange-badge[:material/favorite: Famille] "
-            if 'numerique' in st.session_state['besoins_autres']:
-                badges += ":gray-badge[:material/favorite: Numérique] "
-            if 'acces-aux-droits' in st.session_state['besoins_autres']:
-                badges += ":violet-badge[:material/favorite: Accès aux droits] "
-            if 'illetrisme' in st.session_state['besoins_autres']:
-                badges += ":primary-badge[:material/favorite: Illetrisme] "
-            if 'apprendre-francais' in st.session_state['besoins_autres']:
-                badges += ":blue-badge[:material/favorite: Apprendre le français] "
-            if 'sante' in st.session_state['besoins_autres']:
-                badges += ":red-badge[:material/favorite: Santé] "
-            st.markdown(badges)
         t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
 
         # Affichage de la carte (toujours en dernier)
         t = performance_tracker(t, 'Start Map Display', timer_mode)
-    
-        m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
         
+        # Base Map
+        m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
+
+        # Légende
+        legend = build_legend(legend_items)
+        st.markdown(legend, unsafe_allow_html=True)
+
+        
+        # FeatureGroups
         # We now have a fg_dict_ref that looks like this:
         # {
         #     'Scores': fg_results,
@@ -1507,14 +1594,12 @@ with col_map:
         # 2. The reference dict of all available fgs (fg_dict_ref)
          
         fgs_list = []
-        print(st.session_state['fgs_to_show'])
         for fg_name in st.session_state['fgs_to_show']:
             if fg_name == 'Scores':
                 # We always insert Scores as the base (bottom) layer to improve visibility
                 fgs_list.insert(0, st.session_state['fg_dict_ref'].get(fg_name))
             else:
                 fgs_list.append(st.session_state['fg_dict_ref'].get(fg_name))
-
         
         st_folium(
             m,
