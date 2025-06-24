@@ -17,7 +17,7 @@ with menages_pop as
         (data::jsonb)->'dimensions'->>'CIVIL_STATUS'::text as dimensions_CIVIL_STATUS,
         (data::jsonb)->'measures'->'OBS_VALUE_NIVEAU'->>'value'::text as measures_OBS_VALUE_NIVEAU_value   
 
-    from {{ source('bronze', 'population_categorie_socio_pro') }}  
+    from {{ source('bronze', 'population_nb_menages') }}  
     
 )
 
