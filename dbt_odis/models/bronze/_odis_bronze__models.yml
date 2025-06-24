@@ -967,7 +967,7 @@ models:
         description: Statut d'emploi variable selon l'enquête
         data_type: text
       - name: FREQ
-        description: Fréquence 
+        description: Fréquence
         data_type: text
       - name: GEO
         description: Identifiant géographique
@@ -1115,6 +1115,34 @@ models:
         data_type: text
       - name: created_at
         description: date d'extraction de la donnée
+        data_type: timestamp without time zone
+
+  - name: geographical_references_arrondissements
+    description: Extraction du JSON source geographical references par arrondissements
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: nom
+        description: nom de l'arrondissement
+        data_type: text
+      - name: code_geo
+        description: code INSEE officiel français rattaché à l'arrondissement
+        data_type: text
+      - name: code_region
+        description: Code officiel français de la région de rattachement, string pour garder 01
+        data_type: text
+      - name: code_departement
+        description: Code officiel français du département de rattachement, string pour garder 01
+        data_type: text
+      - name: code_postal
+        description: Code Postal de l'arrondissement
+        data_type: text
+      - name: population
+        description: nombre d'habitants dans l'arrondissement
+        data_type: jsonb
+      - name: created_at
+        description: date d'extraction des données
         data_type: timestamp without time zone
 
   # Logement
@@ -3711,5 +3739,3 @@ models:
     columns:
       - name: id
         description: id
-
-        
