@@ -130,3 +130,19 @@ sources:
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 
+      - name: population_nb_menages
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: population_population_superficie
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: population_repartition_sexe
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: population_repartition_sexe_age
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
