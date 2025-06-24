@@ -3708,5 +3708,31 @@ models:
   - name: presentation_page_population_communes
 
   - name: population_categorie_socio_pro
+    description: Extraction du JSON source CSP par population
+    columns:
+      - name: dimension_age
+        description: Segmentation âge
+        data_type: integer
+      - name: dimensions_geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+        tests:
+          - not_null
+      - name: dimensions_pcs
+        description: _
+        data_type: text
+      - name: dimensions_sex
+        description: _
+        data_type: text
+      - name: dimensions_rp_measure
+        description: _
+        data_type: text
+      - name: dimensions_time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: measures_obs_value_niveau_value
+        description: nombre mesuré du type d'habitation = appartement par zone géographique et par année
+        data_type: text
+
 
         

@@ -4,7 +4,6 @@
 ) }}
 
 
-with population_csp as(
+
     select * 
     from {{ ref('population_categorie_socio_pro') }}  
-)    
