@@ -16,6 +16,10 @@ sources:
         description: View contenant les informations de références des régions
         loaded_at_field: created_at
 
+      - name: vw_geographical_references_arrondissements
+        description: View contenant les informations de références des arrondissements
+        loaded_at_field: created_at
+
       - name: vw_education_moyenne_eleve_commune
         description: View contenant
         loaded_at_field: created_at
