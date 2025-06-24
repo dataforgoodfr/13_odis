@@ -35,7 +35,10 @@ st.markdown(
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     """,
     unsafe_allow_html=True
-)
+) # This loads the font awesome icons that we use in the map legend
+
+# st.write(':red[Dev In Progress...]')
+
 ### INIT OF THE STREAMLIT APP ###
 
 def session_states_init():
@@ -78,9 +81,6 @@ def session_states_init():
     if "besoins_autres" not in st.session_state:
         st.session_state["besoins_autres"] = {}
 
-
-
-# This @st.cache_resource dramatically improves performance of the app
 @st.cache_resource
 def init_datasets():
     # We load all the datasets
@@ -102,7 +102,6 @@ def init_datasets():
     libform_set = sorted(set(codformations_index['libformation']))
     
     return odis, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set
-
 
 # Scoring et affichage de la carte avec tous les résultats
 @st.cache_data
@@ -178,7 +177,7 @@ def result_highlight(row, index, prefs):
     # This is to highlight one specific result the user clicked on
     # First we clear up all the other TopN fg (if any)
     st.session_state['fgs_to_show'] = {k for k in st.session_state['fgs_to_show'] if not k.startswith('Top')}
-    
+
     if (st.session_state["highlighted_result"][0]) and (index == st.session_state["highlighted_result"][2]):
         # This means the user clicked on the same button again --> intends to collapse
         st.session_state["highlighted_result"] = [False, None, None, None] #reset
@@ -187,7 +186,6 @@ def result_highlight(row, index, prefs):
         # Add the red outline to show the commune on the scored communes map
         fg_key = 'Top'+str(index+1)
         st.session_state['fgs_to_show'].add(fg_key)
-        
         # We center the map and zoom on that result
         st.session_state["center"] = [row.polygon.centroid.y, row.polygon.centroid.x]
         st.session_state["zoom"] = 11
@@ -382,7 +380,6 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
 
             #Let's handle the case where we want to display the list of matched items (if any)
             if '_match_' in score:
-                # st.write(row)
                 adult = score[-8:][:1] # e.g. met_match_code_adult1_scaled --> 1
                 matched_names = []
                 if score.startswith('met'): #metiers
@@ -394,41 +391,6 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
                 if matched_names:
                     for name in matched_names:
                         pitch_md.append(f'    - {name}')
-
-    
-    #Adding the matching job families if any
-    # if any(prefs['codes_metiers']): # We first check if we were actually looking for a fospecific job in that area
-    #     pitch_md.append('\n**Emploi**  ') 
-    #     metiers_col = [col for col in row.keys() if col.startswith('met_match_codes')]
-    #     matched_codfap_names = []
-    #     for metiers_adultx in metiers_col:
-    #         matched_codfap_names += list(codfap_index[codfap_index['Code FAP 341'].isin(row[metiers_adultx])]['Intitulé FAP 341'])
-    #     matched_codfap_names = list(set(matched_codfap_names))
-    #     if len(matched_codfap_names) == 0:
-    #         pitch_md.append(f'Aucun des métiers recherchés ne figure dans le Top 10 des métiers à pourvoir sur cette zone.  ')
-    #         pitch_md.append('\n')
-    #         # pitch_md.append(f'Top 10 des métiers à pourvoir sur cette zone:  ')
-    #         # pitch_md.append(f'{", ".join(row["be_libfap_top"])}  ')
-    #     if len(matched_codfap_names) == 1:
-    #         pitch_md.append(f' La famille de métiers **{matched_codfap_names[0]}** est rechechée dans cette zone ')
-    #     elif len(matched_codfap_names) >= 1:
-    #         pitch_md.append(f'- Les familles de métiers **{", ".join(matched_codfap_names)}** sont rechechées dans cette zone ')
-        
-    
-    # # Adding the matching formation families if any
-    # if any(prefs['codes_formations']): # We first check if we were actually looking for a formation in that area
-    #     pitch_md.append('\n**Formations**\n') 
-    #     formations_col = [col for col in row.keys() if col.startswith('form_match_codes')]
-    #     matched_codform_names = []
-    #     for formations_adultx in formations_col:
-    #         matched_codform_names += list(codformations_index[codformations_index.index.isin(row[formations_adultx])]['libformation'])
-    #     matched_codform_names = list(set(matched_codform_names))
-    #     if len(matched_codform_names) == 0:
-    #         pitch_md.append(f'Aucune des formations recherchées ne figure dans les formations offertes sur cette zone.  ')
-    #     if len(matched_codform_names) == 1:
-    #         pitch_md.append(f'- La formation recherchée **{matched_codform_names[0]}** est proposée  ')
-    #     elif len(matched_codform_names) >= 1:
-    #         pitch_md.append(f'- Les formations recherchés **{", ".join(matched_codform_names)}** sont proposées  ')
 
     return "\n".join(pitch_md)
 
@@ -557,6 +519,7 @@ def odis_base_map(_current_geo, prefs):
 
 @st.cache_data
 def build_legend(items_list):
+    # This builds a legend that will be displayed on top of the map with st.markdown(legend_html)
     # https://github.com/pointhi/leaflet-color-markers
     leaflet_colors = {
         "red": "#D63E2A",
@@ -581,8 +544,7 @@ def build_legend(items_list):
             <ul class='legend-labels'>
             <li><span>Score: Faible</span><span class='scale'></span><span> Elevé</span></li>
         """
-    # items_list = [{'icon':'heart', 'color':'red', 'text':'red_heart'}, {'icon':'pencil', 'color':'green', 'text':'green_pencil'}]
-    #items_list = [[icon, color, text]]
+
     for item in items_list:
         legend_html += f"""
             <li><span class='marker-circle' style='background:{leaflet_colors.get(item['color'])}');'><i class='fa fa-{item['icon']}' style='color:white'></i></span><span>{item['text']}</span></li>
@@ -602,6 +564,7 @@ def build_legend(items_list):
             </style>
         """
     return legend_html
+
 
 # Affichage Support Education
 @st.cache_data
@@ -642,91 +605,6 @@ def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
     filtered_ecoles=annuaire_ecoles[mask]
     
     return filtered_ecoles
-
-@st.cache_data
-def build_local_ecoles_layer_old(_current_geo, _annuaire_ecoles, prefs):
-    etablissements_scolaire_colors = {
-        'maternelle': 'yellow',
-        'primaire': 'orange',
-        'college': 'blue',
-        'lycee': 'green',
-        }
-    fg_ecoles = flm.FeatureGroup(name="Établissements Scolaires")
-    filtered_ecoles = _annuaire_ecoles[_annuaire_ecoles.type_etablissement.isin(['Ecole', 'Collège', 'Lycée'])]
-    filtered_ecoles = filter_ecoles(_current_geo, filtered_ecoles, prefs)
-    
-    # Now let's add these schools to the map in the fg_ecoles feature group
-    filtered_ecoles = gpd.GeoDataFrame(filtered_ecoles, geometry='geometry', crs='EPSG:4326')
-    
-    geojson_features = []
-    for row in filtered_ecoles.itertuples(index=False):
-        if row.geometry is None:
-            continue
-   
-        maternelle_presente = 'Oui' if row.ecole_maternelle > 0 else 'Non'
-        properties = {
-            "name": row.nom_etablissement,
-            "type": row.type_etablissement,
-            "Maternelle": maternelle_presente,
-            "border_color": 'red',
-            "fill_color": etablissements_scolaire_colors[row.type],
-            "popup_html": f"<b>{row.nom_etablissement}</b><br>Type: {row.type_etablissement}<br>Maternelle: {maternelle_presente}"
-        }
-
-        etablissement = {
-            "type": "Feature",
-            "geometry": mapping(row.geometry), # Convert shapely Point to GeoJSON dict
-            "properties": properties
-        }
-
-        geojson_features.append(etablissement)
-    
-    geojson_data = {
-        "type": "FeatureCollection",
-        "features": geojson_features
-    }
-    
-    point_to_layer_js_circles = """
-    function(feature, latlng) {
-        // Access properties from the GeoJSON feature
-        var fillColor = feature.properties.fill_color;
-        var borderColor = feature.properties.border_color;
-        var popupHtml = feature.properties.popup_html;
-        var name = feature.properties.name;
-
-        // Define the options for the Leaflet CircleMarker
-        var circleMarkerOptions = {
-            radius: 3,           // Size of the circle in pixels (adjust as needed)
-            fillColor: fillColor,
-            color: borderColor,   // Border color
-            weight: 1,           // Border thickness in pixels
-            opacity: 0,          // Border opacity
-            fillOpacity: 1     // Fill opacity
-        };
-
-        // Create a Leaflet CircleMarker
-        var circle = L.circleMarker(latlng, circleMarkerOptions);
-
-        // Bind popup and tooltip
-        if (popupHtml) {
-            circle.bindPopup(popupHtml);
-        }
-        if (name) {
-            circle.bindTooltip(name);
-        }
-
-        return circle;
-    }
-    """
-
-    etablisssement = flm.GeoJson(
-        geojson_data,
-        point_to_layer = flm.JsCode(point_to_layer_js_circles)
-    )
-
-    fg_ecoles.add_child(etablisssement)
-    # print(fg_ecoles)
-    return fg_ecoles
 
 @st.cache_data
 def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
@@ -783,8 +661,8 @@ def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
     
     return fg_ecoles
 
-# Affichage Support Santé
 
+# Affichage Support Santé
 @st.cache_data
 def filter_sante(target_codgeos, _annuaire_sante, prefs):
     # we consider all the etablissements soclaires in the target codgeos and the ones around (voisins)
@@ -804,96 +682,6 @@ def filter_sante(target_codgeos, _annuaire_sante, prefs):
         filtered_sante['type'] = 'addiction_maladies_mentales'
     
     return filtered_sante[['nofinesset', 'codgeo', 'RaisonSociale', 'LibelleCategorieAgregat', 'LibelleSph', 'geometry', 'maternite', 'type']]
-
-@st.cache_data
-def build_local_sante_layer_old(_current_geo, _annuaire_sante, prefs):
-    fg_sante = flm.FeatureGroup(name="Établissements de Santé")
-
-    target_codgeos = set(
-        st.session_state['processed_gdf'].codgeo.tolist() 
-        # +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
-        )
-    
-    etablissements_sante_colors = {
-        'maternite':'orange',
-        'hopital':'lightblue',
-        'addiction_maladies_mentales':'purple'
-    }
-
-    filtered_annuaire = filter_sante(target_codgeos, _annuaire_sante, prefs)
-    filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:2154')
-    filtered_annuaire.to_crs(epsg=4326, inplace=True)
-    
-    geojson_features = []
-    for row in filtered_annuaire.itertuples(index=False):
-        if row.geometry is None:
-            continue
-
-        properties = {
-            "name": row.RaisonSociale,
-            "category": row.LibelleCategorieAgregat,
-            "type": row.LibelleSph,
-            "maternite": row.maternite,
-            "fill_color": etablissements_sante_colors[row.type],
-            "border_color": 'blue', # Embed color in properties
-            "popup_html": f"<b>{row.RaisonSociale}</b><br>Catégorie: {row.LibelleCategorieAgregat}<br>Type: {row.LibelleSph}<br>Maternité: {'Oui' if row.maternite else 'Non'}"
-        }
-
-        etablissement = {
-            "type": "Feature",
-            "geometry": mapping(row.geometry), # Convert shapely Point to GeoJSON dict
-            "properties": properties
-        }
-
-        geojson_features.append(etablissement)
-    
-    geojson_data = {
-        "type": "FeatureCollection",
-        "features": geojson_features
-    }
-    
-    point_to_layer_js_circles = """
-    function(feature, latlng) {
-        // Access properties from the GeoJSON feature
-        var fillColor = feature.properties.fill_color;
-        var borderColor = feature.properties.border_color;
-        var popupHtml = feature.properties.popup_html;
-        var name = feature.properties.name;
-
-        // Define the options for the Leaflet CircleMarker
-        var marker_size = 0.002;
-        var bounds = [[latlng.lat+marker_size/1.4,latlng.lng+marker_size],[latlng.lat-marker_size/1.4,latlng.lng-marker_size]];
-
-        var rectangleOptions = {
-            fillColor: fillColor,
-            fillOpacity: 1.0,
-            color: 'blue',
-            weight: 2,
-            opacity: 1,
-        };
-
-        // Create a Leaflet Rectangle
-        var circle = L.rectangle(bounds, rectangleOptions);
-
-        // Bind popup and tooltip
-        if (popupHtml) {
-            circle.bindPopup(popupHtml);
-        }
-        if (name) {
-            circle.bindTooltip(name);
-        }
-
-        return circle;
-    }
-    """
-    etablisssement = flm.GeoJson(
-        geojson_data,
-        point_to_layer = flm.JsCode(point_to_layer_js_circles)
-    )
-
-    fg_sante.add_child(etablisssement)
-
-    return fg_sante
 
 @st.cache_data
 def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
@@ -958,102 +746,6 @@ def build_local_sante_layer(_current_geo, _annuaire_sante, prefs):
 
 
 # Affichage Services d'Inclusion (Autres Besoins)
-@st.cache_data
-def build_local_services_layer_old(_current_geo, _annuaire_inclusion, prefs):
-    fg_services = flm.FeatureGroup(name="Services d'inclusion")
-
-    target_codgeos = set(
-        st.session_state['processed_gdf'].codgeo.tolist() 
-        +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
-        )
-    
-    services_inclusion_colors = {
-        'famille':'orange',
-        'numerique':'lightblue',
-        'acces-aux-drois-et-citoyennete':'purple',
-        'illetrisme':'pink',
-        'apprendre-francais':'blue',
-        'sante':'red',
-        'default':'grey'
-    }
-
-    filtered_annuaire = _annuaire_inclusion[_annuaire_inclusion['codgeo'].isin(target_codgeos)]
-    filtered_annuaire = filtered_annuaire[
-        (filtered_annuaire.categorie.isin(st.session_state['prefs']['besoins_autres'].keys()))
-        # & (filtered_annuaire.service.isin([x for x in st.session_state['prefs']['besoins_autres'].values()]))
-        ]
-    filtered_annuaire = gpd.GeoDataFrame(filtered_annuaire, geometry='geometry', crs='EPSG:4326')
-    # st.write(filtered_annuaire.shape)
-    
-    geojson_features = []
-    for row in filtered_annuaire.itertuples(index=False):
-        if row.geometry is None:
-            continue
-
-        properties = {
-            "name": row.nom,
-            "category": row.categorie.replace('-', ' ').capitalize(),
-            "type": row.service.replace('-', ' ').capitalize(),
-            "presentation": row.presentation_resume,
-            "fill_color": services_inclusion_colors.get(row.categorie, 'default'),
-            "border_color": 'orange', # Embed color in properties
-            "popup_html": f"<b>{row.nom}</b> | Catégorie: {row.categorie}<br>Description: {row.presentation_resume}"
-        }
-
-        etablissement = {
-            "type": "Feature",
-            "geometry": mapping(row.geometry), # Convert shapely Point to GeoJSON dict
-            "properties": properties
-        }
-
-        geojson_features.append(etablissement)
-    
-    geojson_data = {
-        "type": "FeatureCollection",
-        "features": geojson_features
-    }
-    
-    point_to_layer_js_circles = """
-    function(feature, latlng) {
-        // Access properties from the GeoJSON feature
-        var fillColor = feature.properties.fill_color;
-        var borderColor = feature.properties.border_color;
-        var popupHtml = feature.properties.popup_html;
-        var name = feature.properties.name;
-
-        // Define the options for the Leaflet CircleMarker
-        var circleMarkerOptions = {
-            radius: 5,           // Size of the circle in pixels (adjust as needed)
-            fillColor: fillColor,
-            color: borderColor,   // Border color
-            weight: 2,           // Border thickness in pixels
-            opacity: 1,          // Border opacity
-            fillOpacity: 1     // Fill opacity
-        };
-
-        // Create a Leaflet CircleMarker
-        var circle = L.circleMarker(latlng, circleMarkerOptions);
-
-        // Bind popup and tooltip
-        if (popupHtml) {
-            circle.bindPopup(popupHtml);
-        }
-        if (name) {
-            circle.bindTooltip(name);
-        }
-
-        return circle;
-    }
-    """
-    etablisssement = flm.GeoJson(
-        geojson_data,
-        point_to_layer = flm.JsCode(point_to_layer_js_circles)
-    )
-
-    fg_services.add_child(etablisssement)
-
-    return fg_services
-
 @st.cache_data
 def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
     fg_services = flm.FeatureGroup(name="Services d'inclusion")
@@ -1120,39 +812,8 @@ def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
 
     return fg_services
 
-def toggle_extra(fg, fg_name, key):
-    if key:# == False: #We check the checkbox status
-        st.session_state["fg_extras_dict"][fg_name] = fg
-
-    if (key == False) & (fg_name in st.session_state["fg_extras_dict"].keys()):
-       del st.session_state["fg_extras_dict"][fg_name]
-
-
-
 # Gestion des scenarii de démo
-demo_data = {
-    'nom': None,
-    'poids_emploi':None,
-    'poids_logement':None,
-    'poids_education':None,
-    'poids_inclusion':None,
-    'poids_mobilité':None,
-    'departement_actuel': None,
-    'commune_actuelle':None,
-    'loc_distance_km':None,
-    'hebergement':None,
-    'logement':None,
-    'sante': None,
-    'nb_adultes': None,
-    'nb_enfants': None,
-    'codes_metiers':None,
-    'codes_formations':None,
-    'classe_enfants':None,
-    'binome_penalty':None,
-    'besoins_autres': None
-}
-
-def run_demo(demo_data):
+def load_demo_data(demo_data):
     if len(st.query_params) > 0:
         print("Mode démo")
         if st.query_params['demo'] == "1":
@@ -1200,9 +861,10 @@ def run_demo(demo_data):
             demo_data['poids_inclusion'] = 50
             demo_data['poids_emploi'] = 100
 
-        if st.sidebar.button('Quitter Mode Démo', type='tertiary'):
+        if st.sidebar.button('Quitter Mode Démo', key='quit_demo', type='tertiary'):
             st.query_params.clear()
             st.rerun()
+        st.markdown('<style> .st-key-quit_demo {position:relative; top:90vh}<style>', unsafe_allow_html=True) # Displays the button at the bottom of the sidebar
         
         # And we automatically load the results
         # load_results(df=odis, scores_cat=scores_cat)
@@ -1224,18 +886,40 @@ INCLUSION_FILE = '../csv/odis_services_incl_exploded.parquet'
 odis, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set = init_datasets()
 t = performance_tracker(t, 'End Dataset Import', timer_mode)
 
-st.sidebar.image('logo-jaccueille-singa.png', width=None)
+
 
 # Load all the session_states if they don't exist yet
 session_states_init()
-demo_data = run_demo(demo_data)
+
+demo_data_default = { #we reset unless a demo scenarii is passed as as a query parameter e.g. /?demo=1
+    'nom': None,
+    'poids_emploi':None,
+    'poids_logement':None,
+    'poids_education':None,
+    'poids_inclusion':None,
+    'poids_mobilité':None,
+    'departement_actuel': None,
+    'commune_actuelle':None,
+    'loc_distance_km':None,
+    'hebergement':None,
+    'logement':None,
+    'sante': None,
+    'nb_adultes': None,
+    'nb_enfants': None,
+    'codes_metiers':None,
+    'codes_formations':None,
+    'classe_enfants':None,
+    'binome_penalty':None,
+    'besoins_autres': None
+}
+demo_data = load_demo_data(demo_data_default)
 
 ### BEGINNING OF THE STREAMLIT APP ###
 
 # Sidebar
 t = performance_tracker(t, 'Start App Sidebar', timer_mode)
 with st.sidebar:
-    
+    st.image('logo-jaccueille-singa.png', width=None)
     # st.header("Recherche d'un nouveau lieu de vie selon son projet")
     st.subheader('Localisation Actuelle')
     # Département
@@ -1267,7 +951,6 @@ with st.sidebar:
 
         penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=50) / 100
 
-st.write(':red[Dev In Progress...]')
 
 #Top filter Form
 t = performance_tracker(t, 'Start Top Filters', timer_mode)
@@ -1296,8 +979,8 @@ with st.container(border=False, key='top_menu'):
             key='afficher_carte_btn',
             on_click=load_results, kwargs={'df':odis, 'scores_cat':scores_cat}, type="primary"
             )
-        # st.markdown('<style>.st-key-afficher_carte_btn .stButton button div p {color:yellow; font-weight:bold}</style>', unsafe_allow_html=True)
 
+    # Tabs
     tab_foyer, tab_edu, tab_emploi, tab_logement, tab_sante, tab_autres, tab_mobilite= st.tabs(['Foyer', 'Education', 'Projet Pro', 'Logement', 'Santé', 'Autres Besoins', 'Mobilité'])
             
     #Foyer
@@ -1417,28 +1100,12 @@ with st.container(border=False, key='top_menu'):
                         st.text(f"[{key.replace('-', ' ').capitalize()}] {value.replace('-', ' ').capitalize()}")
 
         st.text_input('Autres préférences (champ libre)')
+ 
+    t = performance_tracker(t, 'Ready', timer_mode)
 
-    #Poids
-    # with tab_ponderation:
-    #     col1, col2, col3 = st.columns(3)
-    #     with col1:
-    #         value_emploi = demo_data['poids_emploi'] if demo_data['poids_emploi'] is not None else 100
-    #         poids_emploi = st.select_slider("Pondération Emploi", [0, 25, 50, 100], value=value_emploi)
-    #         value_logement = demo_data['poids_logement'] if demo_data['poids_logement'] is not None else 100
-    #         poids_logement = st.select_slider("Pondération Logement", [0, 25, 50, 100], value=value_logement)
-    #     with col2:
-    #         value_education = demo_data['poids_education'] if demo_data['poids_education'] is not None else 100
-    #         poids_education = st.select_slider("Pondération Education", [0, 25, 50, 100], value=value_education)
-    #         value_soutien = demo_data['poids_inclusion'] if demo_data['poids_inclusion'] is not None else 25
-    #         poids_inclusion = st.select_slider("Pondération Soutien", [0, 25, 50, 100], value=value_soutien)
-    #     with col3:
-    #         value_mobilite = demo_data['poids_mobilité'] if demo_data['poids_mobilité'] is not None else 100
-    #         poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
-    #         penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=50) / 100
-
-   
-        t = performance_tracker(t, 'Ready', timer_mode)
-
+#Auto load results in the demo case
+# if demo_data['nom'] is not None: # This means we loaded some data as demo data
+#     load_results(df=odis, scores_cat=scores_cat)
 
 # Main two sections: results and map
 col_results, col_map = st.columns([1, 1])
@@ -1459,12 +1126,7 @@ with col_results:
         # We build the list of top 5 results
         build_top_results(st.session_state["processed_gdf"], 5, st.session_state["prefs"])
         
-        if st.button("Afficher tous les meilleurs résultats sur la carte", type='tertiary'):
-            for key, value in st.session_state["fg_dict_ref"].items():
-                if key.startswith("Top"):
-                    st.session_state['fgs_to_show'].add(key)
-
-
+        
 
 ### Map Column
 t = performance_tracker(t, 'Start Map Column', timer_mode)
@@ -1474,7 +1136,6 @@ with col_map:
         # st.subheader("Carte Interactive")
         # we have scoring results let's draw the the map
         
-        
         #scoring results layer with shades + highlighted top 5 binomes 
         st.session_state['fg_dict_ref']['Scores'], colormap = show_scoring_results(
                 st.session_state['processed_gdf'][['codgeo','libgeo','polygon','libgeo_binome', 'polygon_binome','weighted_score']],
@@ -1482,100 +1143,123 @@ with col_map:
             )
         st.session_state['fgs_to_show'].add('Scores')
 
-    
-        # We add additional informational layers
-        legend_items = []
 
-        # ECOLES
-        t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
-        if st.session_state['prefs']['nb_enfants'] > 0:
-            key_extra = 'fg_ecoles'
-            if st.checkbox(
-                'Afficher établissements scolaires pertinents', 
-                key=key_extra, 
-                value=False, 
-            ):
-                st.session_state['fg_dict_ref'][key_extra] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
-                st.session_state['fgs_to_show'].add(key_extra)
-                # Légende
-                icon = 'pencil'
-                if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
-                    legend_items.append({'color':'violet', 'icon':icon, 'text':'Maternelles'})
-                if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
-                    legend_items.append({'color':'orange', 'icon':icon, 'text':'Ecoles Primaires'})
-                if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
-                    legend_items.append({'color':'blue', 'icon':icon, 'text':'Collèges'})
-                if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
-                    legend_items.append({'color':'red', 'icon':icon, 'text':'Lycées'})
-            else:
-                st.session_state['fgs_to_show'].discard(key_extra)
-                    
-        t = performance_tracker(t, 'End Ecoles Display', timer_mode)
-
-        # SANTE
-        t = performance_tracker(t, 'Start Sante Display', timer_mode)
-        if st.session_state['prefs']['besoin_sante'] != "Aucun":
-            key_extra = 'fg_sante'
-            st.session_state['fg_dict_ref'][key_extra] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
-            if st.checkbox(
-                'Afficher établissements de santé pertinents', 
-                key=key_extra, 
-                value=False, 
-            ):
-                st.session_state['fgs_to_show'].add(key_extra)
-                # Légende
-                icon = 'plus'
-                if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
-                    legend_items.append({'color':'orange', 'icon':icon, 'text':'Maternité'})
-                if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
-                    legend_items.append({'color':'blue', 'icon':icon, 'text':'Hopitaux'})
-                if 'Soutien Psychologique & Addictologie' in st.session_state['prefs'].get('besoin_sante'):
-                    legend_items.append({'color':'violet', 'icon':icon, 'text':'Centres Addictions & Santé Mentale'})
-                
-            else:
-                st.session_state['fgs_to_show'].discard(key_extra)
-                    
-        t = performance_tracker(t, 'End Sante Display', timer_mode)
-
-        # SERVICES INCLUSION
-        t = performance_tracker(t, 'Start Services Inclusion Display', timer_mode)
-        if bool(st.session_state['prefs']['besoins_autres']):
-            key_extra = 'fg_services'
-            st.session_state['fg_dict_ref'][key_extra] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
-            if st.checkbox(
-                "Afficher les services d'inclusion pertinents", 
-                key=key_extra, 
-                value=False, 
-            ):
-                st.session_state['fgs_to_show'].add(key_extra)
-                # Légende
-                icon = 'heart'
-                if 'famille' in st.session_state['besoins_autres']:
-                    legend_items.append({'color':'orange', 'icon':icon, 'text':'Famille'})
-                if 'numerique' in st.session_state['besoins_autres']:
-                    legend_items.append({'color':'grey', 'icon':icon, 'text':'Numérique'})
-                if 'acces-aux-droits' in st.session_state['besoins_autres']:
-                    legend_items.append({'color':'violet', 'icon':icon, 'text':'Accès aux droits'})
-                if 'illetrisme' in st.session_state['besoins_autres']:
-                    legend_items.append({'color':'darkgreen', 'icon':icon, 'text':'Illetrisme'})
-                if 'apprendre-francais' in st.session_state['besoins_autres']:
-                    legend_items.append({'color':'blue', 'icon':icon, 'text':'Apprendre le français'})
-                if 'sante' in st.session_state['besoins_autres']:
-                    legend_items.append({'color':'red', 'icon':icon, 'text':'Santé'})
-            else:
-                st.session_state['fgs_to_show'].discard(key_extra)
-
-        t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
-
-        # Affichage de la carte (toujours en dernier)
-        t = performance_tracker(t, 'Start Map Display', timer_mode)
         
-        # Base Map
-        m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
+        col1, col2 = st.columns([1,4])
+        with col1:
+            st.text("Afficher:")
+        
+        with col2:
+            # st.write(st.session_state["highlighted_result"])
+            if st.checkbox("Les 5 meilleurs résultats sur la carte"):
+                for key, value in st.session_state["fg_dict_ref"].items():
+                    if key.startswith("Top"):
+                        st.session_state['fgs_to_show'].add(key)
+                st.session_state["zoom"] = None
+            
+            elif st.session_state["highlighted_result"][0]: # We hihglight the existing result
+                # result_highlight(st.session_state["highlighted_result"][1], st.session_state["highlighted_result"][2], st.session_state["highlighted_result"][3])
+                st.session_state['fgs_to_show'] = {k for k in st.session_state['fgs_to_show'] if not k.startswith('Top')}
+                fg_key = 'Top'+str(st.session_state["highlighted_result"][2]+1)
+                st.session_state['fgs_to_show'].add(fg_key)
+            else: # we clear all
+                st.session_state['fgs_to_show'] = {k for k in st.session_state['fgs_to_show'] if not k.startswith('Top')}
+ 
 
-        # Légende
-        legend = build_legend(legend_items)
-        st.markdown(legend, unsafe_allow_html=True)
+           
+            # We add additional informational layers
+            legend_items = []
+
+            # ECOLES
+            t = performance_tracker(t, 'Start Ecoles Display', timer_mode)
+            if st.session_state['prefs']['nb_enfants'] > 0:
+                key_extra = 'fg_ecoles'
+                if st.checkbox(
+                    'Les établissements scolaires pertinents', 
+                    key=key_extra, 
+                    value=False, 
+                ):
+                    st.session_state['fg_dict_ref'][key_extra] = build_local_ecoles_layer(st.session_state["selected_geo"], annuaire_ecoles, st.session_state["prefs"])
+                    st.session_state['fgs_to_show'].add(key_extra)
+                    # Légende
+                    icon = 'pencil'
+                    if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
+                        legend_items.append({'color':'violet', 'icon':icon, 'text':'Maternelles'})
+                    if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
+                        legend_items.append({'color':'orange', 'icon':icon, 'text':'Ecoles Primaires'})
+                    if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
+                        legend_items.append({'color':'blue', 'icon':icon, 'text':'Collèges'})
+                    if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
+                        legend_items.append({'color':'red', 'icon':icon, 'text':'Lycées'})
+                else:
+                    st.session_state['fgs_to_show'].discard(key_extra)
+                        
+            t = performance_tracker(t, 'End Ecoles Display', timer_mode)
+
+            # SANTE
+            t = performance_tracker(t, 'Start Sante Display', timer_mode)
+            if st.session_state['prefs']['besoin_sante'] != "Aucun":
+                key_extra = 'fg_sante'
+                st.session_state['fg_dict_ref'][key_extra] = build_local_sante_layer(st.session_state["selected_geo"], annuaire_sante, st.session_state["prefs"])
+                if st.checkbox(
+                    'Les établissements de santé pertinents', 
+                    key=key_extra, 
+                    value=False, 
+                ):
+                    st.session_state['fgs_to_show'].add(key_extra)
+                    # Légende
+                    icon = 'plus'
+                    if 'Maternité' in st.session_state['prefs'].get('besoin_sante'):
+                        legend_items.append({'color':'orange', 'icon':icon, 'text':'Maternité'})
+                    if 'Hopital' in st.session_state['prefs'].get('besoin_sante'):
+                        legend_items.append({'color':'blue', 'icon':icon, 'text':'Hopitaux'})
+                    if 'Soutien Psychologique & Addictologie' in st.session_state['prefs'].get('besoin_sante'):
+                        legend_items.append({'color':'violet', 'icon':icon, 'text':'Centres Addictions & Santé Mentale'})
+                    
+                else:
+                    st.session_state['fgs_to_show'].discard(key_extra)
+                        
+            t = performance_tracker(t, 'End Sante Display', timer_mode)
+
+            # SERVICES INCLUSION
+            t = performance_tracker(t, 'Start Services Inclusion Display', timer_mode)
+            if bool(st.session_state['prefs']['besoins_autres']):
+                key_extra = 'fg_services'
+                st.session_state['fg_dict_ref'][key_extra] = build_local_services_layer(st.session_state["selected_geo"], annuaire_inclusion, st.session_state["prefs"])
+                if st.checkbox(
+                    "Les services d'inclusion pertinents", 
+                    key=key_extra, 
+                    value=False, 
+                ):
+                    st.session_state['fgs_to_show'].add(key_extra)
+                    # Légende
+                    icon = 'heart'
+                    if 'famille' in st.session_state['besoins_autres']:
+                        legend_items.append({'color':'orange', 'icon':icon, 'text':'Famille'})
+                    if 'numerique' in st.session_state['besoins_autres']:
+                        legend_items.append({'color':'grey', 'icon':icon, 'text':'Numérique'})
+                    if 'acces-aux-droits' in st.session_state['besoins_autres']:
+                        legend_items.append({'color':'violet', 'icon':icon, 'text':'Accès aux droits'})
+                    if 'illetrisme' in st.session_state['besoins_autres']:
+                        legend_items.append({'color':'darkgreen', 'icon':icon, 'text':'Illetrisme'})
+                    if 'apprendre-francais' in st.session_state['besoins_autres']:
+                        legend_items.append({'color':'blue', 'icon':icon, 'text':'Apprendre le français'})
+                    if 'sante' in st.session_state['besoins_autres']:
+                        legend_items.append({'color':'red', 'icon':icon, 'text':'Santé'})
+                else:
+                    st.session_state['fgs_to_show'].discard(key_extra)
+
+            t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
+
+            # Affichage de la carte (toujours en dernier)
+            t = performance_tracker(t, 'Start Map Display', timer_mode)
+            
+            # Base Map
+            m = odis_base_map(st.session_state['selected_geo'], st.session_state['prefs'])
+
+            # Légende
+            legend = build_legend(legend_items)
+            st.markdown(legend, unsafe_allow_html=True)
 
         
         # FeatureGroups
@@ -1609,7 +1293,7 @@ with col_map:
             key="odis_scored_map",
             use_container_width=True,
             returned_objects=[],
-            # layer_control=flm.LayerControl(collapsed=False)
+            layer_control=flm.LayerControl(collapsed=False)
         )
         st.markdown('<style>.stCustomComponentV1   {border-radius:10px}</style>', unsafe_allow_html=True) # Rounded corners for the map widget
 
