@@ -68,6 +68,40 @@ models:
       - name: population
         description: Nombre d'habitants dans la commune
 
+  - name: gold_logement_logements_sociaux
+    description: Table transformée contenant les indicateurs logements sociaux pour tous les niveaux géograpiques (région, département, commune, epci)
+    columns:
+      - name: codgeo
+        description: Parc complet Ensemble du parc social
+        tests:
+          - not_null
+      - name: year
+        description: Année de référence
+      - name: nb_ls
+        description: Parc complet Ensemble du parc social  
+      - name: nb_loues
+        description: Parc complet proposés à la location loués
+      - name: nb_vacants
+        description: Parc complet proposés à la location vacants
+      - name: nb_vides
+        description: Parc complet Ensemble du parc vide
+      - name: nb_asso
+        description: Parc complet pris en charge par une association
+      - name: nb_occup_finan
+        description: Parc complet occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: Parc complet occupé pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Parc complet Nombre de logements en QPV
+      - name: tx_vac
+        description: PTaux de vacance % totale Au 01/01
+      - name: tx_vac3
+        description: Taux de vacance % > 3 mois Au 01/01
+      - name: tx_mob
+        description: Taux de mobilité % Au 01/01
+      - name: densite
+        description: Parc complet Densité pour 100 résidences principales
+
   - name: logements_territoires
     description: Table recensant les nombres de types de logements par construction et par occupation par commune, département et région. les ratios nombre de pièces moyennes par habitation et par résidence rpincipale sont calculés
     columns:
@@ -161,5 +195,66 @@ models:
         quote: true
       - name: Mediane_Annuelle
         description: Salaire médian sur l'année
+        data_type: integer
+        quote: true
+
+  - name: emploi_volumes_mobilites
+    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+    columns:
+      - name: codgeo
+        description: Identifiant géographique
+        data_type: text
+      - name: YEAR
+        description: Période temporelle
+        data_type: integer
+      - name: Nb actifs travaillant dans commune
+        description: Nb actifs travaillant dans commune
+        data_type: decimal
+        quote: true
+      - name: Nb actifs travaillant dans autre commune
+        description: Nb actifs travaillant dans autre commune
+        data_type: decimal
+        quote: true
+
+  - name: emploi_gds_secteurs
+    description: Table recensant le nombre de demandeurs d'emploi pour une zone géographique identifiée et un mois de mesure donné
+    columns:
+      - name: codgeo
+        description: code INSEE de la zone géographique
+        data_type: text
+      - name: YEAR
+        description: mois_année de mesure des données
+        data_type: text
+        quote: true
+      - name: Type
+        description: Effectif salariés  ou  Nombre d'établissements
+        data_type: test
+        quote: true
+      - name: GS1 Industrie
+        description: Grand secteur numéro 1
+        data_type: integer
+        quote: true
+      - name: GS2 Construction
+        description: Grand secteur numéro 2
+        data_type: integer
+        quote: true
+      - name: GS3 Commerce
+        description: Grand secteur numéro 3
+        data_type: integer
+        quote: true
+      - name: GS4 Hôtellerie-restaurant
+        description: Grand secteur numéro 4
+        data_type: integer
+        quote: true
+      - name: GS5 Autres services
+        description: Grand secteur numéro 5
+        data_type: integer
+        quote: true
+      - name: GS6 Intérim
+        description: Grand secteur numéro 6
+        data_type: integer
+        quote: true
+      - name: GS7 Service non marchands
+        description: Grand secteur numéro 7
         data_type: integer
         quote: true

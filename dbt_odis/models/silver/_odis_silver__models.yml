@@ -34,6 +34,190 @@ models:
       - name: code_geo
         description: code géographique (commune, département, région).
 
+  - name: stg_logement_logements_sociaux_communes
+    description: Table transformée contenant les indicateurs logements sociaux au niveau commune
+    columns:
+      - name: codgeo
+        description: Code INSEE de la commune et arrondissement
+      - name: libcom
+        description: Nom de la commune
+      - name: dep
+        description: Code du département rattachée à la commune
+      - name: reg
+        description: Code de la région rattachée à la commune
+      - name: year
+        description: Année de référence
+      - name: type_geo
+        description: Niveau géograpique (commune, département, région, epci)
+      - name: nb_ls
+        description: "Ensemble du parc social : nombre total de logements sociaux dans la commune"
+      - name: tx_vac
+        description: Taux de vacance du parc social au 1er janvier de l'année de référence
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference
+      - name: tx_mob
+        description: Taux de mobilité du parc social au 1er janvier de l'année de référence
+      - name: nb_loues
+        description: Nombre de logements sociaux proposés à location qui sont actuellement loués
+      - name: nb_vacants
+        description: Nombre de logements sociaux proposés à location qui sont actuellement nb_vacants
+      - name: nb_vides
+        description: Nombre de logements sociaux qui sont vides
+      - name: nb_asso
+        description: Nombre de logements sociaux qui sont pris en charge par une association
+      - name: nb_occup_finan
+        description: Nombre de logements sociaux occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: Nombre de logements sociaux occupés pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Nombre de logements sociaux en QPV (quartier prioritaire de la politique de la ville)
+      - name: densite
+        description: Densité pour 100 résidences principales (source --> RP 2021)
+      
+  - name: stg_logement_logements_sociaux_departement
+    description: Table transformée contenant les indicateurs logements sociaux au niveau département
+    columns:
+      - name: codgeo
+        description: Code Insee du département
+      - name: libdep
+        description: Nom du département
+      - name: year
+        description: Année de référence
+      - name: type_geo
+        description: Niveau géograpique (commune, département, région, epci)
+      - name: nb_ls
+        description: "Ensemble du parc social : nombre total de logements sociaux dans le département"
+      - name: tx_vac
+        description: Taux de vacance du parc social au 1er janvier de l'année de référence
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference
+      - name: tx_mob
+        description: Taux de mobilité du parc social au 1er janvier de l'année de référence
+      - name: nb_loues
+        description: nombre de logements sociaux proposés à la location dans le département, qui sont loués
+      - name: nb_vacants
+        description: Nombre de logements sociaux proposés à location qui sont actuellement nb_vacants
+      - name: nb_vides
+        description: Nombre de logements sociaux qui sont vides
+      - name: nb_asso
+        description: Nombre de logements sociaux qui sont pris en charge par une association
+      - name: nb_occup_finan
+        description: Nombre de logements sociaux occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: Nombre de logements sociaux occupés pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Nombre de logements sociaux en QPV (quartier prioritaire de la politique de la ville)
+      - name: densite
+        description: Densité pour 100 résidences principales (source --> RP 2021)
+
+  - name: stg_logement_logements_sociaux_region
+    description: Table transformée contenant les indicateurs logements sociaux au niveau région
+    columns:
+      - name: codgeo
+        description: Code Insee de la région, précédé par 'reg' --> 'reg11' pour Ile de France
+      - name: libreg
+        description: Nom de la région
+      - name: year
+        description: Année de référence
+      - name: type_geo
+        description: Niveau géograpique (commune, département, région, epci)
+      - name: nb_ls
+        description: "Ensemble du parc social : nombre total de logements sociaux dans la région"
+      - name: tx_vac
+        description: Taux de vacance
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference        
+      - name: tx_mob
+        description: Taux de mobilité
+      - name: nb_loues
+        description: nombre de logements sociaux proposés à la location dans la région, qui sont loués
+      - name: nb_vacants
+        description: nombre de logements sociaux proposés à la location dans la régop,, qui sont vacants
+      - name: nb_vides
+        description: nombre de logements sociaux dans la région, qui sont vides
+      - name: nb_asso
+        description: nombre de logements sociaux dans la région, qui sont pris en charge par une association
+      - name: nb_occup_finan
+        description: nombre de logements sociaux dans la région, qui sont occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: nombre de logements sociaux dans la région, qui sont occupés pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Nombre de logements sociaux en QPV (quartier prioritaire de la politique de la ville)
+      - name: densite
+        description: Densité pour 100 résidences principales (source --> RP 2021)
+
+  - name: stg_logement_logements_sociaux_epci
+    description: Table transformée contenant les indicateurs logements sociaux au niveau EPCI
+    columns:
+      - name: epci_dep
+        description: Code département + EPCI
+      - name: libepci
+        description: Nom de l’EPCI
+      - name: year
+        description: Année de référence
+      - name: type_geo
+        description: Niveau géograpique (commune, département, région, epci)
+      - name: nb_ls
+        description: "Ensemble du parc social : nombre total de logements sociaux dans la commune"
+      - name: tx_vac
+        description: Taux de vacance
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference       
+      - name: tx_mob
+        description: Taux de mobilité
+      - name: nb_loues
+        description: Nombre de logements sociaux proposés à location qui sont actuellement loués
+      - name: nb_vacants
+        description: Nombre de logements sociaux proposés à location qui sont actuellement nb_vacants
+      - name: nb_vides
+        description: Nombre de logements sociaux qui sont vides
+      - name: nb_asso
+        description: Nombre de logements sociaux qui sont pris en charge par une association
+      - name: nb_occup_finan
+        description: Nombre de logements sociaux occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: Nombre de logements sociaux occupés pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Nombre de logements sociaux en QPV (quartier prioritaire de la politique de la ville)
+      - name: densite
+        description: Densité pour 100 résidences principales (source --> RP 2021)
+
+  - name: silver_logement_logements_sociaux
+    description: Table transformée contenant les indicateurs logements sociaux pour tous les niveaux géograpiques (région, département, commune, epci)
+    columns: 
+      - name: type_geo
+        description: Type géograpique (commune, département, région, epci)
+      - name: codgeo
+        description: Numéro rattaché au niveau géograpique (commune, département, région, epci)
+      - name: lib_geo
+        description: Nom de rattaché au niveau géographique (commune, département, région, epci)
+      - name: year
+        description: Année de référence
+      - name: nb_ls
+        description: "Ensemble du parc social : nombre total de logements sociaux dans la commune"
+      - name: tx_vac
+        description: Taux de vacance
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference       
+      - name: tx_mob
+        description: Taux de mobilité
+      - name: nb_loues
+        description: Nombre de logements sociaux proposés à location qui sont actuellement loués
+      - name: nb_vacants
+        description: Nombre de logements sociaux proposés à location qui sont actuellement nb_vacants
+      - name: nb_vides
+        description: Nombre de logements sociaux qui sont vides
+      - name: nb_asso
+        description: Nombre de logements sociaux qui sont pris en charge par une association
+      - name: nb_occup_finan
+        description: Nombre de logements sociaux occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: Nombre de logements sociaux occupés pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Nombre de logements sociaux en QPV (quartier prioritaire de la politique de la ville)
+      - name: densite
+        description: Densité pour 100 résidences principales (source --> RP 2021)
+
   - name: emploi_demandeur_emploi
     description: View jointure horizontale des 3 niveaux de zones géographiques, pour les demandeurs d'emploi mesurée pour une zone donnée, mois-année en colonne
     columns:
@@ -359,6 +543,22 @@ models:
         data_type: double precision
       - name: annee
         data_type: text
+
+  - name: emploi_deplacement_domicile_travail_filtered
+    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+    columns:
+      - name: index
+        description: index
+        data_type: integer
+      - name: geo
+        description: Identifiant géographique
+        data_type: text
+      - name: work_area
+        description: Indicateur du lieu de travail
+        data_type: text
+      - name: obs_value
+        description: Nombre de personne concerné
+        data_type: decimal
 
   - name: education_moyenne_eleve
     columns:
