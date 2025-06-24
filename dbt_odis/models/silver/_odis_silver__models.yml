@@ -560,6 +560,65 @@ models:
         description: Nombre de personne concerné
         data_type: decimal
 
+  - name: emploi_bmo_2024_avec_commune
+    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+    columns:
+      - name: annee
+        description: annee
+        data_type: integer
+      - name: Code métier BMO
+        description: Code métier BMO
+        data_type: text
+        quote: true
+      - name: Nom métier BMO
+        description: Nom métier BMO
+        data_type: text
+        quote: true
+      - name: Famille_met
+        description: Famille de métier
+        data_type: text
+        quote: true
+      - name: Lbl_fam_met
+        description: Libélé famille de métier
+        data_type: text
+        quote: true
+      - name: REG
+        description: Numéro région
+        data_type: integer
+        quote: true
+      - name: NOM_REG
+        description: Nom de la région
+        data_type: text
+        quote: true
+      - name: Dept
+        description: Numéro département
+        data_type: integer
+        quote: true
+      - name: NomDept
+        description: Nom du département
+        data_type: text
+        quote: true
+      - name: BE24
+        description: Bassin d'emploi définition 2024
+        data_type: integer
+        quote: true
+      - name: NOMBE24
+        description: Nom des bassins d'emploi définition 2024
+        data_type: integer
+        quote: true
+      - name: met
+        description: Nombre de projet de recrutement
+        data_type: integer
+      - name: xmet
+        description: Nombre de projet de recrutement jugés difficiles
+        data_type: integer
+      - name: smet
+        description: Nombre de projet de recrutement saisonniers
+        data_type: integer
+      - name: code_commune_insee
+        description: Code commune de l'insee
+        data_type: integer
+
   - name: education_moyenne_eleve
     columns:
       - name: id

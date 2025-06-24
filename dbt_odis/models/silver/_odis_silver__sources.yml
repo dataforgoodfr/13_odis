@@ -48,6 +48,10 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
+      - name: vw_emploi_bmo_2024
+        description: View contenant
+        loaded_at_field: created_at
+
       - name: vw_logement_annuel_dept_data
         description: View contenants
         loaded_at_field: created_at

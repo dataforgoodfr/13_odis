@@ -12,3 +12,15 @@ seeds:
         Code_postal: text
         Intitule: text
         Ligne_5: text
+
+  - name: bassin_emploi
+    description: "Correspondance des codes INSEE des communes avec les bassins d'emploi"
+    config:
+      quote_columns: true 
+      delimiter: ','
+      column_types:
+        reg: text
+        dep: text
+        code_commune_insee: text
+        code_bassin_BMO: integer
+        lib_bassin_BMO: text
