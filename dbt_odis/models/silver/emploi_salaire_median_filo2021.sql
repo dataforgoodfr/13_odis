@@ -1,6 +1,6 @@
 {{ config(
-    tags = ['bronze', 'emploi'],
-    alias='vw_emploi_salaire_median_filo2021'
+    tags = ['silver', 'emploi'],
+    alias='emploi_salaire_median_filo2021'
     )
 }}
 

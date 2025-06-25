@@ -560,6 +560,19 @@ models:
         description: Nombre de personne concerné
         data_type: decimal
 
+  - name: emploi_salaire_median_filo2021
+    description: Salaire Médian
+    columns:
+      - name: codgeo
+        description: code commune
+        data_type: integer
+      - name: YEAR
+        description: Année de l'étude
+        data_type: integer
+      - name: "Mediane_Annuelle"
+        description: Salaire médian sur l'année
+        data_type: integer
+
   - name: education_moyenne_eleve
     columns:
       - name: id

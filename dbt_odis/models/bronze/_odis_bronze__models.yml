@@ -954,19 +954,6 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
-  - name: emploi_salaire_median_filo2021
-    description: Salaire Médian
-    columns:
-      - name: codgeo
-        description: code commune
-        data_type: integer
-      - name: YEAR
-        description: Année de l'étude
-        data_type: integer
-      - name: "Mediane_Annuelle"
-        description: Salaire médian sur l'année
-        data_type: integer
-
   - name: emploi_deplacement_domicile_travail_ds_rp_navettes_princ_data
     description: Déplacement et mode de transport domicile / travail
     columns:
