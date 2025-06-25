@@ -104,4 +104,13 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
+      - name: vw_population_repartition_sexe_age
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_population_population_superficie
+        description: View contenant
+        loaded_at_field: created_at
+
+
       
