@@ -9,7 +9,12 @@ with bassin_commune as (
         "code_bassin_BMO"
     from {{ ref('bassin_emploi') }}
 ),
-
+fap as (
+    select
+        code_fap_228,
+        intitule_fap_22
+    from {{ ref('dares_nomenclature_fap2021') }}
+),
 bmo as (
     select *
     from {{ source('bronze', 'vw_emploi_bmo_2024') }}
@@ -18,10 +23,13 @@ bmo as (
 jointure as (
     select
         bmo.*,
-        bc.code_commune_insee
+        bc.code_commune_insee,
+        fap.intitule_fap_22
     from bmo
     left join bassin_commune bc
         on bc."code_bassin_BMO" = bmo."BE24"
+    left join fap fap
+        on fap.code_fap_228 = bmo."Code métier BMO"
 )
 
 select
@@ -43,5 +51,7 @@ select
     end as met,
     xmet,
     smet,
-    code_commune_insee
+    code_commune_insee,
+    intitule_fap_22
+
 from jointure

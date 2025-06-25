@@ -1,18 +1,18 @@
 {{ config(
     tags = ['gold', 'emploi'],
-    alias = 'emploi_bmo_metier',
+    alias = 'emploi_bmo_secteur',
     materialized = 'table'
 ) }}
 
-{% set metiers_query %}
-    select distinct "Nom métier BMO"
+{% set secteurs_query %}
+    select distinct "intitule_fap_22"
     from {{ ref('emploi_bmo_2024_avec_commune') }}
     order by 1
 {% endset %}
 
-{% set metiers = dbt_utils.get_column_values(
+{% set secteurs = dbt_utils.get_column_values(
     table=ref('emploi_bmo_2024_avec_commune'),
-    column='"Nom métier BMO"'
+    column='"intitule_fap_22"'
 ) %}
 
 with base as (
@@ -20,7 +20,7 @@ with base as (
         code_commune_insee as codgeo,
         "NOMBE24" as "Bassin_Emploi",
         annee as "YEAR",
-        "Nom métier BMO" as metier_bmo,
+        "intitule_fap_22" as secteur_bmo,
         met
     from {{ ref('emploi_bmo_2024_avec_commune') }}
 ),
@@ -31,8 +31,8 @@ pivoted as (
         "Bassin_Emploi",
         "YEAR",
 
-        {% for metier in metiers %}
-            sum(case when metier_bmo = '{{ metier | replace("'", "''") }}' then met end) as "{{ metier }}"
+        {% for secteur in secteurs %}
+            sum(case when secteur_bmo = '{{ secteur | replace("'", "''") }}' then met end) as "{{ secteur }}"
             {% if not loop.last %},{% endif %}
         {% endfor %}
 
