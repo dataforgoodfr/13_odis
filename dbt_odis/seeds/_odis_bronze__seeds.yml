@@ -12,3 +12,16 @@ seeds:
         Code_postal: text
         Intitule: text
         Ligne_5: text
+
+
+  - name: corresp_geo_point_codes_communes
+    description: "Correspondance des localisations gps des communes (Geo Point) avec les codes communes"
+    config:
+      quote_columns: true 
+      delimiter: ';'
+      column_types: 
+        GeoPoint: text
+        GeoShape: text
+        Annee: float
+        Code_Officiel_Commune: text
+        Code_Officiel_Courant_Commune: text
