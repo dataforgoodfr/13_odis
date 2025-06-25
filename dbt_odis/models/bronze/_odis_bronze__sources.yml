@@ -132,5 +132,9 @@ sources:
 
       - name: accueil_cada_cph_huda
         description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: corresp_geo_point_codes_communes
+        description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at  
 
