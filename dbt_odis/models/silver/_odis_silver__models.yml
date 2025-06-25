@@ -360,6 +360,22 @@ models:
       - name: annee
         data_type: text
 
+  - name: emploi_deplacement_domicile_travail_filtered
+    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+    columns:
+      - name: index
+        description: index
+        data_type: integer
+      - name: geo
+        description: Identifiant géographique
+        data_type: text
+      - name: work_area
+        description: Indicateur du lieu de travail
+        data_type: text
+      - name: obs_value
+        description: Nombre de personne concerné
+        data_type: decimal
+
   - name: education_moyenne_eleve
     columns:
       - name: id

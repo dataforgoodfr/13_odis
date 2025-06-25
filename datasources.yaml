@@ -155,8 +155,11 @@ domains:
 
     etablissements_employeurs_secteur_prive:
       API: INSEE.Melodi
-      description: Nombre d'établissements actifs employeurs selon les sphères de l'économie au niveau communal et supracommunal pour la France hors Mayotte.
-      endpoint: /file/DS_FLORES_ECONOMIC_SPHERE/DS_FLORES_ECONOMIC_SPHERE_2022_CSV_FR
+      description: |
+        Nombre d'établissements actifs employeurs, 
+        selon les sphères de l'économie au niveau communal et supracommunal,
+        pour la France hors Mayotte.
+      endpoint: /file/DS_FLORES_ECONOMIC_SPHERE/DS_FLORES_ECONOMIC_SPHERE_2023_CSV_FR
       type: FileExtractor
       format: zip
       headers:
@@ -164,6 +167,19 @@ domains:
       preprocessor:
         type: notebook
         name: unzip_load_csv_files
+
+    ds_flores:
+      API: INSEE.Melodi
+      description: |
+        Nombre d'établissements actifs employeurs, 
+        selon les sphères de l'économie au niveau communal et supracommunal,
+        pour la France hors Mayotte.
+      type: MelodiExtractor
+      endpoint: /data/DS_FLORES_ECONOMIC_SPHERE
+      format: json
+      extract_params:
+        maxResult: 10000
+        totalCount: true
 
     deplacement_domicile_travail:
       API: INSEE.Melodi
@@ -236,6 +252,13 @@ domains:
       endpoint: /communes?type=arrondissement-municipal
       format: json
 
+    epcis:
+      API: GEO.api.gouv.fr
+      description: Référentiel géographique GEO - niveau epcis
+      type: JsonExtractor
+      endpoint: /epcis
+      format: json
+
   accueil:
 
     cada_cph_huda:
@@ -249,31 +272,31 @@ domains:
     
   logement:
 
-      dido_catalogue:
-        API: DiDo
-        description: Catalogue de tous les datasets dispo sur l'API DiDo (logement / développement durable)
-        type: MelodiExtractor
-        endpoint: /datasets
-        format: json
-        extract_params:
-          page: 1
-          pageSize: all
-        response_map:
-          data: data
+      # dido_catalogue:
+      #   API: DiDo
+      #   description: Catalogue de tous les datasets dispo sur l'API DiDo (logement / développement durable)
+      #   type: MelodiExtractor
+      #   endpoint: /datasets
+      #   format: json
+      #   extract_params:
+      #     page: 1
+      #     pageSize: all
+      #   response_map:
+      #     data: data
 
-      annual_dept_data:
-        API: DiDo
-        description: Données Annuelles Départementales de l'API DiDo
-        type: FileExtractor
-        endpoint: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
-        format: csv
-        extract_params:
-          withColumnName: true
-          withColumnDescription: true
-          withColumnUnit: true
-        load_params:
-          header: 2 # index de la première ligne utile du csv
-          skipfooter: 0 # combien de lignes inutiles à skipper en fin de document
+      # annual_dept_data:
+      #   API: DiDo
+      #   description: Données Annuelles Départementales de l'API DiDo
+      #   type: FileExtractor
+      #   endpoint: /datafiles/a0ae7112-5184-4ad7-842d-87b09fd27df1/csv
+      #   format: csv
+      #   extract_params:
+      #     withColumnName: true
+      #     withColumnDescription: true
+      #     withColumnUnit: true
+      #   load_params:
+      #     header: 2 # index de la première ligne utile du csv
+      #     skipfooter: 0 # combien de lignes inutiles à skipper en fin de document
 
       logements_all:
         API: INSEE.Melodi
@@ -283,9 +306,9 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
-          # startPeriod: "2016-01-01"
-          # endPeriod: "2022-01-01"
+          # TIME_PERIOD: 2021
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-01-01"
           GEO: # géographies
             - COM # communes
             - DEP # départements
@@ -297,14 +320,12 @@ domains:
           NOR: _T
           TSH: # statut d'occupation du logement
             - 0 # logement vacant
-            - 1 # habitant propriétaire
+            - 1 # habitant propriétaired
             - 2 # habitant locataire
             - _T # total général
           BUILD_END: _T 
           OCS: # catégorie de logement
             - DW_MAIN # résidence principale
-            - DW_SEC # résidence secondaire
-            - DW_OCC # logements occasionels (RP et RS confondus)
             - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
             - DW_VAC # logements vacants (RP et RS confondus)
             - _T # total général
@@ -328,24 +349,31 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          # TIME_PERIOD: 2021
-          startPeriod: "2016-01-01"
-          endPeriod: "2022-01-01"
+          TIME_PERIOD: [2010,2015,2021,2025]
           GEO: ["COM", "DEP", "REG"]
-          RP_MEASURE: DWELLINGS
+          RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
           TOH: _T
           CARS: _T
           NOR: _T
-          TSH: _T
-          BUILD_END: _T
-          OCS: ["DW_VAC","DW_MAIN","DW_SEC"]
-          TDW: _T
+          TSH: # statut d'occupation du logement
+            - _T # total général
+          BUILD_END: _T 
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: # type de logement
+            - 1 # maisons
+            - 2 # appartements
+            - 3T6 # autres logements de métropole 
+            - _T # total général
         response_map:
           data: observations
           next: paging.next
-          is_last: paging.isLast
-          
+          is_last: paging.isLast     
+
       logements_maison:
         API: INSEE.Melodi
         description: nombre de maison
@@ -354,17 +382,23 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: [2010,2015,2021,2025]
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
           TOH: _T
           CARS: _T
           NOR: _T
-          TSH: _T
+          TSH:
+            - _T # total général
           BUILD_END: _T
-          OCS: _T
-          TDW: 1
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: 
+            - 1 # maisons
         response_map:
           data: observations
           next: paging.next
@@ -378,69 +412,75 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: [2010,2015,2021,2025]
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
           TOH: _T
           CARS: _T
           NOR: _T
-          TSH: _T
+          TSH:
+            - _T # total général
           BUILD_END: _T
-          OCS: _T # Type de Résidence = total tout confondu
-          TDW: 2 # Type de logement = Appartement
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: 
+            - 2 # appartements
         response_map:
           data: observations
           next: paging.next
           is_last: paging.isLast
 
-      logements_maison_et_residences_principales:
-        API: INSEE.Melodi
-        description: nombre de maison residence principale
-        type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC
-        format: json
-        extract_params:
-          maxResult: 10000
-          TIME_PERIOD: 2021
-          GEO: ["COM", "DEP", "REG"]
-          RP_MEASURE: DWELLINGS
-          L_STAY: _T
-          TOH: _T
-          CARS: _T
-          NOR: _T
-          TSH: _T
-          BUILD_END: _T
-          OCS: DW_MAIN
-          TDW: 1
-        response_map:
-          data: observations
-          next: paging.next
-          is_last: paging.isLast
+      # logements_maison_et_residences_principales:
+      #   API: INSEE.Melodi
+      #   description: nombre de maison residence principale
+      #   type: MelodiExtractor
+      #   endpoint: /data/DS_RP_LOGEMENT_PRINC
+      #   format: json
+      #   extract_params:
+      #     maxResult: 10000
+      #     TIME_PERIOD: 2021
+      #     GEO: ["COM", "DEP", "REG"]
+      #     RP_MEASURE: DWELLINGS
+      #     L_STAY: _T
+      #     TOH: _T
+      #     CARS: _T
+      #     NOR: _T
+      #     TSH: _T
+      #     BUILD_END: _T
+      #     OCS: DW_MAIN
+      #     TDW: 1
+      #   response_map:
+      #     data: observations
+      #     next: paging.next
+      #     is_last: paging.isLast
 
-      logements_appartement_et_residences_principales:
-        API: INSEE.Melodi
-        description: nombre d'appartement residence principale
-        type: MelodiExtractor
-        endpoint: /data/DS_RP_LOGEMENT_PRINC
-        format: json
-        extract_params:
-          maxResult: 10000
-          TIME_PERIOD: 2021
-          GEO: ["COM", "DEP", "REG"]
-          RP_MEASURE: DWELLINGS
-          L_STAY: _T
-          TOH: _T
-          CARS: _T
-          NOR: _T
-          TSH: _T
-          BUILD_END: _T
-          OCS: DW_MAIN
-          TDW: 2
-        response_map:
-          data: observations
-          next: paging.next
-          is_last: paging.isLast
+      # logements_appartement_et_residences_principales:
+      #   API: INSEE.Melodi
+      #   description: nombre d'appartement residence principale
+      #   type: MelodiExtractor
+      #   endpoint: /data/DS_RP_LOGEMENT_PRINC
+      #   format: json
+      #   extract_params:
+      #     maxResult: 10000
+      #     TIME_PERIOD: 2021
+      #     GEO: ["COM", "DEP", "REG"]
+      #     RP_MEASURE: DWELLINGS
+      #     L_STAY: _T
+      #     TOH: _T
+      #     CARS: _T
+      #     NOR: _T
+      #     TSH: _T
+      #     BUILD_END: _T
+      #     OCS: DW_MAIN
+      #     TDW: 2
+      #   response_map:
+      #     data: observations
+      #     next: paging.next
+      #     is_last: paging.isLast
 
       logements_pieces:
         API: INSEE.Melodi
@@ -450,17 +490,26 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: [2010,2015,2021,2025]
           GEO: ["COM", "DEP", "REG"]
-          RP_MEASURE: DWELLINGS_ROOMS
+          RP_MEASURE: DWELLINGS_ROOMS # nombre de pièces
           L_STAY: _T
           TOH: _T
           CARS: _T
           NOR: _T
-          TSH: _T
-          BUILD_END: _T
-          OCS: DW_MAIN
-          TDW: _T
+          TSH: # statut d'occupation du logement
+            - _T # total général
+          BUILD_END: _T 
+          OCS: # catégorie de logement
+            - DW_MAIN # résidence principale
+            - DW_SEC_DW_OCC # résidences secondaires et logements occasionnels
+            - DW_VAC # logements vacants (RP et RS confondus)
+            - _T # total général
+          TDW: # type de logement
+            - 1 # maisons
+            - 2 # appartements
+            - 3T6 # autres logements de métropole 
+            - _T # total général
         response_map:
           data: observations
           next: paging.next

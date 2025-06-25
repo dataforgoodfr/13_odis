@@ -15,14 +15,26 @@ Les modèles sont des fichiers SQL qui transforment vos données. Chaque modèle
 - Crée une table ou une vue dans l'entrepôt de données
 
 ```sql
--- Example model: models/bronze/geographical_references_communes.sql
-select 
-    id as id, 
-    json_value(data, '$.nom') as nom, 
-    json_value(data, '$.code') as code, 
-    CAST(json_value(data, '$.population') as INT64) as population,        
-    created_at as created_at
-from {{ source('bronze', 'geographical_references_communes') }} 
+-- Example model: models/bronze/geographical_references_communes.sql : extraction du JSON en code Jinja_sql
+with communes as 
+(
+    select 
+        id, 
+        (data::jsonb) ->> 'nom' as nom, 
+        (data::jsonb) ->> 'code' as code, 
+        (data::jsonb) -> 'centre' ->> 'type' as geo_type,
+        (data::jsonb) -> 'centre' -> 'coordinates'->> 0 as geo_coordonnees_longitude,
+        (data::jsonb) -> 'centre' -> 'coordinates'->> 1 as geo_coordonnees_lattitude,
+        (data::jsonb) -> 'region' ->> 'nom' as region_nom,
+        (data::jsonb) -> 'region' ->> 'code' as region_code,
+        (data::jsonb) -> 'departement' ->> 'nom' as departement_nom,
+        (data::jsonb) -> 'departement' ->> 'code' as departement_code,
+        (data::jsonb) -> 'population' as population,        
+        created_at
+    from {{ source('bronze', 'geographical_references_communes') }} 
+)
+
+select * from communes
 ```
 
 ### Sources
@@ -67,9 +79,27 @@ models:
               values: ['Point']
 ```
 
-### Documentation
+### Documentation des models
 
-dbt génère une documentation interactive pour votre projet, facilitant la compréhension des modèles de données.
+Power User for Dbt génère une documentation interactive pour votre projet, facilitant la compréhension des modèles de données.
+
+Une que vous avez run votre model une première fois
+Commencez par renseigner le nom et la description de votre table issue du model dans le couche_models.yml
+Power User va détecter l'emplacement de la table/view dans Postgre et de sa documentation, puis synchroniser
+
+```yaml
+# models/bronze/_odis_bronze__models
+  - name: logement_logements_sociaux_departement
+    description: CSV contenant les logements sociaux déclarés par départements
+```
+
+Ensuite revenez sur votre model, allez sur la barre d'outils de votre termin, onglet Documentation Editor
+Vous retrouvez votre description
+Synchronisez avec la base de donnée (bouton jaune)
+Vous découvrez vos colonnes, rensignez leur description pour chaque
+(vous pouvez ajouter des tests)
+Vérifiez vos data_types
+Bouton 'Save', Power User réécrit le models.yml directement
 
 ## Structure du projet
 
@@ -121,11 +151,13 @@ dbt run --models model_name
 dbt run --select bronze
 
 # Exécuter des modèles avec un tag spécifique
-dbt run --models tag:daily
+dbt run --models tag:emploi
 
 # Exécuter des modèles sur un environnement spécifique (ex: dev_live)
 dbt run --models --target dev_live
 ```
+Vous avez un environnement de test local si vous le souhaitez : --target dev_custom
+L'environnement de construction classique est --target dev_live
 
 ### Test des Modèles - Vérifie les tests écrits dans les /schema.yml
 
@@ -153,7 +185,7 @@ dbt build --select +model_name
 dbt build --full-refresh
 ```
 
-### Génération de la documentation
+### Génération de la documentation globale en JSON
 
 ```bash
 # Créer un fichier JSON recensant toutes les tables, colonnes et connexions de votre projet DBT
@@ -212,7 +244,7 @@ Fichier de configuration de la connexion à l’entrepôt de données :
 
 ```yaml
 dbt_odis:
-  target: dev_custom
+  target: dev_live
   outputs:
     dev_live:
       dbname: odis
@@ -229,7 +261,7 @@ dbt_odis:
       host: localhost
       pass: odis
       port: 5432
-      schema: "vos initiales"
+      schema: 'vos_initiales'
       threads: 16
       type: postgres
       user: odis

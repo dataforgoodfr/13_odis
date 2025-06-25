@@ -954,6 +954,43 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
+  - name: emploi_deplacement_domicile_travail_ds_rp_navettes_princ_data
+    description: Déplacement et mode de transport domicile / travail
+    columns:
+      - name: index
+        description: index
+        data_type: integer
+      - name: AGE
+        description: Catégorie d'âge
+        data_type: text
+      - name: EMPSTA_ENQ
+        description: Statut d'emploi variable selon l'enquête
+        data_type: text
+      - name: FREQ
+        description: Fréquence 
+        data_type: text
+      - name: GEO
+        description: Identifiant géographique
+        data_type: text
+      - name: GEO_OBJECT
+        description: Type d'object géographie (commune, région ect)
+        data_type: text
+      - name: RP_MEASURE
+        description: Mesure du recensement
+        data_type: text
+      - name: TRANS
+        description: Mode de transport
+        data_type: text
+      - name: WORK_AREA
+        description: Indicateur du lieu de travail
+        data_type: text
+      - name: TIME_PERIOD
+        description: Période temporelle
+        data_type: integer
+      - name: OBS_VALUE
+        description: Nombre de personee concerné
+        data_type: decimal
+
   # Geographical references
   - name: geographical_references_communes
     description: Extraction du JSON source geographical references par commune, granularité fine au niveau du code INSEE (unique) de la commune
