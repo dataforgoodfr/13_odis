@@ -135,6 +135,6 @@ sources:
         loaded_at_field: created_at
 
       - name: corresp_geo_point_codes_communes
-        description: Source JSON loadée dans le champ data contenant 
+        description: export des données des communes sur opendatasoft, en ne gardant que les colonnes en lien avec les coordonées et les codes communes
         loaded_at_field: created_at  
 
