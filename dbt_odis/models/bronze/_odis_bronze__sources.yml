@@ -130,3 +130,7 @@ sources:
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 
+      - name: accueil_cada_cph_huda
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at  
+
