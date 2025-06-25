@@ -21,7 +21,7 @@ seeds:
       delimiter: ';'
       column_types: 
         GeoPoint: text
-        GeoShape: text
-        Annee: float
+        Annee: int
         Code_Officiel_Commune: text
-        Code_Officiel_Courant_Commune: text
+        latitude: float
+        longitude: float
