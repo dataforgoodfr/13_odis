@@ -538,17 +538,27 @@ domains:
         
   population:
       
-      repartition_sexe:
+      by_gender:
         API: INSEE.Melodi
-        description: repartition de la population par sexe
+        description: Répartition de la population par genre (M/F, Cis/Trans)
         type: MelodiExtractor
-        endpoint: /data/DS_RP_POPULATION_PRINC
+        endpoint: /data/DS_ESTIMATION_POPULATION
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
-          GEO: ["COM","DEP","REG"]
-          SEX: ["F","M"]
+          # TIME_PERIOD: 2021
+          GEO: 
+            - COM
+            - DEP
+            - REG
+          SEX:
+            - M # Hommes (all)
+            - M_cis # Hommes cis
+            - F # Femmes (all)
+            - F_cis # Femmes cis
+            - TS # Personnes Trans
+            - _Z # 'Non Applicable'
+          # AGE: _T
         response_map:
           data: observations
           next: paging.next
