@@ -127,6 +127,19 @@ sources:
         loaded_at_field : created_at
 
       - name: population_categorie_socio_pro
-        description: Source JSON loadée dans le champ data contenant 
+        description: Source JSON loadée dans le champ data 
         loaded_at_field: created_at
+
+      - name: population_by_age
+        description: Source JSON - Estimation de population INSEE par âge
+        loaded_at_field: created_at
+
+      - name: population_by_age_gender
+        description: Source JSON - Estimation de population INSEE par âge et genre
+        loaded_at_field: created_at
+
+      - name: population_menages_td_men1_2021
+        description: Source CSV
+        loaded_at_field: created_at
+      
 
