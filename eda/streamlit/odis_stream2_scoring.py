@@ -10,7 +10,7 @@ import shapely as shp
 from shapely.wkt import loads
 from shapely.geometry import Polygon
 from sklearn import preprocessing
-def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_file, ecoles_file, maternites_file, sante_file, inclusion_file):
+def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_file, ecoles_file, maternites_file, sante_file, inclusion_file, sncf_file):
     odis = gpd.GeoDataFrame(gpd.read_parquet(odis_file))
     odis.set_geometry(odis.polygon, inplace=True)
     odis.polygon.set_precision(10**-5)
@@ -53,7 +53,11 @@ def init_loading_datasets(odis_file, scores_cat_file, metiers_file, formations_f
     incl_index['key'] = incl_index.categorie+'_'+incl_index.service
     incl_index=incl_index.groupby('codgeo').agg({'key':lambda x: set(x)})
 
-    return odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index
+    # Carte des voies SNCF / RFF
+    plan_sncf = gpd.read_file(sncf_file, columns=['geometry', 'libelle'])
+    plan_sncf = plan_sncf[plan_sncf.libelle == 'Exploitée'].to_crs(epsg=2154)
+
+    return odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index, plan_sncf
 # Filtering dataframe based on subject distance preference (to save on compute time later on)
 def filter_loc_by_distance(df, distance):
     return df[df.dist_current_loc < distance * 1000]

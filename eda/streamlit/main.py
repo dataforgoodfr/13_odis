@@ -84,7 +84,7 @@ def session_states_init():
 @st.cache_resource
 def init_datasets():
     # We load all the datasets
-    odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index = init_loading_datasets(
+    odis, scores_cat, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index, plan_sncf = init_loading_datasets(
         ODIS_FILE, 
         SCORES_CAT_FILE, 
         METIERS_FILE, 
@@ -92,7 +92,8 @@ def init_datasets():
         ECOLES_FILE, 
         MATERNITE_FILE, 
         SANTE_FILE, 
-        INCLUSION_FILE
+        INCLUSION_FILE,
+        SNCF_FILE
         )
     
     coddep_set = sorted(set(odis['dep_code']))
@@ -101,7 +102,7 @@ def init_datasets():
     libfap_set = sorted(set(codfap_index['Intitulé FAP 341']))
     libform_set = sorted(set(codformations_index['libformation']))
     
-    return odis, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set
+    return odis, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set, plan_sncf
 
 # Scoring et affichage de la carte avec tous les résultats
 @st.cache_data
@@ -168,6 +169,7 @@ def load_results(df, scores_cat):
     st.session_state['processed_gdf'] = odis_scored
     st.session_state['selected_geo'] = selected_geo
     st.session_state['prefs'] = prefs
+    st.session_state["center"] =[selected_geo.polygon.centroid.y, selected_geo.polygon.centroid.x]
     st.session_state['fg_ecoles'] = False
     st.session_state['fg_sante'] = False
     st.session_state['fg_services'] = False
@@ -219,7 +221,7 @@ def build_top_results(_df, n, prefs):
                 "style": style_to_use,
                 "popup_html": ( # Pre-render popup HTML for convenience
                     f"<b>{row.libgeo}</b><br>"
-                    f"Score: {row.weighted_score:.2f}<br>"
+                    f"Score: {row.weighted_score*100:.0f}%<br>"
                     f"Binôme: {row.libgeo_binome}"
                 )
             }
@@ -438,7 +440,7 @@ def show_scoring_results(_df, prefs):
             "style": style_to_use,
             "popup_html": ( # Pre-render popup HTML for convenience
                 f"<b>{row.libgeo}</b><br>"
-                f"Score: {row.weighted_score:.2f}<br>"
+                f"Score: {row.weighted_score*100:.0f}%<br>"
                 f"Binôme: {row.libgeo_binome}"
             )
         }
@@ -503,7 +505,7 @@ def odis_base_map(_current_geo, prefs):
             gs.centroid.y.iloc[0],
             gs.centroid.x.iloc[0]
         ]
-    
+    st.session_state["center"] = center_loc
         # 10,25,50,100,500,1000
     match prefs['loc_distance_km']:
         case 10:
@@ -519,6 +521,7 @@ def odis_base_map(_current_geo, prefs):
         case 1000:
             zoom_start = 5
 
+    st.session_state["zoom"] = zoom_start
     m = flm.Map(location=center_loc, zoom_start=10)
 
     return m
@@ -575,36 +578,45 @@ def build_legend(items_list):
 # Affichage Support Education
 @st.cache_data
 def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
-    # we consider all the etablissements soclaires in the target codgeos and the ones around (voisins)
+    # we consider all the etablissements scolaires in the target codgeos and the ones around (voisins)
     target_codgeos = set(
         st.session_state['processed_gdf'].codgeo.tolist() 
-        # +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y]
+        # +[x for y in st.session_state['processed_gdf'].codgeo_voisins.tolist() for x in y] #Need to fix crash when no voisin exist
         )
     niveaux_enfants = set(liste_classe_enfants)
-    
+    # We have 3 cases here
+    #   Maternelle without elementaire
+    #   Elementaire without maternelle
+    #   Elementaire with maternelle
+
+    maternelle_df = None
+    elementaire_df = None
+    primaire_df = None 
+    college_df = None
+    lycee_df = None
+
     if 'Maternelle' in niveaux_enfants:
-        maternelle_df = annuaire_ecoles[annuaire_ecoles.ecole_maternelle > 0].copy()
+        maternelle_df = annuaire_ecoles[(annuaire_ecoles.ecole_maternelle > 0) & (annuaire_ecoles.ecole_elementaire == 0)].copy()
         maternelle_df['type']='maternelle'
-    else:
-        maternelle_df = None
+        primaire_df = annuaire_ecoles[(annuaire_ecoles.ecole_maternelle > 0) & (annuaire_ecoles.ecole_elementaire > 0)].copy()
+        primaire_df['type']='primaire' #primaire = maternelle + elementaire
+
     
-    if 'Primaire' in niveaux_enfants:
-        primaire_df = annuaire_ecoles[annuaire_ecoles.ecole_elementaire > 0].copy()
-        primaire_df['type']='primaire'
-    else:
-        primaire_df = None
+    if 'Elémentaire' in niveaux_enfants:
+        elementaire_df = annuaire_ecoles[(annuaire_ecoles.ecole_maternelle == 0) & (annuaire_ecoles.ecole_elementaire > 0)].copy()
+        elementaire_df['type']='elementaire'
+        primaire_df = annuaire_ecoles[(annuaire_ecoles.ecole_maternelle > 0) & (annuaire_ecoles.ecole_elementaire > 0)].copy()
+        primaire_df['type']='primaire' #primaire = maternelle + elementaire
+
     
     if 'Collège' in niveaux_enfants:
         college_df = annuaire_ecoles[annuaire_ecoles.type_etablissement == 'Collège'].copy()
         college_df['type']='college'
-    else:
-        college_df = None
-    
+
     if 'Lycée' in niveaux_enfants:
         lycee_df = annuaire_ecoles[annuaire_ecoles.type_etablissement == 'Lycée'].copy()
         lycee_df['type']='lycee'
-    else:
-        lycee_df = None    
+    
     
     annuaire_ecoles = pd.concat([maternelle_df, primaire_df, college_df, lycee_df])
     mask = annuaire_ecoles['code_commune'].isin(target_codgeos)
@@ -616,7 +628,8 @@ def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
 def build_local_ecoles_layer(_current_geo, _annuaire_ecoles, prefs):
     etablissements_scolaire_colors = {
         'maternelle': 'purple',
-        'primaire': 'orange',
+        'elementaire': 'orange',
+        'primaire': 'green',
         'college': 'blue',
         'lycee': 'red',
         'default': 'grey'
@@ -845,7 +858,7 @@ def load_demo_data(demo_data):
             demo_data['codes_metiers'] = [['B2X37', 'B2X38']]
             # demo_data['codes_metiers'] = [['Cuisiniers', 'Aides de cuisine et employés polyvalents de la restauration']]
             demo_data['codes_formations'] = [[],[331, 330, 326]]
-            demo_data['classe_enfants'] = [0, 1] #index of ['Maternelle','Primaire','Collège','Lycée']
+            demo_data['classe_enfants'] = [0, 1] #index of ['Maternelle','Elémentaire','Collège','Lycée']
             demo_data['sante'] = "Maternité"
             demo_data['poids_mobilité'] = 0
         if st.query_params['demo'] == "3":
@@ -861,7 +874,7 @@ def load_demo_data(demo_data):
             demo_data['codes_metiers'] =[['T2A60']] #[['S1X20', 'S1X40', 'S1X80']]
             # demo_data['codes_metiers'] = [['Cuisiniers', 'Aides de cuisine et employés polyvalents de la restauration']]
             # [[],[330, 324]] # Spécialités plurivalentes sanitaires et sociales + Secrétariat
-            demo_data['classe_enfants'] = [1, 2] #index of ['Maternelle','Primaire','Collège','Lycée']
+            demo_data['classe_enfants'] = [1, 2] #index of ['Maternelle','Elémentaire','Collège','Lycée']
             demo_data['besoins_autres'] = {'apprendre-francais':['-']}
             demo_data['poids_mobilité'] = 50
             demo_data['poids_inclusion'] = 50
@@ -888,8 +901,9 @@ ECOLES_FILE = '../csv/annuaire_ecoles_france_mini.parquet'
 MATERNITE_FILE = '../csv/annuaire_maternites_DREES.csv'
 SANTE_FILE = '../csv/annuaire_sante_finess.parquet'
 INCLUSION_FILE = '../csv/odis_services_incl_exploded.parquet'
+SNCF_FILE = '../csv/formes-des-lignes-du-rfn.geojson'
 
-odis, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set = init_datasets()
+odis, codfap_index, codformations_index, annuaire_ecoles, annuaire_sante, annuaire_inclusion, incl_index, scores_cat, coddep_set, depcom_df, codgeo_df, libfap_set, libform_set, plan_sncf = init_datasets()
 t = performance_tracker(t, 'End Dataset Import', timer_mode)
 
 
@@ -1008,7 +1022,7 @@ with st.container(border=False, key='top_menu'):
             st.text("Aucun enfant n'a été ajouté dans l'onglet 'Foyer'.")
         else:
             col_left, col_right = st.columns(2)
-            liste_classes = ['Maternelle','Primaire','Collège','Lycée']
+            liste_classes = ['Maternelle','Elémentaire','Collège','Lycée']
             classe_index = 0
             with col_left:
                 for enfant in range(0,nb_enfants, 2):
@@ -1191,8 +1205,10 @@ with col_map:
                         icon = 'pencil'
                         if 'Maternelle' in st.session_state['prefs'].get('classe_enfants'):
                             legend_items.append({'color':'violet', 'icon':icon, 'text':'Maternelles'})
-                        if 'Primaire' in st.session_state['prefs'].get('classe_enfants'):
-                            legend_items.append({'color':'orange', 'icon':icon, 'text':'Ecoles Primaires'})
+                            legend_items.append({'color':'green', 'icon':icon, 'text':'Ecoles Primaires'})
+                        if 'Elémentaire' in st.session_state['prefs'].get('classe_enfants'):
+                            legend_items.append({'color':'orange', 'icon':icon, 'text':'Ecoles Elémentaires'})
+                            legend_items.append({'color':'green', 'icon':icon, 'text':'Ecoles Primaires'})
                         if 'Collège' in st.session_state['prefs'].get('classe_enfants'):
                             legend_items.append({'color':'blue', 'icon':icon, 'text':'Collèges'})
                         if 'Lycée' in st.session_state['prefs'].get('classe_enfants'):
@@ -1256,6 +1272,89 @@ with col_map:
                         st.session_state['fgs_to_show'].discard(key_extra)
 
                 t = performance_tracker(t, 'End Services Inclusions Display', timer_mode)
+
+                # LIGNES SNCF
+                # t = performance_tracker(t, 'Start SNCF Display', timer_mode)
+                # if st.checkbox(
+                #     "Réseau de train", 
+                #     value=False, 
+                # ):
+                #     fg_sncf = flm.FeatureGroup(name="SNCF")
+
+                #     # We pass all the scored communes at once inside a geojson feature group
+                #     geojson_features = []
+                #     loc_actuelle_gdf = st.session_state['processed_gdf'][st.session_state['processed_gdf'].codgeo == st.session_state["prefs"].get('commune_actuelle')]
+                #     loc_actuelle_gdf = loc_actuelle_gdf.to_crs(epsg=2154)
+                #     plan_sncf_to_show = plan_sncf.sjoin_nearest(loc_actuelle_gdf, max_distance=1000*st.session_state["prefs"].get('loc_distance_km'))
+                #     st.text(plan_sncf_to_show.shape)
+                #     for row in plan_sncf_to_show.itertuples(index=False):
+                    
+                #         if row.geometry is None:
+                #             continue
+                    
+                #         geojson_geometry = mapping(row.geometry)
+                        
+                #         # style_to_use = {
+                #         #     # "fillColor": colormap(score_weights_dict.get(row.codgeo)),
+                #         #     # "fillOpacity": 0.8,
+                #         #     "stroke": True,
+                #         #     "weight": 1,
+                #         #     "color": "blue"
+                #         # }
+
+                #         properties = {
+                #             # "Nom": row.libgeo,
+                #             # "Score": str(int(row.weighted_score*100))+'%',
+                #             # "style": style_to_use,
+                #             # "popup_html": ( # Pre-render popup HTML for convenience
+                #             #     f"<b>{row.libgeo}</b><br>"
+                #             #     f"Score: {row.weighted_score*100:.0f}%<br>"
+                #             #     f"Binôme: {row.libgeo_binome}"
+                #             # )
+                #         }
+
+                #         voie = {
+                #             "type": "Feature",
+                #             "geometry": geojson_geometry,
+                #             "properties": properties
+                #         }
+                #         geojson_features.append(voie)
+
+                #     geojson_data = {
+                #         "type": "FeatureCollection",
+                #         "features": geojson_features
+                #     }
+
+                #     ligne_sncf = flm.GeoJson(
+                #         geojson_data,
+                #         name="Voies SNCF",
+                #         # style_function=style_function,
+                #         # tooltip=flm.GeoJsonTooltip(fields=['Nom', 'Score'], aliases=['Nom', 'Score']),
+                #         # popup=flm.GeoJsonPopup(fields=['popup_html'], aliases=[''], localize=True, parse_html=Trfue) # Use pre-rendered HTML
+                #     )
+                    
+                #     fg_sncf.add_child(ligne_sncf)
+                #     st.session_state['fg_dict_ref']['fg_sncf'] = fg_sncf
+                #     st.session_state['fgs_to_show'].add('fg_sncf')
+
+                        # Légende
+                        # icon = 'heart'
+                        # if 'famille' in st.session_state['besoins_autres']:
+                        #     legend_items.append({'color':'orange', 'icon':icon, 'text':'Famille'})
+                        # if 'numerique' in st.session_state['besoins_autres']:
+                        #     legend_items.append({'color':'grey', 'icon':icon, 'text':'Numérique'})
+                        # if 'acces-aux-droits' in st.session_state['besoins_autres']:
+                        #     legend_items.append({'color':'violet', 'icon':icon, 'text':'Accès aux droits'})
+                        # if 'illetrisme' in st.session_state['besoins_autres']:
+                        #     legend_items.append({'color':'darkgreen', 'icon':icon, 'text':'Illetrisme'})
+                        # if 'apprendre-francais' in st.session_state['besoins_autres']:
+                        #     legend_items.append({'color':'blue', 'icon':icon, 'text':'Apprendre le français'})
+                        # if 'sante' in st.session_state['besoins_autres']:
+                        #     legend_items.append({'color':'red', 'icon':icon, 'text':'Santé'})
+                # else:
+                #     st.session_state['fgs_to_show'].discard('fg_sncf')
+
+                # t = performance_tracker(t, 'End SNCF Display', timer_mode)
 
                 # Légende
                 legend = build_legend(legend_items)
