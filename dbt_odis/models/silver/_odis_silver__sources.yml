@@ -60,15 +60,7 @@ sources:
         description: View contenantments
         loaded_at_field: created_at
 
-      - name: vw_logements_appartement_et_residences_principales
-        description: View contenant
-        loaded_at_field: created_at
-
       - name: vw_logements_maison
-        description: View contenant
-        loaded_at_field: created_at
-
-      - name: vw_logements_maison_et_residences_principales
         description: View contenant
         loaded_at_field: created_at
 

@@ -79,14 +79,16 @@ models:
         data_type: timestamp without time zone
 
   - name: logements_types_territoires
-    description: Table silver joignant tous les types de logements pour une zone géographique identifiée par "geo"
+    description: Table silver joignant tous les types de logements, leur type d'occupation, et les pièces de résidences principales pour une zone géographique identifiée par "geo", pour plusieurs années de mesure
     columns:
       - name: id
         description: index
       - name: geo
         description: clé primaire
+        data_type: text
       - name: time_period
         description: année de mesure
+        data_type: text
       - name: maisons
         description: nombre de maisons dans la zone géographique
       - name: maisons_rp
@@ -101,8 +103,64 @@ models:
         description: nombre total de logements dans la zone géographique
       - name: type_geo
         description: type de zone géographique (commune, département, région).
+        data_type: text
       - name: code_geo
         description: code géographique (commune, département, région).
+        data_type: text
+      - name: habitations
+        description: mesure habitations de l'API
+        data_type: text
+      - name: total_tous_logements
+        description: Total global de tous les types de logements _T (1,2,3T6), et de tous les types doccupation _T (DW_MAIN, DW_SEC_DW_OCC, DW_VAC)
+        data_type: double precision
+      - name: rp_tous_logements
+        description: Total des logements qui sont des résidences principales
+        data_type: double precision
+      - name: rsecocc_tous_logements
+        description: Total des logements qui sont des résidences secondaires ou occupées
+        data_type: double precision
+      - name: lvac_tous_logements
+        description: Total des logements qui sont vacants
+        data_type: double precision
+      - name: total_maisons
+        description: Total des logements de type maisons (tdw=1)
+        data_type: double precision
+      - name: rp_maisons
+        description: Total des maisons qui sont des résidences principales
+        data_type: double precision
+      - name: rsecocc_maisons
+        description: Total des maisons qui sont des résidences secondaires ou occupées
+        data_type: double precision
+      - name: lvac_maisons
+        description: Total des maisons qui sont des vacantes
+        data_type: double precision
+      - name: total_appartements
+        description: Total des logements de type appartements (tdw=2)
+        data_type: double precision
+      - name: rp_appartements
+        description: Total des appartements qui sont des résidences principales
+        data_type: double precision
+      - name: rsecocc_appartements
+        description: Total des appartements qui sont des résidences secondaires ou occupées
+        data_type: double precision
+      - name: lvac_appartements
+        description: Total des appartements qui sont vacants
+        data_type: double precision
+      - name: pieces_habitations
+        description: mesure pièces d'habitation de l'API
+        data_type: text
+      - name: total_rp_pieces
+        description: Total des pièces de résidences principales _T (tdw=1,2,3T6)
+        data_type: double precision
+      - name: maisons_rp_pieces
+        description: Total des pièces de résidences principales qui sont des maisons
+        data_type: double precision
+      - name: appartements_rp_pieces
+        description: Total des pièces de résidences principales qui sont des appartements
+        data_type: double precision
+      - name: autres_rp_pieces
+        description: Total des pièces de résidences principales qui sont des autres logements
+        data_type: double precision
 
   - name: emploi_demandeur_emploi
     description: View jointure horizontale des 3 niveaux de zones géographiques, pour les demandeurs d'emploi mesurée pour une zone donnée, mois-année en colonne
