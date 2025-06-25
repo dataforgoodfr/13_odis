@@ -104,4 +104,12 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
+      - name: vw_geographical_references_geopoint_communes
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_homepage_accueil
+        description: View contenant
+        loaded_at_field: created_at
+
       
