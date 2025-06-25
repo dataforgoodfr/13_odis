@@ -10,10 +10,10 @@ base="dark"
 backgroundColor="white"
 secondaryBackgroundColor="#E8ECEA"
 textColor="#1B4429"
-secondaryTextColor="#1B4429"
+# secondaryTextColor="#1B4429"
 baseRadius="full"
 primaryColor="#1B4429"
-secondaryColor="#F5D819"
+# secondaryColor="#F5D819"
 
 
 
@@ -23,10 +23,10 @@ secondaryBackgroundColor="rgb(49, 122, 73)"
 textColor="white"
 # secondaryTextColor="#1B4429"
 primaryColor="rgb(255, 208, 0)"
-secondaryColor="#F5D819"
+# secondaryColor="#F5D819"
 
 [client]
 toolbarMode = "minimal"
 
 [ui]
-hideTopBar = false
+hideTopBar = true

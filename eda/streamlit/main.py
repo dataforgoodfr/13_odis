@@ -127,7 +127,8 @@ def set_prefs(scores_cat):
         'classe_enfants':liste_classe_enfants,
         'besoin_sante':besoin_sante,
         'besoins_autres': st.session_state['besoins_autres'],
-        'binome_penalty':penalite_binome
+        'binome_penalty':penalite_binome,
+        'pop_min': pop_min
     }
     # Add binomes scores & weights to scores_cat
     scores_cat_prefs=scores_cat.copy()
@@ -152,7 +153,7 @@ def load_results(df, scores_cat):
         _df=df,
         scores_cat=scores_cat,
         prefs=prefs,
-        _incl_index=incl_index
+        _incl_index=incl_index,
         )
     
     # We pop the selected commune from the results
@@ -331,9 +332,14 @@ def build_top_results(_df, n, prefs):
                         services = annuaire_inclusion[annuaire_inclusion.codgeo == row.codgeo]
                         liste_services=[]
                         if services is not None:
-                            for item in services.itertuples():
-                                liste_services.append(f"- [{item.categorie.replace('-', ' ').capitalize()}] {item.service.replace('-', ' ').capitalize()}")
-                            st.markdown("\n".join(sorted(set(liste_services))))
+                            categories = sorted(set(services.categorie))
+                            for categorie in categories:
+                                liste_services += [f"- **{categorie.replace('-', ' ').capitalize()}**"]
+                                for item in services.itertuples():
+                                    if item.categorie == categorie and item.service is not '-':
+                                        liste_services += [f"    - {item.service.replace('-', ' ').capitalize()}"]
+                        st.markdown("\n".join(liste_services))
+                        print("\n".join(liste_services))
 
                     st.markdown(f"[Page OD&IS de la commune](https://jaccueille-indicateurs-commune.wedodata.dev/territoire/presentation/accueil/{row.codgeo})")
                     st.markdown(f"[Page Wikipedia de la commune]({row.url_wikipedia})")
@@ -350,7 +356,7 @@ def produce_pitch_markdown(row, prefs, scores_cat, codfap_index, codformations_i
     if row["binome"]:
         pitch_md.append(f'\nCette commune, en [binôme](# "Lorsque des communes sont proposées en binômes, c’est qu’ensemble elles correspondent au projet de vie de la personne. L’une peut présenter des opportunités d’emplois, l’autre de logements. Une installation pourrait alors être envisagée aux alentours de leur délimitation commune.") avec sa voisine **{row["libgeo_binome"]}**, pourrait être intéressante {"pour "+demo_data["nom"] if demo_data["nom"] is not None else ""}. La correspondance de ses besoins et opportunités est évaluée à **{row["weighted_score"] *100:.0f}**% ')
     else:
-        pitch_md.append(f'\nCette commune pourrait être intéressante pour [nom de la personne]. La correspondance de ses besoins et opportunités est évaluée à **{row["weighted_score"] *100:.0f}**% ')
+        pitch_md.append(f'\nCette commune pourrait être intéressante pour la personne accompagnée. La correspondance de ses besoins et opportunités est évaluée à **{row["weighted_score"] *100:.0f}**% ')
 
 
     # Adding the top contributing criterias
@@ -421,7 +427,7 @@ def show_scoring_results(_df, prefs):
         style_to_use = {
             "fillColor": colormap(score_weights_dict.get(row.codgeo)),
             "fillOpacity": 0.8,
-            "stroke": True,
+            "stroke": False,
             "weight": 1,
             "color": "grey"
         }
@@ -950,6 +956,7 @@ with st.sidebar:
         poids_mobilité = st.select_slider("Pondération Mobilité", [0, 25, 50, 100], value=value_mobilite)
 
         penalite_binome = st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=50) / 100
+        pop_min = st.select_slider("Population Minimum", [0, 500, 1000, 5000, 10000], value=1000)
 
 
 #Top filter Form
@@ -981,7 +988,7 @@ with st.container(border=False, key='top_menu'):
             )
 
     # Tabs
-    tab_foyer, tab_edu, tab_emploi, tab_logement, tab_sante, tab_autres, tab_mobilite= st.tabs(['Foyer', 'Education', 'Projet Pro', 'Logement', 'Santé', 'Autres Besoins', 'Mobilité'])
+    tab_foyer, tab_edu, tab_emploi, tab_logement, tab_sante, tab_autres, tab_mobilite= st.tabs(['Situation familiale', 'Education', 'Projet Professionnel', 'Logement', 'Santé', 'Autres Besoins', 'Mobilité'])
             
     #Foyer
     with tab_foyer:
@@ -1108,7 +1115,7 @@ with st.container(border=False, key='top_menu'):
 #     load_results(df=odis, scores_cat=scores_cat)
 
 # Main two sections: results and map
-col_results, col_map = st.columns([1, 1])
+col_results, col_map = st.columns([2, 3])
 
 
 ### Results Column
@@ -1274,8 +1281,9 @@ with col_map:
         # Now we can build the list of feature groups to display (fgs_list) based on:
         # 1. The list of feature groups names we want to show (fgs_to_show)
         # 2. The reference dict of all available fgs (fg_dict_ref)
-         
+        
         fgs_list = []
+        # print(st.session_state['fgs_to_show'])
         for fg_name in st.session_state['fgs_to_show']:
             if fg_name == 'Scores':
                 # We always insert Scores as the base (bottom) layer to improve visibility
@@ -1294,8 +1302,12 @@ with col_map:
             # layer_control=flm.LayerControl(collapsed=False)
         )
         st.markdown('<style>.stCustomComponentV1   {border-radius:10px}</style>', unsafe_allow_html=True) # Rounded corners for the map widget
-
         t = performance_tracker(t, 'End Map Display', timer_mode)
+
+if st.session_state['processed_gdf'] is not None:
+    st.sidebar.divider()
+    if st.sidebar.button('Export des résultats', icon=':material/picture_as_pdf:', type='secondary'):
+        st.cache_data.clear()
 
 # st.text('Pour Développement')
 # st.write(st.session_state['fg_dict_ref'])

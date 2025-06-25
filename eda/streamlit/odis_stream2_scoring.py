@@ -1,5 +1,5 @@
 # coding: utf-8
-# THIS SHOULD BE THE END OF JUPYTER NOTEBOOK EXPORT
+# THIS SHOULD BE THE BEGINNING OF JUPYTER NOTEBOOK EXPORT
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -280,7 +280,7 @@ def best_score_compute(df):
 def compute_odis_score(df, scores_cat, prefs, incl_index):
     
     # We restrict to communes with pop larger than 1000 (30% of all communes)
-    df = df[df.population > 1000]
+    df = df[df.population > prefs['pop_min']]
 
     # We add the disctance from the current location defined in the app
     df = add_distance_to_current_loc(df, current_codgeo=prefs['commune_actuelle'])
