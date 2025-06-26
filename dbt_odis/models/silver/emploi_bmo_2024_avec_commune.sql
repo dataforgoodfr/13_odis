@@ -94,6 +94,3 @@ with
         on bassins_communes."dep" = departements."Dept"
     )
 select * from bmo_be_sum_communes
-where "Code métier BMO" = 'A0X40'
-and ("BE24" = '1119'
-or "BE24" = '1127')
