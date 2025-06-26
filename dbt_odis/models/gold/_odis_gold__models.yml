@@ -257,7 +257,6 @@ models:
       - name: GS7 Service non marchands
         description: Grand secteur numéro 7
         data_type: integer
-<<<<<<< feat/emploi-bmo
         quote: true
 
   - name: emploi_bmo_metier
@@ -273,7 +272,4 @@ models:
       - name: YEAR
         description: annee
         data_type: integer
-        quote: true 
-=======
         quote: true
->>>>>>> main
