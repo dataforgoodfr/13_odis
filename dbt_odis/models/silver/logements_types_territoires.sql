@@ -9,7 +9,7 @@ with appartements as (
         dimensions_GEO,
         dimensions_TIME_PERIOD,
         max(case when dimensions_ocs = '_T' then measures_OBS_VALUE_NIVEAU_value end) as total_appartements,
-        max(case when dimensions_ocs = 'DW_MAIN' then measures_OBS_VALUE_NIVEAU_value end) as rp_appartements,
+        max(case when dimensions_ocs = 'DW_MAIN' and dimensions_carpark = '_T' then measures_OBS_VALUE_NIVEAU_value end) as rp_appartements,
         max(case when dimensions_ocs = 'DW_SEC_DW_OCC' then measures_OBS_VALUE_NIVEAU_value end) as rsecocc_appartements,
         max(case when dimensions_ocs = 'DW_VAC' then measures_OBS_VALUE_NIVEAU_value end) as lvac_appartements
     from {{ ref('logements_appartement') }}
@@ -22,7 +22,7 @@ maisons as
         dimensions_GEO,
         dimensions_TIME_PERIOD,
         max(case when dimensions_ocs = '_T' then measures_OBS_VALUE_NIVEAU_value end) as total_maisons,
-        max(case when dimensions_ocs = 'DW_MAIN' then measures_OBS_VALUE_NIVEAU_value end) as rp_maisons,
+        max(case when dimensions_ocs = 'DW_MAIN' and dimensions_carpark = '_T' then measures_OBS_VALUE_NIVEAU_value end) as rp_maisons,
         max(case when dimensions_ocs = 'DW_SEC_DW_OCC' then measures_OBS_VALUE_NIVEAU_value end) as rsecocc_maisons,
         max(case when dimensions_ocs = 'DW_VAC' then measures_OBS_VALUE_NIVEAU_value end) as lvac_maisons
     from {{ ref('logements_maison') }} 
@@ -50,7 +50,7 @@ total_logements as
         dimensions_TIME_PERIOD,
         dimensions_RP_MEASURE,
         max(case when dimensions_ocs = '_T' and dimensions_tdw = '_T' then measures_OBS_VALUE_NIVEAU_value end) as total_tous_logements,
-        max(case when dimensions_ocs = 'DW_MAIN' and dimensions_tdw = '_T' then measures_OBS_VALUE_NIVEAU_value end) as rp_tous_logements,
+        max(case when dimensions_ocs = 'DW_MAIN' and dimensions_tdw = '_T' and dimensions_carpark = '_T' then measures_OBS_VALUE_NIVEAU_value end) as rp_tous_logements,
         max(case when dimensions_ocs = 'DW_SEC_DW_OCC' and dimensions_tdw = '_T' then measures_OBS_VALUE_NIVEAU_value end) as rsecocc_tous_logements,
         max(case when dimensions_ocs = 'DW_VAC' and dimensions_tdw = '_T' then measures_OBS_VALUE_NIVEAU_value end) as lvac_tous_logements
     from {{ ref('logements_total') }} 
