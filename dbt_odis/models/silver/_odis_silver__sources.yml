@@ -52,6 +52,8 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
+      - name: vw_emploi_bmo_2024
+
       - name: vw_emploi_salaire_median_filo2021_disp_com
         description: View contenant
         loaded_at_field: created_at

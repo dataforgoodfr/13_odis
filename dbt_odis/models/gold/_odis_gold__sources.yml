@@ -27,7 +27,11 @@ sources:
         description: Table contenant
         loaded_at_field: created_at
 
+<<<<<<< feat/emploi-bmo
+      - name: emploi_bmo_avec_communes
+=======
       - name: emploi_salaire_median_filo2021
+>>>>>>> main
         description: Table contenant
         loaded_at_field: created_at
         
