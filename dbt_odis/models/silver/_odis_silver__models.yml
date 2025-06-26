@@ -560,7 +560,7 @@ models:
         description: Nombre de personne concerné
         data_type: decimal
 
-  - name: emploi_bmo_2024_avec_commune
+  - name: emploi_bmo_avec_communes
     description: Déplacement et mode de transport domicile / travail pour l'année 2021
     columns:
       - name: annee

@@ -1,6 +1,6 @@
 {{ config(
     tags = ['silver', 'emploi'],
-    alias = 'emploi_bmo_2024_avec_communes'
+    alias = 'emploi_bmo_avec_communes'
 ) }}
 
 with
