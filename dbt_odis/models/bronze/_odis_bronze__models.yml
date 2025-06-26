@@ -967,7 +967,7 @@ models:
         description: Statut d'emploi variable selon l'enquête
         data_type: text
       - name: FREQ
-        description: Fréquence 
+        description: Fréquence
         data_type: text
       - name: GEO
         description: Identifiant géographique
@@ -1117,6 +1117,34 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
+  - name: geographical_references_arrondissements
+    description: Extraction du JSON source geographical references par arrondissements
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: nom
+        description: nom de l'arrondissement
+        data_type: text
+      - name: code_geo
+        description: code INSEE officiel français rattaché à l'arrondissement
+        data_type: text
+      - name: code_region
+        description: Code officiel français de la région de rattachement, string pour garder 01
+        data_type: text
+      - name: code_departement
+        description: Code officiel français du département de rattachement, string pour garder 01
+        data_type: text
+      - name: code_postal
+        description: Code Postal de l'arrondissement
+        data_type: text
+      - name: population
+        description: nombre d'habitants dans l'arrondissement
+        data_type: jsonb
+      - name: created_at
+        description: date d'extraction des données
+        data_type: timestamp without time zone
+
   # Logement
   - name: logements_appartement
     description: Extraction du JSON source logement nombre d'appartements par zone géographique
@@ -1161,50 +1189,6 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
-  - name: logements_appartement_et_residences_principales
-    description: Extraction du JSON source logement nombre d'appartements qui sont des résidences principales par zone géographique
-    columns:
-      - name: id
-        description: index
-        data_type: integer
-      - name: dimensions_geo
-        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
-        data_type: text
-        tests:
-          - not_null
-      - name: dimensions_nor
-        data_type: text
-      - name: dimensions_ocs
-        description: DW_MAIN = résidence principale
-        data_type: text
-      - name: dimensions_tdw
-        description: "Type d'habitation : 1 = Maison, 2 = Appartement"
-        data_type: text
-      - name: dimensions_toh
-        data_type: text
-      - name: dimensions_tsh
-        data_type: text
-      - name: dimensions_cars
-        data_type: text
-      - name: dimensions_l_stay
-        data_type: text
-      - name: dimensions_carpark
-        data_type: text
-      - name: dimensions_build_end
-        data_type: text
-      - name: dimensions_rp_measure
-        description: DWELLINGS = Habitation
-        data_type: text
-      - name: dimensions_time_period
-        description: Période temporelle en année de mesure de la donnée
-        data_type: text
-      - name: measures_obs_value_niveau_value
-        description: nombre mesuré du type d'habitation = appartement résidence principale par zone géographique et par année
-        data_type: text
-      - name: created_at
-        description: date d'extraction de la donnée
-        data_type: timestamp without time zone
-
   - name: logements_maison
     description: Extraction du JSON source logement nombre de maisons par zone géographique
     columns:
@@ -1244,49 +1228,6 @@ models:
         data_type: text
       - name: measures_obs_value_niveau_value
         description: nombre mesuré du type d'habitation = maison par zone géographique et par année
-        data_type: text
-      - name: created_at
-        description: date d'extraction de la donnée
-        data_type: timestamp without time zone
-
-  - name: logements_maison_et_residences_principales
-    description: Extraction du JSON source logement nombre de maisons qui sont des résidences principales par zone géographique
-    columns:
-      - name: id
-        description: index
-        data_type: integer
-      - name: dimensions_geo
-        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
-        data_type: text
-        tests:
-          - not_null
-      - name: dimensions_nor
-        data_type: text
-      - name: dimensions_ocs
-        data_type: text
-      - name: dimensions_tdw
-        description: "Type d'habitation : 1 = Maison, 2 = Appartement"
-        data_type: text
-      - name: dimensions_toh
-        data_type: text
-      - name: dimensions_tsh
-        data_type: text
-      - name: dimensions_cars
-        data_type: text
-      - name: dimensions_l_stay
-        data_type: text
-      - name: dimensions_carpark
-        data_type: text
-      - name: dimensions_build_end
-        data_type: text
-      - name: dimensions_rp_measure
-        description: DWELLINGS = Habitation
-        data_type: text
-      - name: dimensions_time_period
-        description: Période temporelle en année de mesure de la donnée
-        data_type: text
-      - name: measures_obs_value_niveau_value
-        description: nombre mesuré du type d'habitation = maison résidence principale par zone géographique et par année
         data_type: text
       - name: created_at
         description: date d'extraction de la donnée
@@ -3712,4 +3653,95 @@ models:
       - name: id
         description: id
 
-        
+  # Population
+
+  - name: population_by_age
+    description: Répartition de la population par tranches d'âge
+    columns:
+      - name: dimensions_GEO
+        description: unité géographique (REG, DEP, COM)
+        data_type: text
+      - name: dimensions_SEX
+        description: |- 
+          Filtre par genre (H/F et cis/trans).
+          _T = total tout confondu
+        data_type: text
+      - name: dimensions_AGE
+        description: filtre par âge
+        data_type: text
+      - name: dimensions_TIME_PERIOD
+        description: Période temporelle (millésime) de la donnée
+        data_type: text
+      - name: dimensions_EP_MEASURE
+        description: |-
+          Type de mesure.
+          POP = effectif de population
+        data_type: text
+      - name: measures_OBS_VALUE_NIVEAU_value
+        description: valeur numérique
+        data_type: integer
+
+  - name: population_by_age_gender
+    description: Répartition de la population par tranches d'âge et genre
+    columns:
+      - name: dimensions_GEO
+        description: unité géographique (REG, DEP, COM)
+        data_type: text
+      - name: dimensions_SEX
+        description: |- 
+          Filtre par genre (H/F et cis/trans).
+          _T = total tout confondu
+          H = Homme (all)
+          F = Femme (all)
+          H_cis = Homme cis
+          F_cis = Femme cis
+          TS = Personne trans
+        data_type: text
+      - name: dimensions_AGE
+        description: filtre par âge
+        data_type: text
+      - name: dimensions_TIME_PERIOD
+        description: Période temporelle (millésime) de la donnée
+        data_type: text
+      - name: dimensions_EP_MEASURE
+        description: |-
+          Type de mesure.
+          POP = effectif de population
+        data_type: text
+      - name: measures_OBS_VALUE_NIVEAU_value
+        description: valeur numérique
+        data_type: integer
+
+  - name: population_menages_2021
+    description: |-
+      Extraction du fichier CSV "MEN1" fourni par l'INSEE. Millésime 2021.
+      Taille ( = nb d'occupants) de chaque ménage par commune,
+      et par la catégorie socioprofessionnelle de la personne de référence.
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: nivgeo
+        description: |-
+          Niveau de granularité géographique.
+          Pour ce dateset, une seul valeur possible :
+          COM = Commune
+        data_type: text
+      - name: codgeo
+        description: |-
+          Code d'identification géographique.
+          En l'occurrence, code postal de la commune
+        data_type: text
+      - name: bpe_measure
+        description: FACILITIES = services
+        data_type: text
+      - name: nbperc
+        description: Taille du foyer (nombre de personnes)
+        data_type: integer
+      - name: cs2_24
+        description: CSP générale de la personne de référence du ménage
+        data_type: text
+      - name: nb
+        description: TBD
+        data_type: float
+

@@ -43,7 +43,7 @@ join_communes as (
     from commune c    
         left join geo_commune gc
         on c.code_postal = gc.code_postal
-        and '%' || c.intitule || '%' like '%' || gc.commune || '%'
+        and c.intitule like gc.commune
 ),
 
 departements as 
