@@ -15,6 +15,14 @@ sources:
       - name: geographical_references_regions
         description: Source JSON loadée dans le champ data contenant les références des régions
         loaded_at_field: created_at
+
+      - name: geographical_references_epci
+        description: Source JSON loadée dans le champ data contenant les références des EPCI
+        loaded_at_field: created_at
+
+      - name: geographical_references_arrondissements
+        description: Source JSON loadée dans le champ data contenant les références des arrondissements
+        loaded_at_field: created_at
         
       - name: emploi_eff_secteur_prive_gds_secteurs
         description: Source CSV contenant les Effectifs salariés du secteur privé par grands secteurs
@@ -78,15 +86,7 @@ sources:
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 
-      - name: logement_logements_appartement_et_residences_principales
-        description: Source JSON loadée dans le champ data contenant 
-        loaded_at_field: created_at
-
       - name: logement_logements_maison
-        description: Source JSON loadée dans le champ data contenant 
-        loaded_at_field: created_at
-
-      - name: logement_logements_maison_et_residences_principales
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 

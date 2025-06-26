@@ -411,54 +411,6 @@ domains:
           next: paging.next
           is_last: paging.isLast
 
-      # logements_maison_et_residences_principales:
-      #   API: INSEE.Melodi
-      #   description: nombre de maison residence principale
-      #   type: MelodiExtractor
-      #   endpoint: /data/DS_RP_LOGEMENT_PRINC
-      #   format: json
-      #   extract_params:
-      #     maxResult: 10000
-      #     TIME_PERIOD: 2021
-      #     GEO: ["COM", "DEP", "REG"]
-      #     RP_MEASURE: DWELLINGS
-      #     L_STAY: _T
-      #     TOH: _T
-      #     CARS: _T
-      #     NOR: _T
-      #     TSH: _T
-      #     BUILD_END: _T
-      #     OCS: DW_MAIN
-      #     TDW: 1
-      #   response_map:
-      #     data: observations
-      #     next: paging.next
-      #     is_last: paging.isLast
-
-      # logements_appartement_et_residences_principales:
-      #   API: INSEE.Melodi
-      #   description: nombre d'appartement residence principale
-      #   type: MelodiExtractor
-      #   endpoint: /data/DS_RP_LOGEMENT_PRINC
-      #   format: json
-      #   extract_params:
-      #     maxResult: 10000
-      #     TIME_PERIOD: 2021
-      #     GEO: ["COM", "DEP", "REG"]
-      #     RP_MEASURE: DWELLINGS
-      #     L_STAY: _T
-      #     TOH: _T
-      #     CARS: _T
-      #     NOR: _T
-      #     TSH: _T
-      #     BUILD_END: _T
-      #     OCS: DW_MAIN
-      #     TDW: 2
-      #   response_map:
-      #     data: observations
-      #     next: paging.next
-      #     is_last: paging.isLast
-
       logements_pieces:
         API: INSEE.Melodi
         description: nombre de piece par residence principales
