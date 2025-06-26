@@ -3652,3 +3652,96 @@ models:
     columns:
       - name: id
         description: id
+
+  # Population
+
+  - name: population_by_age
+    description: Répartition de la population par tranches d'âge
+    columns:
+      - name: dimensions_GEO
+        description: unité géographique (REG, DEP, COM)
+        data_type: text
+      - name: dimensions_SEX
+        description: |- 
+          Filtre par genre (H/F et cis/trans).
+          _T = total tout confondu
+        data_type: text
+      - name: dimensions_AGE
+        description: filtre par âge
+        data_type: text
+      - name: dimensions_TIME_PERIOD
+        description: Période temporelle (millésime) de la donnée
+        data_type: text
+      - name: dimensions_EP_MEASURE
+        description: |-
+          Type de mesure.
+          POP = effectif de population
+        data_type: text
+      - name: measures_OBS_VALUE_NIVEAU_value
+        description: valeur numérique
+        data_type: integer
+
+  - name: population_by_age_gender
+    description: Répartition de la population par tranches d'âge et genre
+    columns:
+      - name: dimensions_GEO
+        description: unité géographique (REG, DEP, COM)
+        data_type: text
+      - name: dimensions_SEX
+        description: |- 
+          Filtre par genre (H/F et cis/trans).
+          _T = total tout confondu
+          H = Homme (all)
+          F = Femme (all)
+          H_cis = Homme cis
+          F_cis = Femme cis
+          TS = Personne trans
+        data_type: text
+      - name: dimensions_AGE
+        description: filtre par âge
+        data_type: text
+      - name: dimensions_TIME_PERIOD
+        description: Période temporelle (millésime) de la donnée
+        data_type: text
+      - name: dimensions_EP_MEASURE
+        description: |-
+          Type de mesure.
+          POP = effectif de population
+        data_type: text
+      - name: measures_OBS_VALUE_NIVEAU_value
+        description: valeur numérique
+        data_type: integer
+
+  - name: population_menages_2021
+    description: |-
+      Extraction du fichier CSV "MEN1" fourni par l'INSEE. Millésime 2021.
+      Taille ( = nb d'occupants) de chaque ménage par commune,
+      et par la catégorie socioprofessionnelle de la personne de référence.
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: nivgeo
+        description: |-
+          Niveau de granularité géographique.
+          Pour ce dateset, une seul valeur possible :
+          COM = Commune
+        data_type: text
+      - name: codgeo
+        description: |-
+          Code d'identification géographique.
+          En l'occurrence, code postal de la commune
+        data_type: text
+      - name: bpe_measure
+        description: FACILITIES = services
+        data_type: text
+      - name: nbperc
+        description: Taille du foyer (nombre de personnes)
+        data_type: integer
+      - name: cs2_24
+        description: CSP générale de la personne de référence du ménage
+        data_type: text
+      - name: nb
+        description: TBD
+        data_type: float
+
