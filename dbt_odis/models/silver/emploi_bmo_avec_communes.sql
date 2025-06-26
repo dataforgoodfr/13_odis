@@ -3,9 +3,9 @@
     alias = 'emploi_bmo_avec_communes'
 ) }}
 
-with
-    bmo as (
-        select
+WITH
+    bmo AS (
+        SELECT
             "annee",
             "Code métier BMO",
             "Nom métier BMO",
@@ -13,26 +13,26 @@ with
             "Lbl_fam_met",
             "REG",
             "NOM_REG",
-            "Dept",
+            LPAD("Dept"::text, 2, '0') AS "Dept",
             "NomDept",
             "BE24",
             "NOMBE24",
-            case
-                when met = '*' then 1
-                else met::integer
-            end as "met",
-            case
-                when xmet = '*' then 1
-                else xmet::integer
-            end as "xmet",
-            case
-                when smet = '*' then 1
-                else smet::integer
-            end as "smet"
-        from {{ source('bronze', 'vw_emploi_bmo_2024') }}
+            CASE
+                WHEN met = '*' THEN 1
+                ELSE met::integer
+            END AS "met",
+            CASE
+                WHEN xmet = '*' THEN 1
+                ELSE xmet::integer
+            END AS "xmet",
+            CASE
+                WHEN smet = '*' THEN 1
+                ELSE smet::integer
+            END AS "smet"
+        FROM {{ source('bronze', 'vw_emploi_bmo_2024') }}
     ),
-    bmo_sum_dept as (
-        select
+    bmo_sum_dept AS (
+        SELECT
             "annee",
             "Code métier BMO",
             "Nom métier BMO",
@@ -42,11 +42,11 @@ with
             "NOM_REG",
             "BE24",
             "NOMBE24",
-            sum(met) as "met",
-            sum(xmet) as "xmet",
-            sum(smet) as "smet"
-        from bmo
-        group by
+            SUM(met) AS "met",
+            SUM(xmet) AS "xmet",
+            SUM(smet) AS "smet"
+        FROM bmo
+        GROUP BY
             "annee",
             "Code métier BMO",
             "Nom métier BMO",
@@ -57,21 +57,21 @@ with
             "BE24",
             "NOMBE24"
     ),
-    departements as (
-        select distinct
+    departements AS (
+        SELECT DISTINCT
             "Dept",
             "NomDept"
-        from bmo
+        FROM bmo
     ),
-    bassins_communes as (
-        select
-            "dep",
+    bassins_communes AS (
+        SELECT
+            LPAD("dep"::text, 2, '0') AS "dep",
             "code_commune_insee",
             "code_bassin_BMO"
-        from {{ ref('bassin_emploi') }}
+        FROM {{ ref('bassin_emploi') }}
     ),
-    bmo_be_sum_communes as (
-        select
+    bmo_be_sum_communes AS (
+        SELECT
             bmo_sum_dept."annee",
             bmo_sum_dept."Code métier BMO",
             bmo_sum_dept."Nom métier BMO",
@@ -87,10 +87,10 @@ with
             bmo_sum_dept."met",
             bmo_sum_dept."xmet",
             bmo_sum_dept."smet"
-        from  bassins_communes
-        left join bmo_sum_dept
-        on bassins_communes."code_bassin_BMO" = bmo_sum_dept."BE24"
-        left join departements
-        on bassins_communes."dep" = departements."Dept"
+        FROM bassins_communes
+        LEFT JOIN bmo_sum_dept
+            ON bassins_communes."code_bassin_BMO" = bmo_sum_dept."BE24"
+        LEFT JOIN departements
+            ON bassins_communes."dep" = departements."Dept"
     )
-select * from bmo_be_sum_communes
+SELECT * FROM bmo_be_sum_communes
