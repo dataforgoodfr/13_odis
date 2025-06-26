@@ -6,12 +6,12 @@
 
 {% set metiers_query %}
     select distinct "Nom métier BMO"
-    from {{ ref('emploi_bmo_2024_avec_commune') }}
+    from {{ ref('emploi_bmo_avec_communes') }}
     order by 1
 {% endset %}
 
 {% set metiers = dbt_utils.get_column_values(
-    table=ref('emploi_bmo_2024_avec_commune'),
+    table=ref('emploi_bmo_avec_communes'),
     column='"Nom métier BMO"'
 ) %}
 
@@ -22,7 +22,7 @@ with base as (
         annee as "YEAR",
         "Nom métier BMO" as metier_bmo,
         met
-    from {{ ref('emploi_bmo_2024_avec_commune') }}
+    from {{ ref('emploi_bmo_avec_communes') }}
 ),
 
 pivoted as (
@@ -32,7 +32,7 @@ pivoted as (
         "YEAR",
 
         {% for metier in metiers %}
-            sum(case when metier_bmo = '{{ metier | replace("'", "''") }}' then met end) as "{{ metier }}"
+            max(case when metier_bmo = '{{ metier | replace("'", "''") }}' then met end) as "{{ metier }}"
             {% if not loop.last %},{% endif %}
         {% endfor %}
 

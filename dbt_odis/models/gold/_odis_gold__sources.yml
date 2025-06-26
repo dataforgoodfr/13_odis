@@ -27,7 +27,7 @@ sources:
         description: Table contenant
         loaded_at_field: created_at
 
-      - name: emploi_bmo_2024_avec_commune
+      - name: emploi_bmo_avec_communes
         description: Table contenant
         loaded_at_field: created_at
         
