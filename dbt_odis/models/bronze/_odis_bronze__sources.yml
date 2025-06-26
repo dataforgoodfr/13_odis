@@ -15,6 +15,14 @@ sources:
       - name: geographical_references_regions
         description: Source JSON loadée dans le champ data contenant les références des régions
         loaded_at_field: created_at
+
+      - name: geographical_references_epci
+        description: Source JSON loadée dans le champ data contenant les références des EPCI
+        loaded_at_field: created_at
+
+      - name: geographical_references_arrondissements
+        description: Source JSON loadée dans le champ data contenant les références des arrondissements
+        loaded_at_field: created_at
         
       - name: emploi_eff_secteur_prive_gds_secteurs
         description: Source CSV contenant les Effectifs salariés du secteur privé par grands secteurs
@@ -35,6 +43,10 @@ sources:
         loaded_at_field: created_at
 
       - name: emploi_demandeur_emploi_departements
+        description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: emploi_salaire_median_filo2021_disp_com
         description: Source CSV loadée dans le champ data contenant 
         loaded_at_field: created_at
 
@@ -74,15 +86,7 @@ sources:
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 
-      - name: logement_logements_appartement_et_residences_principales
-        description: Source JSON loadée dans le champ data contenant 
-        loaded_at_field: created_at
-
       - name: logement_logements_maison
-        description: Source JSON loadée dans le champ data contenant 
-        loaded_at_field: created_at
-
-      - name: logement_logements_maison_et_residences_principales
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 
@@ -127,9 +131,19 @@ sources:
         loaded_at_field : created_at
 
       - name: population_categorie_socio_pro
-        description: Source JSON loadée dans le champ data contenant 
+        description: Source JSON loadée dans le champ data 
         loaded_at_field: created_at
 
-      - name: population_nb_menages
-        description: Source JSON loadée dans le champ data contenant 
+      - name: population_by_age
+        description: Source JSON - Estimation de population INSEE par âge
         loaded_at_field: created_at
+
+      - name: population_by_age_gender
+        description: Source JSON - Estimation de population INSEE par âge et genre
+        loaded_at_field: created_at
+
+      - name: population_menages_td_men1_2021
+        description: Source CSV
+        loaded_at_field: created_at
+      
+

@@ -183,6 +183,21 @@ models:
         data_type: integer
         quote: true
 
+  - name: emploi_salaire_median
+    description: Salaire Médian
+    columns:
+      - name: codgeo
+        description: code commune
+        data_type: integer
+      - name: YEAR
+        description: Année de l'étude
+        data_type: integer
+        quote: true
+      - name: Mediane_Annuelle
+        description: Salaire médian sur l'année
+        data_type: integer
+        quote: true
+
   - name: emploi_volumes_mobilites
     description: Déplacement et mode de transport domicile / travail pour l'année 2021
     columns:
@@ -195,9 +210,11 @@ models:
       - name: Nb actifs travaillant dans commune
         description: Nb actifs travaillant dans commune
         data_type: decimal
+        quote: true
       - name: Nb actifs travaillant dans autre commune
         description: Nb actifs travaillant dans autre commune
         data_type: decimal
+        quote: true
 
   - name: emploi_gds_secteurs
     description: Table recensant le nombre de demandeurs d'emploi pour une zone géographique identifiée et un mois de mesure donné
@@ -241,4 +258,3 @@ models:
         description: Grand secteur numéro 7
         data_type: integer
         quote: true
-

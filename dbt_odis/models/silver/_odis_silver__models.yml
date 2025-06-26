@@ -3,20 +3,92 @@ version: 2
 models:
 
   - name: geographical_references
-    description: Silver model for geographical references
+    description: Table de données des communes française et leur correspondance avec les départements et les régions
     columns:
       - name: code
-        description: codegéo
+        description: code INSEE de la commune
+        data_type: text
+      - name: nom
+        description: nom de la commune
+        data_type: text
+      - name: geo_type
+        description: point géographique
+        data_type: text
+      - name: geo_coordonnees_lattitude
+        description: coordonnée géographique lattitudinale de la commune
+        data_type: text
+      - name: geo_coordonnees_longitude
+        description: coordonnée géographique longitudinale de la commune
+        data_type: text
+      - name: departement_nom
+        description: nom du département de rattachement
+        data_type: text
+      - name: departement_code
+        description: code du département de rattachement
+        data_type: text
+      - name: préfecture
+        description: "true/false : détermine si la commune est préfecture de département"
+        data_type: boolean
+        quote: true
+      - name: region_nom
+        description: nom de la région de rattachement
+        data_type: text
+      - name: region_code
+        description: code de la région de rattachement
+        data_type: text
+      - name: préfecture_de_région
+        description: "true/false : détermine si la commune est préfecture de région"
+        data_type: boolean
+        quote: true
+      - name: population
+        description: nombre d'habitants dans la commune, dernier recensement
+        data_type: integer
+      - name: tranche_de_population
+        description: tranche de population donnée pour la commune
+        data_type: text
+
+  - name: geographical_arrondissements
+    description: Table associant les codes INSEE par arrondissement, leur codes postaux et le code INSEE global de la ville de rattachement
+    columns:
+      - name: id
+        description: index
+        data_type: integer
+      - name: nom
+        description: nom de l'arrondissement
+        data_type: text
+      - name: code_aggregation
+        description: code INSEE de la grande ville, aggrégant les autres codes INSEE par arrondissement
+        data_type: text
+      - name: code_geo
+        description: code INSEE de l'arrondissement
+        data_type: text
+      - name: code_region
+        description: code de la région de rattachement
+        data_type: text
+      - name: code_departement
+        description: code du département de rattachement
+        data_type: text
+      - name: code_postal
+        description: codes postaux de l'arrondissement
+        data_type: text
+      - name: population
+        description: nombre d'habitants dans l'arrondissement
+        data_type: integer
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
 
   - name: logements_types_territoires
-    description: Table silver joignant tous les types de logements pour une zone géographique identifiée par "geo"
+    description: Table silver joignant tous les types de logements, leur type d'occupation, et les pièces de résidences principales pour une zone géographique identifiée par "geo", pour plusieurs années de mesure
     columns:
       - name: id
         description: index
       - name: geo
         description: clé primaire
+        data_type: text
       - name: time_period
         description: année de mesure
+        data_type: text
       - name: maisons
         description: nombre de maisons dans la zone géographique
       - name: maisons_rp
@@ -31,8 +103,64 @@ models:
         description: nombre total de logements dans la zone géographique
       - name: type_geo
         description: type de zone géographique (commune, département, région).
+        data_type: text
       - name: code_geo
         description: code géographique (commune, département, région).
+        data_type: text
+      - name: habitations
+        description: mesure habitations de l'API
+        data_type: text
+      - name: total_tous_logements
+        description: Total global de tous les types de logements _T (1,2,3T6), et de tous les types doccupation _T (DW_MAIN, DW_SEC_DW_OCC, DW_VAC)
+        data_type: double precision
+      - name: rp_tous_logements
+        description: Total des logements qui sont des résidences principales
+        data_type: double precision
+      - name: rsecocc_tous_logements
+        description: Total des logements qui sont des résidences secondaires ou occupées
+        data_type: double precision
+      - name: lvac_tous_logements
+        description: Total des logements qui sont vacants
+        data_type: double precision
+      - name: total_maisons
+        description: Total des logements de type maisons (tdw=1)
+        data_type: double precision
+      - name: rp_maisons
+        description: Total des maisons qui sont des résidences principales
+        data_type: double precision
+      - name: rsecocc_maisons
+        description: Total des maisons qui sont des résidences secondaires ou occupées
+        data_type: double precision
+      - name: lvac_maisons
+        description: Total des maisons qui sont des vacantes
+        data_type: double precision
+      - name: total_appartements
+        description: Total des logements de type appartements (tdw=2)
+        data_type: double precision
+      - name: rp_appartements
+        description: Total des appartements qui sont des résidences principales
+        data_type: double precision
+      - name: rsecocc_appartements
+        description: Total des appartements qui sont des résidences secondaires ou occupées
+        data_type: double precision
+      - name: lvac_appartements
+        description: Total des appartements qui sont vacants
+        data_type: double precision
+      - name: pieces_habitations
+        description: mesure pièces d'habitation de l'API
+        data_type: text
+      - name: total_rp_pieces
+        description: Total des pièces de résidences principales _T (tdw=1,2,3T6)
+        data_type: double precision
+      - name: maisons_rp_pieces
+        description: Total des pièces de résidences principales qui sont des maisons
+        data_type: double precision
+      - name: appartements_rp_pieces
+        description: Total des pièces de résidences principales qui sont des appartements
+        data_type: double precision
+      - name: autres_rp_pieces
+        description: Total des pièces de résidences principales qui sont des autres logements
+        data_type: double precision
 
   - name: stg_logement_logements_sociaux_communes
     description: Table transformée contenant les indicateurs logements sociaux au niveau commune
@@ -559,6 +687,19 @@ models:
       - name: obs_value
         description: Nombre de personne concerné
         data_type: decimal
+
+  - name: emploi_salaire_median_filo2021
+    description: Salaire Médian
+    columns:
+      - name: codgeo
+        description: code commune
+        data_type: integer
+      - name: YEAR
+        description: Année de l'étude
+        data_type: integer
+      - name: "Mediane_Annuelle"
+        description: Salaire médian sur l'année
+        data_type: integer
 
   - name: education_moyenne_eleve
     columns:

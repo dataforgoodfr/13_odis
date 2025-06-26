@@ -67,7 +67,7 @@ join_commune as(
     from education_communes c
         left join geo_commune gc
         on c.code_postal = gc.code_postal
-        and '%' || c.nom_commune || '%' like '%' || gc.commune || '%'
+        and c.nom_commune like gc.commune
 ),
 
 geo_departement as (
