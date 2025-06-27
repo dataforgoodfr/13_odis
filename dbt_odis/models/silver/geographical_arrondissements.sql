@@ -39,6 +39,5 @@ select
     cast(population as integer) as population,
     created_at
 from {{ ref('geographical_references_arrondissements') }} 
-where char
 
 order by code_geo
