@@ -365,25 +365,11 @@ class FileHandler(IDataHandler):
         storage_info: StorageInfo,
         model: DomainModel,
     ) -> pd.DataFrame:
-        """Parses an Excel file and returns the data as a pandas dataframe
-
-        TODO:
-        - benchmark usage of pandas vs csv module
-
-        Args:
-            storage_info (StorageInfo) : the info where the file is stored
-            model (DomainModel): the model that generated the data
-
-        Returns:
-            DataFrame: the data from the CSV file as a pandas DataFrame
-
-        Raises:
-            InvalidCSV: if the file is not found or the CSV is invalid
         """
-        raise NotImplementedError(
-            "XLSX file loading is not implemented yet. Please use CSV or JSON files instead."
-        )
-        # _filepath = Path(storage_info.location) / Path(storage_info.file_name)
+        Parses an Excel file and returns the data as a pandas dataframe.
+        """
+        filepath = Path(storage_info.location) / Path(storage_info.file_name)
+        return XlsxReader(filepath).load(model=model)
 
     def load_metadata(
         self, model: DomainModel, operation: OperationType
