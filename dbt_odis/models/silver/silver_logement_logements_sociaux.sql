@@ -23,7 +23,7 @@ communes as (
     nb_occup_temp,
     nb_ls_en_qpv,
     densite
-  from {{ ref('stg_logement_logements_sociaux_communes') }}
+  from {{ ref('stg_logement_logements_sociaux_communes_remapped_aggregated') }}
 ),
 
 departement as (
