@@ -1,6 +1,6 @@
 {{ config(
     tags = ['bronze', 'geographical'],
-    alias='vw_geographical_intercommunalites'
+    alias='vw_geographical_references_intercommunalites'
     )
 }}
 
