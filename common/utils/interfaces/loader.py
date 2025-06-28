@@ -62,7 +62,7 @@ class Column(BaseModel):
         # Truncate to 63 characters for PostgreSQL
         if len(sanitized) > 63:
             logger.warning(f"Column name '{sanitized}' truncated to 63 characters")
-            sanitized = sanitized[:63]
+            sanitized = sanitized[63:]
 
         return sanitized
 

@@ -99,8 +99,7 @@ class XlsxReader(FileReader):
             self.import_path,
             header=model.load_params.header,
             skipfooter=model.load_params.skipfooter,
-            sep=model.load_params.separator,
-            engine="python",  # Required for skipfooter parameter
+            engine="openpyxl",
         )
 
 

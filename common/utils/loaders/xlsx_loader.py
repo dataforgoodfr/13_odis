@@ -25,7 +25,7 @@ class XlsxDataLoader(AbstractDataLoader):
                 self.db_client.connect()
 
                 # Load Excel data using handler
-                results = self.handler.excel_load(
+                results = self.handler.xlsx_load(
                     extract_page_log.storage_info, self.model
                 )
 
