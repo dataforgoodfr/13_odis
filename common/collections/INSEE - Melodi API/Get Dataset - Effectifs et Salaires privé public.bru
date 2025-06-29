@@ -1,11 +1,11 @@
 meta {
-  name: Get Dataset : DS Estimation Population
+  name: Get Dataset : Effectifs et Salaires privé public
   type: http
-  seq: 8
+  seq: 10
 }
 
 get {
-  url: {{base_url}}/data/DS_ESTIMATION_POPULATION?page=1&maxResult=20&totalCount=true&idObservation=true&range=true&idTerritoire=true&includeHistory=true
+  url: {{base_url}}/data/DS_DERA_PRIVE_ANNUEL?page=1&maxResult=20&totalCount=true&idObservation=true&range=true&DERA_MEASURE=EFFECTIFS_EQTP&NUMBER_EMPL=_T&ACTIVITY=_T&SEX=_T&WKTIME=_T
   body: none
   auth: none
 }
@@ -16,11 +16,14 @@ params:query {
   totalCount: true
   idObservation: true
   range: true
-  idTerritoire: true
-  includeHistory: true
-  ~TIME_PERIOD: 2021
-  ~EP_MEASURE: POP
-  ~endPeriod: 2019-01-01
+  DERA_MEASURE: EFFECTIFS_EQTP
+  NUMBER_EMPL: _T
+  ACTIVITY: _T
+  SEX: _T
+  WKTIME: _T
+  ~PCS_ESE: _T
+  ~AGE: _T
+  ~GEO: DEP
 }
 
 tests {

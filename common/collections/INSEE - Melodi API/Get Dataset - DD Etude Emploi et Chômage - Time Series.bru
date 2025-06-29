@@ -1,11 +1,11 @@
 meta {
-  name: Get Dataset : DS Estimation Population
+  name: Get Dataset : DD Etude Emploi et Chômage - Time Series
   type: http
-  seq: 8
+  seq: 9
 }
 
 get {
-  url: {{base_url}}/data/DS_ESTIMATION_POPULATION?page=1&maxResult=20&totalCount=true&idObservation=true&range=true&idTerritoire=true&includeHistory=true
+  url: {{base_url}}/data/DD_EEC_SERIES?page=1&maxResult=20&totalCount=true&idObservation=true&range=true&EEC_MEASURE=ACTPOP
   body: none
   auth: none
 }
@@ -16,11 +16,8 @@ params:query {
   totalCount: true
   idObservation: true
   range: true
-  idTerritoire: true
-  includeHistory: true
+  EEC_MEASURE: ACTPOP
   ~TIME_PERIOD: 2021
-  ~EP_MEASURE: POP
-  ~endPeriod: 2019-01-01
 }
 
 tests {

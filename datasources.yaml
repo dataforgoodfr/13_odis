@@ -574,20 +574,20 @@ domains:
           next: paging.next
           is_last: paging.isLast
       
-      categorie_socio_pro:
+      by_pcs:
         API: INSEE.Melodi
-        description: recuperation de la population de 15 ans et plus par categorie socio-pro 
+        description: Effectifs de la population par categorie socio-pro (France entière uniquement)
         type: MelodiExtractor
-        endpoint: /data/DS_RP_POPULATION_COMP
+        endpoint: /data/DS_EEC_ANNUEL
         format: json
         extract_params:
           maxResult: 10000
           TIME_PERIOD: 2021
-          GEO: ["COM","DEP","REG"]
+          # GEO: ["COM","DEP","REG"]
           SEX: "_T"
           RP_MEASURE: "POP"
-          AGE: "Y_GE15"
-          PCS: ["1","2","3","4","5","6","7","9"]
+          # AGE: "Y_GE15"
+          # PCS: ["1","2","3","4","5","6","7","9"]
         response_map:
           data: observations
           next: paging.next
