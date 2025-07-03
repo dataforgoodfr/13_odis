@@ -34,7 +34,7 @@
             secteur_na38,
             secteur_na88,
             ape,
-            code_region,
+            lpad(cast(code_region as text), 2, '0') as code_region,
             code_ancienne_region,
             code_departement,
             code_zone_d_emploi,
