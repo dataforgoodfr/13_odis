@@ -106,6 +106,16 @@ all_gender as (
         w.F90P
     from women_final w
     join men_final m on m.codegeo = w.codegeo AND m.year_ = w.year_
+),
+all_gender_type_geo as (
+    SELECT
+        CASE
+            WHEN codegeo LIKE '%DEP%' THEN 'departement'
+            WHEN codegeo LIKE '%REG%' THEN 'region'
+            ELSE 'france_entiere'
+        END AS typegeo,
+        *
+    FROM all_gender
 )
 
-select * from all_gender
+select * from all_gender_type_geo

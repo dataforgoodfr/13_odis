@@ -35,4 +35,7 @@ sources:
       - name: silver_logements_sociaux
         description: join silver logement social
 
+      - name: silver_population_by_age_gender
+        description: Table contenant
+        loaded_at_field: created_at
 
