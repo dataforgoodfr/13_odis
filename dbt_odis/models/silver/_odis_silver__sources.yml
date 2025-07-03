@@ -106,4 +106,9 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
+      - name: vw_population_by_age_gender
+        description: View contenant
+        loaded_at_field: created_at
+
+
       
