@@ -4,7 +4,7 @@ packages:
   - package: metaplane/dbt_expectations
     version: 0.10.9
   - package: elementary-data/elementary
-    version: 0.18.3
+    version: 0.19.0
   - package: godatadriven/dbt_date
     version: 0.14.1
-sha1_hash: ef3ae10dedd2f1c89241c2e7af248c6373510c58
+sha1_hash: 12d0decc49416db4b754265d7abd6e66e53c734d

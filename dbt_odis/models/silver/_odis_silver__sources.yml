@@ -16,6 +16,10 @@ sources:
         description: View contenant les informations de références des régions
         loaded_at_field: created_at
 
+      - name: vw_geographical_references_arrondissements
+        description: View contenant les informations de références des arrondissements
+        loaded_at_field: created_at
+
       - name: vw_education_moyenne_eleve_commune
         description: View contenant
         loaded_at_field: created_at
@@ -48,6 +52,12 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
+      - name: vw_emploi_bmo_2024
+
+      - name: vw_emploi_salaire_median_filo2021_disp_com
+        description: View contenant
+        loaded_at_field: created_at
+
       - name: vw_logement_annuel_dept_data
         description: View contenants
         loaded_at_field: created_at
@@ -56,15 +66,7 @@ sources:
         description: View contenantments
         loaded_at_field: created_at
 
-      - name: vw_logements_appartement_et_residences_principales
-        description: View contenant
-        loaded_at_field: created_at
-
       - name: vw_logements_maison
-        description: View contenant
-        loaded_at_field: created_at
-
-      - name: vw_logements_maison_et_residences_principales
         description: View contenant
         loaded_at_field: created_at
 
@@ -111,5 +113,11 @@ sources:
       - name: vw_homepage_accueil
         description: View contenant
         loaded_at_field: created_at
+
+      - name: vw_population_by_age_gender
+        description: View contenant
+        loaded_at_field: created_at
+
+
 
       
