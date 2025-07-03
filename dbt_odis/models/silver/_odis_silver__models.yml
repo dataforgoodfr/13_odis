@@ -162,6 +162,42 @@ models:
         description: Total des pièces de résidences principales qui sont des autres logements
         data_type: double precision
 
+  - name: stg_logement_logements_sociaux_communes_remapped_aggregated
+    description: Modèle intermédiaire qui agrège les logements sociaux au niveau des communes(regroupement des arrondissements via `geographical_arrondissements`).
+    columns:
+    - name: codgeo
+      description: Code INSEE de la commune (agrégé si initialement arrondissement)
+    - name: type_geo
+      description: Type de géographie (toujours 'commune' ici)
+    - name: libcom
+      description: Nom de la commune
+    - name: year
+      description: Année de l’indicateur
+    - name: nb_ls
+      description: Nombre de logements sociaux
+    - name: tx_vac
+      description: Taux de vacance
+    - name: tx_vac3
+      description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference
+    - name: tx_mob
+      description: Taux de mobilité du parc social au 1er janvier de l'année de référence
+    - name: nb_loues
+      description: Nombre de logements sociaux proposés à location qui sont actuellement loués
+    - name: nb_vacants
+      description: Nombre de logements sociaux proposés à location qui sont actuellement nb_vacants
+    - name: nb_vides
+      description: Nombre de logements sociaux qui sont vides
+    - name: nb_asso
+      description: Nombre de logements sociaux qui sont pris en charge par une association
+    - name: nb_occup_finan
+      description: Nombre de logements sociaux occupés avec ou sans contrepartie financière
+    - name: nb_occup_temp
+      description: Nombre de logements sociaux occupés pour de l'hébergement temporaire
+    - name: nb_ls_en_qpv
+      description: Nombre de logements sociaux en QPV (quartier prioritaire de la politique de la ville)
+    - name: densite
+      description: Densité pour 100 résidences principales (source --> RP 2021)
+
   - name: stg_logement_logements_sociaux_communes
     description: Table transformée contenant les indicateurs logements sociaux au niveau commune
     columns:
@@ -311,7 +347,7 @@ models:
         description: Densité pour 100 résidences principales (source --> RP 2021)
 
   - name: silver_logement_logements_sociaux
-    description: Table transformée contenant les indicateurs logements sociaux pour tous les niveaux géograpiques (région, département, commune, epci)
+    description: Table finale rassemblant les indicateurs de logements sociaux à tous les niveaux géographiques (commune, département, région, EPCI). Les données au niveau communal ont été agrégées pour corriger les arrondissements.
     columns: 
       - name: type_geo
         description: Type géograpique (commune, département, région, epci)
