@@ -78,7 +78,7 @@ models:
       - name: year
         description: Année de référence
       - name: nb_ls
-        description: Parc complet Ensemble du parc social  
+        description: Parc complet Ensemble du parc social
       - name: nb_loues
         description: Parc complet proposés à la location loués
       - name: nb_vacants
@@ -217,7 +217,7 @@ models:
         quote: true
 
   - name: emploi_gds_secteurs
-    description: Table recensant le nombre de demandeurs d'emploi pour une zone géographique identifiée et un mois de mesure donné
+    description: Table des effectifs salariés et du nombre d'établissements par grands secteurs d'activités identifiés GS 1 à 7, pour les 3 niveaux géographiques commune/département/région
     columns:
       - name: codgeo
         description: code INSEE de la zone géographique
