@@ -638,11 +638,11 @@ models:
         data_type: integer
         description: nombre de demandeurs d'emploi pour la zone identifiée pour un mois-année donnée
 
-  - name: emploi_eff_prive
+  - name: stg_emploi_eff_prive_pivot
     description: Effectifs salariés du secteur privé par grands secteurs, granularité fine au code APE
     columns:
       - name: id
-        description: index_année
+        description: index code_APE-code_geo-annee
         data_type: text
       - name: region
         description: Nom de la région rattachée
@@ -707,6 +707,59 @@ models:
         data_type: double precision
       - name: annee
         data_type: text
+
+  - name: emploi_eff_prive
+    description: Effectifs salariés du secteur privé par grands secteurs, granularité fine au code APE
+    columns:
+      - name: id
+        description: index code_APE-code_geo-annee
+        data_type: text
+      - name: region
+        description: Nom de la région rattachée
+        data_type: text
+      - name: ancienne_region
+        data_type: text
+      - name: departement
+        description: Nom du département rattaché
+        data_type: text
+      - name: zone_d_emploi
+        description: Nom de la zone d'emploi rattachée
+        data_type: text
+      - name: epci
+        description: Nom de l'EPCI rattachée
+        data_type: text
+      - name: commune
+        description: Nom de la commune rattachée
+        data_type: text
+      - name: intitule_commune
+        description: Code INSEE et nom de la commune rattachée
+        data_type: text
+      - name: grand_secteur_d_activite
+        description: Classification et description du grand secteur d'activité
+        data_type: text
+      - name: secteur_na17
+        description: Classification des secteurs d'activité, niveau français intermédiaire entre les niveaux A 10 et A 38
+        data_type: text
+      - name: secteur_na38
+        description: Classification des secteurs d'activité, niveau international, intermédiaire entre sections et divisions
+        data_type: text
+      - name: secteur_na88
+        description: Classification des sous-secteurs d'activité, divisions, niveau standard de l'arborescence de la NAF révision 2
+        data_type: text
+      - name: ape
+        description: Classification des sous divisions des secteurs d'activité, niveau code APE
+        data_type: text
+      - name: code_region
+        description: Code de la région rattachée
+        data_type: text
+      - name: code_ancienne_region
+        data_type: text 
+      - name: code_departement 
+        description : Code du département rattaché
+        data_type : text 
+      - name : code_zone_d_emploi 
+        description : Code de la zone d'emploi rattachée
+        data_type : text
 
   - name: emploi_deplacement_domicile_travail_filtered
     description: Déplacement et mode de transport domicile / travail pour l'année 2021

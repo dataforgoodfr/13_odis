@@ -1320,16 +1320,6 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
-  - name: logements_annuel_dept_data
-    columns:
-      - name: id
-        description: id
-
-  - name: logements_dido_catalogue
-    columns:
-      - name: id
-        description: id
-
   # Logement_social
 
   - name: logement_logements_sociaux_communes
