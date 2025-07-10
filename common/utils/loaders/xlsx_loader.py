@@ -12,7 +12,9 @@ class XlsxDataLoader(AbstractDataLoader):
 
     def load_data(self, pages: list[PageLog]) -> Generator[PageLog, None, None]:
         """
-        Load XLSX data into the database
+        Load XLSX data into the database.
+        This assumes only the first sheet of the xlsx file is loaded ; 
+        for morecomplex scenarios a Notebook appraoch is needed
         """
         load_success = False
 
