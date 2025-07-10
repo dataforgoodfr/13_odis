@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 from typing import Generator
 
-from common.utils.exceptions import InvalidExcel
+# from common.utils.exceptions import InvalidExcel
 from common.utils.interfaces.data_handler import OperationType, PageLog
 from common.utils.interfaces.loader import AbstractDataLoader, Column, ColumnType
 from common.utils.logging_odis import logger
