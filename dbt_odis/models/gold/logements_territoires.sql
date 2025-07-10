@@ -4,21 +4,19 @@
     )
 }}
 
-with logement_ratio as (
+with logements as (
     select
-        id,
         geo,
         time_period,
-        maisons,
-        maisons_rp,
-        maisons - maisons_rp as nb_maisons_secondaires,
-        appartements,
-        appartements_rp,
-        appartements - appartements_rp as nb_appartements_secondaires,
-        pieces as pieces,
-        appartements_rp + maisons_rp as total_logements_principaux,
-        (appartements - appartements_rp + maisons - maisons_rp) as total_logements_secondaires,
-        total_logements,
+        total_tous_logements,
+        rp_tous_logements,
+        rsecocc_tous_logements,
+        lvac_tous_logements,
+        total_maisons,
+        rp_maisons,
+        total_appartements,
+        rp_appartements,
+        total_rp_pieces,
         type_geo,
         code_geo
     from {{ ref('logements_types_territoires') }}
@@ -32,21 +30,16 @@ select
         else code_geo
     end as codgeo,
     extract(year from cast(time_period || '-01-01' as date)) as "YEAR",
-    total_logements as "LOG",
-    total_logements_principaux as "RP",
-    total_logements_secondaires as "RSECOCC",
-    total_logements_secondaires as "LOGVAC",
-    maisons as "MAISON",
-    appartements as "APPART",
-    maisons_rp as "RPMAISON",
-    appartements_rp as "RPAPPART", 
-    pieces / nullif((maisons + appartements), 0) as "NB_MOY_PIECE",
-    total_logements_principaux as "MEN",
-    total_logements_principaux * (pieces / nullif((maisons + appartements), 0)) as "NBPI_RP"
-    {# ROUND(cast(nb_maisons_secondaires as numeric) / nullif(maisons, 0) * 100, 2) as taux_maisons_vacantes,
-    ROUND(cast(nb_appartements_secondaires as numeric) / NULLIF(appartements, 0) * 100, 2) as taux_appartements_vacants,
-    ROUND(cast(total_logements_secondaires as numeric) / NULLIF(total_logements, 0) * 100, 2) as taux_total_logements_vacants,
-    type_geo,
-    code_geo #}
-from logement_ratio
+    total_tous_logements as "LOG",
+    rp_tous_logements as "RP",
+    rsecocc_tous_logements as "RSECOCC",
+    lvac_tous_logements as "LOGVAC",
+    total_maisons as "MAISON",
+    total_appartements as "APPART",
+    rp_maisons as "RPMAISON",
+    rp_appartements as "RPAPPART",
+    round((total_rp_pieces / nullif(rp_tous_logements, 0))::numeric, 5) as "NB_MOY_PIECE",
+    rp_tous_logements as "MEN",
+    total_rp_pieces as "NBPI_RP"
+from logements
     where time_period ~ '^\d{4}$'

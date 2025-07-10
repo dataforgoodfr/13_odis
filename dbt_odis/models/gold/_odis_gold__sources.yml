@@ -29,8 +29,14 @@ sources:
 
       - name: emploi_eff_prive
         description: Table contenant
-        #loaded_at_field: created_at
+        loaded_at_field: created_at
+
+      - name: emploi_bmo_avec_communes
+      - name: emploi_salaire_median_filo2021
+        description: Table contenant
+        loaded_at_field: created_at
         
       - name: silver_logements_sociaux
         description: join silver logement social
-        
+
+
