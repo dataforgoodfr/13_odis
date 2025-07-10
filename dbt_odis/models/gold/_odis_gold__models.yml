@@ -102,6 +102,40 @@ models:
       - name: densite
         description: Parc complet Densité pour 100 résidences principales
 
+  - name: gold_logement_logements_sociaux_filtered
+    description: Table filtrée contenant les indicateurs logements sociaux pour tous les niveaux géograpiques (région, département, commune, epci) pour l'année 2024
+    columns:
+      - name: codgeo
+        description: Parc complet Ensemble du parc social
+        tests:
+          - not_null
+      - name: year
+        description: Année de référence
+      - name: nb_ls
+        description: Parc complet Ensemble du parc social
+      - name: nb_loues
+        description: Parc complet proposés à la location loués
+      - name: nb_vacants
+        description: Parc complet proposés à la location vacants
+      - name: nb_vides
+        description: Parc complet Ensemble du parc vide
+      - name: nb_asso
+        description: Parc complet pris en charge par une association
+      - name: nb_occup_finan
+        description: Parc complet occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: Parc complet occupé pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Parc complet Nombre de logements en QPV
+      - name: tx_vac
+        description: PTaux de vacance % totale Au 01/01
+      - name: tx_vac3
+        description: Taux de vacance % > 3 mois Au 01/01
+      - name: tx_mob
+        description: Taux de mobilité % Au 01/01
+      - name: densite
+        description: Parc complet Densité pour 100 résidences principales
+
   - name: logements_territoires
     description: Table recensant les nombres de types de logements par construction et par occupation par commune, département et région. les ratios nombre de pièces moyennes par habitation et par résidence rpincipale sont calculés
     columns:
