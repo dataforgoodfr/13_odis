@@ -1,5 +1,5 @@
 import time
-print('############################################')
+print('################### RE-RUN #########################')
 
 def performance_tracker(t, text, timer_mode):
     if timer_mode:
@@ -10,21 +10,18 @@ print(time.ctime(t))
 timer_mode = True
 
 t = performance_tracker(t, 'Start Import', timer_mode)
-# Notebook Specific
-import pandas as pd
+
+
+from pandas import concat 
 import numpy as np
-import matplotlib.pyplot as plt
 import geopandas as gpd
 from shapely.geometry import mapping
-
-# Streamlit App Specific
 import streamlit as st
 import folium as flm
-from folium.plugins import MarkerCluster, FastMarkerCluster
-import plotly.express as px
+from folium.plugins import FastMarkerCluster
+from plotly.express import line_polar
 from streamlit_folium import st_folium
 from branca.colormap import linear
-from branca.element import Template, MacroElement
 from odis_stream2_scoring import compute_odis_score, init_loading_datasets
 
 t = performance_tracker(t, 'End Import', timer_mode)
@@ -139,7 +136,7 @@ def set_prefs(scores_cat):
             row_to_add['score'] = row_to_add['score'] + '_binome'
             row_to_add['score_name'] = row_to_add['score_name'] + ' (Binôme)'
             row_to_add['incl_binome'] = False
-            scores_cat_prefs = pd.concat([scores_cat_prefs, row_to_add])
+            scores_cat_prefs = concat([scores_cat_prefs, row_to_add])
     scores_cat_prefs['weight'] = scores_cat_prefs['cat'].apply(lambda x: prefs['poids_'+x])
     scores_cat_prefs.set_index('score', inplace=True)
 
@@ -298,7 +295,7 @@ def build_top_results(_df, n, prefs):
                     # Radar Chart that shows categories scores
                     data_to_plot = row[[col for col in row.index if col.endswith('_cat_score')]]
                     data_to_plot.rename(lambda x: x.split('_')[0], inplace=True)
-                    fig = px.line_polar(theta=data_to_plot.index.str.capitalize(), r=data_to_plot.values * 100, line_close=True)
+                    fig = line_polar(theta=data_to_plot.index.str.capitalize(), r=data_to_plot.values * 100, line_close=True)
                     fig.update_traces(fill='toself')
                     st.plotly_chart(fig)
                     st.caption('Plus le critère s’approche du bord du cercle, plus il est attractif dans cette zone')
@@ -338,7 +335,7 @@ def build_top_results(_df, n, prefs):
                             for categorie in categories:
                                 liste_services += [f"- **{categorie.replace('-', ' ').capitalize()}**"]
                                 for item in services.itertuples():
-                                    if item.categorie == categorie and item.service is not '-':
+                                    if item.categorie == categorie and item.service != '-':
                                         liste_services += [f"    - {item.service.replace('-', ' ').capitalize()}"]
                         st.markdown("\n".join(liste_services))
                         print("\n".join(liste_services))
@@ -601,14 +598,12 @@ def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
         primaire_df = annuaire_ecoles[(annuaire_ecoles.ecole_maternelle > 0) & (annuaire_ecoles.ecole_elementaire > 0)].copy()
         primaire_df['type']='primaire' #primaire = maternelle + elementaire
 
-    
     if 'Elémentaire' in niveaux_enfants:
         elementaire_df = annuaire_ecoles[(annuaire_ecoles.ecole_maternelle == 0) & (annuaire_ecoles.ecole_elementaire > 0)].copy()
         elementaire_df['type']='elementaire'
         primaire_df = annuaire_ecoles[(annuaire_ecoles.ecole_maternelle > 0) & (annuaire_ecoles.ecole_elementaire > 0)].copy()
         primaire_df['type']='primaire' #primaire = maternelle + elementaire
-
-    
+   
     if 'Collège' in niveaux_enfants:
         college_df = annuaire_ecoles[annuaire_ecoles.type_etablissement == 'Collège'].copy()
         college_df['type']='college'
@@ -618,7 +613,7 @@ def filter_ecoles(_current_geo, annuaire_ecoles, prefs):
         lycee_df['type']='lycee'
     
     
-    annuaire_ecoles = pd.concat([maternelle_df, primaire_df, college_df, lycee_df])
+    annuaire_ecoles = concat([maternelle_df, primaire_df, college_df, lycee_df])
     mask = annuaire_ecoles['code_commune'].isin(target_codgeos)
     filtered_ecoles=annuaire_ecoles[mask]
     
@@ -831,7 +826,7 @@ def build_local_services_layer(_current_geo, _annuaire_inclusion, prefs):
 
     return fg_services
 
-# Gestion des scenarii de démo
+# Load Demo data
 def load_demo_data(demo_data):
     if len(st.query_params) > 0:
         print("Mode démo")
@@ -1124,9 +1119,6 @@ with st.container(border=False, key='top_menu'):
  
     t = performance_tracker(t, 'Ready', timer_mode)
 
-#Auto load results in the demo case
-# if demo_data['nom'] is not None: # This means we loaded some data as demo data
-#     load_results(df=odis, scores_cat=scores_cat)
 
 # Main two sections: results and map
 col_results, col_map = st.columns([2, 3])
