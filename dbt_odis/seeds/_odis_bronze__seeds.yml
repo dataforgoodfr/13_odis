@@ -12,3 +12,28 @@ seeds:
         Code_postal: text
         Intitule: text
         Ligne_5: text
+
+  - name: corresp_geo_point_codes_communes
+    description: "Correspondance des localisations gps des communes (Geo Point) avec les codes communes"
+    config:
+      quote_columns: true 
+      delimiter: ';'
+      column_types: 
+        GeoPoint: text
+        Annee: int
+        Code_Officiel_Commune: text
+        latitude: float
+        longitude: float
+
+  - name: bassin_emploi
+    description: "Correspondance des codes INSEE des communes avec les bassins d'emploi"
+    config:
+      quote_columns: true 
+      delimiter: ','
+      column_types:
+        reg: text
+        dep: text
+        code_commune_insee: text
+        code_bassin_BMO: integer
+        lib_bassin_BMO: text
+
