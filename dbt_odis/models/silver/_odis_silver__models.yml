@@ -863,3 +863,19 @@ models:
       - name: f90p
         description: population de femmes de 90 ou plus
         data_type: numeric
+  
+  - name: silver_homepage_accueil
+    description: Table transformée contenant les indicateurs des structures d'accueil commune
+    columns:
+      - name: id
+        description: id
+        data_type: integer
+      - name: code_officiel_commube
+        description: code de la commune de la structure d'accueil, obtenu en calculant le centre de commune le plus proche des coordonnées gps de la structure d'accueil
+        data_type: text
+      - name: type
+        description: type de la structure d'accueil
+        data_type: text
+      - name: places
+        description: nombre de places dans la structure d'accueil
+        data_type: integer

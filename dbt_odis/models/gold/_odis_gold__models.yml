@@ -273,6 +273,34 @@ models:
         description: annee
         data_type: integer
         quote: true
+  
+  - name: gold_homepage_accueil
+    description: Table contenant les données sur les structures d'accueil regroupées par département
+    columns:
+    - name: codegeo
+      description: Code commune (5 chiffres) ou du département (2 chiffres)
+      data_type: text
+    - name: total
+      description: nombre total de places dans les structures d'accueil
+      data_type: integer
+    - name: cada
+      description: nombre de places dans les cada
+      data_type: integer
+    - name: urgences
+      description: nombre de places dans les urgences
+      data_type: integer
+    - name: huda
+      description: nombre de places dans les huda
+      data_type: integer
+    - name: cph
+      description: nombre de places dans les cph
+      data_type: integer
+    - name: chrs
+      description: nombre de places dans les chrs
+      data_type: integer
+    - name: chrs_etab
+      description: nombre de places dans les chrs_etab
+      data_type: integer
 
   - name: gold_population_by_age_gender
     description: Table transformée contenant les indicateurs de population par tranche d'âge et sexe par commune
@@ -334,3 +362,4 @@ models:
       - name: f90p
         description: population de femmes de 90 ou plus
         data_type: numeric
+
