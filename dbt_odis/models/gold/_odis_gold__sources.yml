@@ -4,6 +4,7 @@ sources:
   - name: silver 
     schema: silver
     tables: 
+    
       - name: geographical_references
         description: Table contenant
         loaded_at_field: created_at
@@ -28,13 +29,19 @@ sources:
         loaded_at_field: created_at
 
       - name: emploi_bmo_avec_communes
+      
       - name: emploi_salaire_median_filo2021
         description: Table contenant
         loaded_at_field: created_at
         
       - name: silver_logements_sociaux
         description: join silver logement social
-
+        
       - name: silver_homepage_accueil
         description: Table contenant
         loaded_at_field: created_at 
+
+      - name: silver_population_by_age_gender
+        description: Table contenant
+        loaded_at_field: created_at
+

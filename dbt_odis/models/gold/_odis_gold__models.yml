@@ -301,3 +301,65 @@ models:
     - name: chrs_etab
       description: nombre de places dans les chrs_etab
       data_type: integer
+
+  - name: gold_population_by_age_gender
+    description: Table transformée contenant les indicateurs de population par tranche d'âge et sexe par commune
+    columns:
+      - name: codegeo
+        description: code des départements ou des régions si le code est préfixé par 'REG'
+        data_type: text
+      - name: YEAR
+        description: Année de l'étude
+        data_type: text
+      - name: pop
+        description: population total, toutes tranches d'âge et sexe confondus
+        data_type: numeric
+      - name: poph
+        description: population total pour les hommes, toutes tranches d'âge
+        data_type: numeric
+      - name: h0014
+        description: population d'hommes entre 0 et 14 ans
+        data_type: numeric
+      - name: h1529
+        description: population d'hommes entre 15 et 29 ans
+        data_type: numeric
+      - name: h3044
+        description: population d'hommes entre 30 et 44 ans
+        data_type: numeric
+      - name: h4559
+        description: population d'hommes entre 45 et 59 ans
+        data_type: numeric
+      - name: h6074
+        description: population d'hommes entre 60 et 74 ans
+        data_type: numeric
+      - name: h7589
+        description: population d'hommes entre 75 et 89 ans
+        data_type: numeric
+      - name: h90p
+        description: population d'hommes de 90 ou plus
+        data_type: numeric
+      - name: popf
+        description: population total pour les femmes, toutes tranches d'âge
+        data_type: numeric
+      - name: f0014
+        description: population de femmes entre 0 et 14 ans
+        data_type: numeric
+      - name: f1529
+        description: population de femmes entre 15 et 29 ans
+        data_type: numeric
+      - name: f3044
+        description: population de femmes entre 30 et 44 ans
+        data_type: numeric
+      - name: f4559
+        description: population de femmes entre 45 et 59 ans
+        data_type: numeric
+      - name: f6074
+        description: population de femmes entre 60 et 74 ans
+        data_type: numeric
+      - name: f7589
+        description: population de femmes entre 75 et 89 ans
+        data_type: numeric
+      - name: f90p
+        description: population de femmes de 90 ou plus
+        data_type: numeric
+
