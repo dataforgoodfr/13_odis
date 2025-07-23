@@ -66,7 +66,7 @@ densite_block as (
   select
     dep as codgeo,
     libdep,
-    2021 as year,
+    2019 as year,
     densite
   from {{ ref('logement_logements_sociaux_departement') }}
 ),

@@ -67,7 +67,7 @@ densite_block as (
     epci_dep as codgeo,
     libepci,
     dep,
-    2021 as year,
+    2019 as year,
     densite
   from {{ ref('logement_logements_sociaux_epci') }}
 ),

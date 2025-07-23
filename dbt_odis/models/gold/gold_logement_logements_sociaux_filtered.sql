@@ -19,7 +19,7 @@ with annee24 as (
         tx_vac3,
         tx_mob
     from {{ ref('silver_logement_logements_sociaux') }}
-    where year = 2024
+    where year = 2023
 ),
 
 densite21 as (
@@ -28,7 +28,7 @@ densite21 as (
         year,
         densite
     from {{ ref('silver_logement_logements_sociaux') }}
-    where year = 2021
+    where year = 2019
 )
 
 select

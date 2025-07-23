@@ -63,7 +63,7 @@ densite_block as (
     libcom,
     dep,
     reg,
-    2021 as year,
+    2019 as year,
     densite
   from {{ ref('logement_logements_sociaux_communes') }}
 ),
