@@ -3681,6 +3681,9 @@ models:
   - name: population_by_age
     description: Répartition de la population par tranches d'âge
     columns:
+      - name: id
+        description: index
+        data_type: integer
       - name: dimensions_GEO
         description: unité géographique (REG, DEP, COM)
         data_type: text
@@ -3703,10 +3706,16 @@ models:
       - name: measures_OBS_VALUE_NIVEAU_value
         description: valeur numérique
         data_type: integer
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
 
   - name: population_by_age_gender
     description: Répartition de la population par tranches d'âge et genre
     columns:
+      - name: id
+        description: index
+        data_type: integer
       - name: dimensions_GEO
         description: unité géographique (REG, DEP, COM)
         data_type: text
@@ -3734,6 +3743,9 @@ models:
       - name: measures_OBS_VALUE_NIVEAU_value
         description: valeur numérique
         data_type: integer
+      - name: created_at
+        description: date d'extraction de la donnée
+        data_type: timestamp without time zone
 
   - name: population_menages_2021
     description: |-

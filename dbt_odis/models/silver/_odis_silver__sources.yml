@@ -52,6 +52,8 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
+      - name: vw_emploi_bmo_2024
+
       - name: vw_emploi_salaire_median_filo2021_disp_com
         description: View contenant
         loaded_at_field: created_at
@@ -103,6 +105,20 @@ sources:
       - name: vw_logement_rpls_region
         description: View contenant
         loaded_at_field: created_at
+
+      - name: vw_geographical_references_geopoint_communes
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_homepage_accueil
+        description: View contenant
+        loaded_at_field: created_at
+
+      - name: vw_population_by_age_gender
+        description: View contenant
+        loaded_at_field: created_at
+
+
 
       - name: vw_population_categorie_socio_pro
         description: View contenant les informations de références des communes
