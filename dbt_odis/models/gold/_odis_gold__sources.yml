@@ -9,6 +9,10 @@ sources:
         description: Table contenant
         loaded_at_field: created_at
 
+      - name: geographical_references_intercommunalites_filtered
+        description: Table contenant les informations de références des intercommunalites
+        loaded_at_field: created_at
+
       - name: education_moyenne_eleve
         description: Table contenant
         loaded_at_field: created_at

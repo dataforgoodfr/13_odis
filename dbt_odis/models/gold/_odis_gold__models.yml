@@ -68,6 +68,25 @@ models:
       - name: population
         description: Nombre d'habitants dans la commune
 
+  - name: geographical_references_intercommunalites_renamed
+    description: Gold model for geographical references
+    columns:
+      - name: codgeo
+        description: Siren de la commune
+        data_type: integer
+      - name: raison_social
+        description: Nom du groupement interco
+        data_type: text
+      - name: nb_membres
+        description: Nombre de membre dans le groupement
+        data_type: integer
+      - name: total_pop_tot
+        description: Population du groupement interco
+        data_type: integer
+      - name: total_pop_mun
+        description: population_totale_du_membre_du_groupement
+        data_type: integer
+
   - name: gold_logement_logements_sociaux
     description: Table transformée contenant les indicateurs logements sociaux pour tous les niveaux géograpiques (région, département, commune, epci)
     columns:

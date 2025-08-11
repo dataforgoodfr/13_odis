@@ -34,46 +34,38 @@ class Column(BaseModel):
     def sanitize_name(cls, value: str, info: ValidationInfo) -> str:
         """
         Sanitize column names by:
-        1. Replacing spaces with underscores
-        2. Removing accents
-        3. Ensuring the name is SQL-friendly
-        4. remove surrounding quotes
-        5. Ensuring the name starts with a letter
-        6. Converting to lowercase
-        7. Removing any non-alphanumeric characters except underscores
+        - Removing accents
+        - Replacing spaces with underscores
+        - Removing special characters
+        - Forcing lowercase
+        - Ensuring it starts with a letter
+        - Truncating to PostgreSQL's 63-character limit
         """
-        # Normalize unicode characters and remove accents
+        # Normalize and clean
         normalized = (
             unicodedata.normalize("NFKD", value)
             .encode("ascii", "ignore")
             .decode("utf-8")
         )
-        # Replace spaces with underscores
         sanitized = normalized.replace(" ", "_")
-        # Remove any non-alphanumeric characters except underscores
         sanitized = re.sub(r"[^\w]", "", sanitized)
-        # Remove surrounding quotes
-        sanitized = sanitized.strip('"').strip("'")
-        # Remove any leading/trailing whitespace
-        sanitized = sanitized.strip()
-        # Remove any leading/trailing underscores
-        sanitized = sanitized.strip("_")
+        sanitized = sanitized.strip('"').strip("'").strip("_").strip()
 
-        # Ensure the name is not empty
         if not sanitized:
-            raise ValueError(f"Invalid column name: {value}")
-        # Ensure the column name starts with a letter
+            raise ValueError(f"Invalid column name: '{value}'")
+
         if not sanitized[0].isalpha():
             sanitized = f"col_{sanitized}"
 
-        return sanitized.lower()
+        sanitized = sanitized.lower()
 
-    def __repr__(self):
-        """pretty print column name
+        # Truncate to 63 characters for PostgreSQL
+        if len(sanitized) > 63:
+            logger.warning(f"Column name '{sanitized}' truncated to 63 characters")
+            sanitized = sanitized[63:]
 
-        ex: <column_name: TEXT>
-        """
-        return f"<{self.name}: {self.data_type}>"
+        return sanitized
+
 
 
 class AbstractDataLoader(ABC):

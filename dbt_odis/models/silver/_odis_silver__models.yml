@@ -78,6 +78,34 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
+  - name: geographical_references_intercommunalites_filtered
+    description: Silver model for geographical references
+    columns:
+      - name: n_siren
+        description: Siren du groupement interco
+        data_type: integer
+      - name: nom_du_groupement
+        description: Nom du groupement interco
+        data_type: text
+      - name: population_totale
+        description: Population du groupement interco
+        data_type: integer
+      - name: nombre_de_membres
+        description: Nombre de membre dans le groupement
+        data_type: integer
+      - name: siren_membre
+        description: Siren de la commune
+        data_type: integer
+      - name: nom_membre
+        description: Nom de la commune
+        data_type: text
+      - name: categorie_des_membres_du_groupement
+        description: categorie_des_membres_du_groupement
+        data_type: text
+      - name: population_totale_du_membre_du_groupement
+        description: population_totale_du_membre_du_groupement
+        data_type: integer
+
   - name: logements_types_territoires
     description: Table silver joignant tous les types de logements, leur type d'occupation, et les pièces de résidences principales pour une zone géographique identifiée par "geo", pour plusieurs années de mesure
     columns:
