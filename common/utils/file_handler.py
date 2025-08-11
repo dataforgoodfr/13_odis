@@ -94,13 +94,46 @@ class XlsxReader(FileReader):
     def __init__(self, import_path: str):
         self.import_path = import_path
 
-    def try_load(self, model: DomainModel) -> pd.DataFrame:
-        return pd.read_excel(
+    def try_load(self, model: DomainModel) -> dict[ str, pd.DataFrame ]:
+
+        wb = pd.ExcelFile( 
             self.import_path,
-            header=model.load_params.header,
-            skipfooter=model.load_params.skipfooter,
-            engine="openpyxl",
-        )
+            engine = "openpyxl"
+            )
+
+        preprocess_params = model.preprocessor
+        sheets_list = preprocess_params.sheets
+        sheet_names = wb.sheet_names
+
+
+        results = {}
+
+        if sheets_list:
+            for sheet_name in [x for x in sheets_list if x in sheet_names]:
+                results[ sheet_name ] = pd.read_excel(
+                    wb,
+                    sheet_name = sheet_name,
+                    header=model.load_params.header,
+                    skipfooter=model.load_params.skipfooter,
+                    engine="openpyxl",
+                )
+        
+        else:
+            pd_load = pd.read_excel(
+                    wb,
+                    header=model.load_params.header,
+                    skipfooter=model.load_params.skipfooter,
+                    engine="openpyxl",
+                )
+
+            if isinstance(pd_load, dict):
+                results = pd_load
+            elif isinstance(pd_load, pd.DataFrame):
+                results['0'] = pd_load
+            else:
+                logger.info(f'Type not recognized: {type(pd_load)}')
+
+        return results
 
 
 class MetadataReader(FileReader):
