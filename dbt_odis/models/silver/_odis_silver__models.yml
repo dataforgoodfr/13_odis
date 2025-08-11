@@ -831,7 +831,10 @@ models:
   - name: silver_population_by_age_gender
     description: Table transformée contenant les indicateurs de population par tranche d'âge et sexe par commune
     columns:
-      - name: codgeo
+      - name: typegeo
+        description: type du code geo - département, région ou france enitère (inclut DOM et métropole seule)
+        data_type: text
+      - name: codegeo
         description: code geo pour le département, la région ou à l'échelle nationale (france enitère, DOM ou métropole seule)
         data_type: text
       - name: YEAR
@@ -888,3 +891,19 @@ models:
       - name: f90p
         description: population de femmes de 90 ou plus
         data_type: numeric
+  
+  - name: silver_homepage_accueil
+    description: Table transformée contenant les indicateurs des structures d'accueil commune
+    columns:
+      - name: id
+        description: id
+        data_type: integer
+      - name: code_officiel_commube
+        description: code de la commune de la structure d'accueil, obtenu en calculant le centre de commune le plus proche des coordonnées gps de la structure d'accueil
+        data_type: text
+      - name: type
+        description: type de la structure d'accueil
+        data_type: text
+      - name: places
+        description: nombre de places dans la structure d'accueil
+        data_type: integer
