@@ -1,7 +1,7 @@
 import datetime
 import urllib
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Optional
+from typing import Any, Generator, AsyncGenerator, Optional
 
 from pydantic import BaseModel, Field
 
@@ -9,7 +9,7 @@ from common.utils.interfaces.http import HttpClient
 from common.utils.logging_odis import logger
 
 from ...data_source_model import APIModel, DataSourceModel, DomainModel
-from .data_handler import IDataHandler, OperationType, PageLog
+from .data_handler import IDataHandler, OperationType, PageLog, DataArtifact, ArtifactLog
 
 
 class ExtractionResult(BaseModel):
@@ -103,8 +103,99 @@ class AbstractSourceExtractor(ABC):
 
         self.api_config = self.config.get_api(model)
 
+
+class SynchronousExtractor(AbstractSourceExtractor):
+
     @abstractmethod
-    def download(self) -> AsyncGenerator[ExtractionResult, None]:
+    def download(self) -> Generator[DataArtifact, None, None]:
+        """Method to be implemented by the child class to download data from the API.
+        The method should yield a ExtractionResult object for each page of data downloaded.
+
+        NB: the code implemented by the concrete children are async to allow for non-blocking I/O operations.
+            but the abstract method is not declared as async for typing reasons.
+        """
+        pass
+
+    def execute(self) -> None:
+        """Method to be called to start the extraction process.
+        This method will download the data and store it in a local file; it will also
+        store the metadata of the extraction in a separate file.
+
+        Example:
+        >>> extractor = MyExtractor(config, model, handler)
+        >>> extractor.execute()
+        """
+
+        logger.info("-" * 80)
+        logger.info(
+            f"Starting extraction for '{self.model.name}' using '{self.__class__.__name__}'"
+        )
+
+        start_time = datetime.datetime.now(tz=datetime.timezone.utc)
+        last_page_downloaded = 0
+        artifact_logs = []
+        errors = 0
+        complete = False
+        storage_info = None
+
+        for result in self.download():
+
+            # TODO: test file_dump error handling
+            try:
+                
+                # prepare for future way of handling retries
+                attempt = 1
+
+                if result.success:                    
+                    last_page_downloaded += 1
+                    storage_info = self.handler.file_dump(self.model, data=result.payload)
+                
+                else:
+                    errors += 1
+
+                artifact_log_info = {
+                        "model_name": self.model.name,
+                        "name": result.name,
+                        "page": last_page_downloaded,
+                        "storage_info": storage_info,
+                        "success": result.success,
+                        "is_last": result.is_last,
+                        "attempt": attempt,
+                    }
+
+                artifact_log = ArtifactLog(**artifact_log_info)
+                artifact_logs.append(artifact_log)
+
+            except Exception as e:
+                logger.error(
+                    f"Error dumping page {last_page_downloaded + 1} from {self.url}: {e}"
+                )
+                errors += 1
+
+        # if the loop completes, extraction is successful
+        complete = True
+
+        # dump the execution metadata
+        self.handler.dump_metadata(
+            self.model,
+            OperationType.EXTRACT,
+            start_time=start_time,
+            last_processed_page=last_page_downloaded,
+            complete=complete,
+            errors=errors,
+            artifacts=artifact_logs,
+            pages=[]
+        )
+
+        logger.info(
+            f"Extraction completed for '{self.model.name}', Total pages downloaded: {last_page_downloaded}"
+        )
+        logger.info("-" * 80)
+
+class AsynchronousExtractor(AbstractSourceExtractor):
+
+    @abstractmethod
+    def async_download(self) -> AsyncGenerator[ExtractionResult, None]:
         """Method to be implemented by the child class to download data from the API.
         The method should yield a ExtractionResult object for each page of data downloaded.
 

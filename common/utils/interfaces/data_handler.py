@@ -3,7 +3,7 @@ from enum import StrEnum
 from typing import Any, Optional, Protocol
 
 from pandas import DataFrame
-from pydantic import BaseModel, NonNegativeInt
+from pydantic import BaseModel, NonNegativeInt, Field
 
 from common.data_source_model import DomainModel
 
@@ -26,6 +26,69 @@ class StorageInfo(BaseModel):
     encoding: str
 
 
+class DataArtifact(BaseModel):
+    """An atomic piece of data produced by a task (extraction or processing)"""
+    
+    success: bool = False
+    
+    name: str
+    page: NonNegativeInt = 1
+    payload: Any = Field(..., description="the produced data")
+
+    # Pagination-related info 
+
+    is_last: bool = Field(
+        False, description="is this the last page"
+    )
+
+    count: Optional[int] = Field(
+        0, description="number of records present in the piece of data"
+    )
+
+    total_count: Optional[int] = Field(
+        0,
+        description="Total number of records to extract, if specified in the response",
+    )
+
+    # TODO:
+    # - improve typing here
+    next_url: Optional[str] = Field(
+        None,
+        description="the URL of the next page",
+        examples=[
+            "https://api.insee.fr/melodi/data/DS_RP_LOGEMENT_PRINC?maxResult=10000&TIME_PERIOD=2021&RP_MEASURE=DWELLINGS&L_STAY=_T&TOH=_T&CARS=_T&NOR=_T&TSH=_T&BUILD_END=_T&OCS=_T&TDW=_T&page=2",
+        ],
+    )
+
+    next_page: Optional[int] = Field(
+        None, description="next page number, for use with pagenumber-style pagination"
+    )
+
+    next_token: Optional[str] = Field(
+        None, description="next page token, for use with token-style pagination"
+    )
+
+    next_offset: Optional[int] = Field(
+        None, description="next page offset, for use with offset-based pagination"
+    )
+
+class ArtifactLog(BaseModel):
+    """model for easily updating and logging information about data artifacts and task execution"""
+
+    # Execution info
+    attempt: NonNegativeInt
+    success: bool = False
+
+    # Data info
+    model_name: Optional[str]
+    name: str = Field(...,description="Name of the produced Data Artifact, if any")
+    page: NonNegativeInt
+    is_last: Optional[bool] = False
+    storage_info: Optional[StorageInfo] = None
+
+    # Kept only for legacy - backwards compatibility
+    load_to_bronze: Optional[bool] = False
+
 class PageLog(BaseModel):
     """model for easily updating and logging information about the processing of a given page"""
 
@@ -33,16 +96,6 @@ class PageLog(BaseModel):
     storage_info: Optional[StorageInfo] = None
     is_last: Optional[bool] = False
     success: Optional[bool] = False
-
-
-class ArtifactLog(BaseModel):
-    """model for easily updating and logging information about the processing of an artifact file"""
-
-    name: str
-    storage_info: Optional[StorageInfo] = None
-    load_to_bronze: Optional[bool] = False
-    success: Optional[bool] = False
-
 
 class MetadataInfo(BaseModel):
     """Information about the metadata"""

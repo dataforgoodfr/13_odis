@@ -20,6 +20,7 @@ from common.utils.factory.extractor_factory import create_extractor
 from common.utils.factory.loader_factory import create_loader
 from common.utils.file_handler import FileHandler
 from common.utils.http.async_client import AsyncHttpClient
+from common.utils.http.x_client import HttpxClient
 from common.utils.logging_odis import logger
 
 # this module is the entry point for the CLI
@@ -99,7 +100,7 @@ def explain_api(config_model: DataSourceModel, api: str):
     console.print(table)
 
 
-async def extract_data_sources(
+async def async_extract_data_sources(
     config_model: DataSourceModel,
     data_sources: list[DomainModel],
     max_concurrent_requests: int = MAX_CONCURRENT_REQUESTS,
@@ -161,6 +162,49 @@ async def extract_data_sources(
         print("\n")
         print("[green]All data extracted successfully[/green]")
         print("\n")
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    logger.info(
+        f"Extraction completed in {elapsed_time:.2f} seconds for {len(data_sources)} data sources"
+    )
+
+def extract_data_sources(
+    config_model: DataSourceModel,
+    data_sources: list[DomainModel],
+    max_concurrent_requests: int = MAX_CONCURRENT_REQUESTS,
+):
+    """
+    Extract data from the data sources specified in the config file.
+    """
+    start_time = time.time()
+
+    # share the same http client for all the extractors
+    # to avoid creating too many connections
+    http_client = HttpxClient()
+
+    logger.info(
+        f"Starting extraction for {len(data_sources)} data sources"
+    )
+
+    for ds in data_sources:
+
+        logger.debug(f"Extracting data from {ds.name}")
+
+        try:
+
+            extractor = create_extractor(
+                config_model,
+                ds,
+                http_client=http_client,
+                handler=FileHandler(),
+            )
+
+            extractor.execute()
+
+        except Exception as e:
+            logger.exception(f"Error extracting data from {ds.name}: {str(e)}")
 
     end_time = time.time()
     elapsed_time = end_time - start_time
@@ -378,9 +422,11 @@ def extract(
         f"[green]Extracting data from the following data sources: {[ds.name for ds in data_sources]}[/green]"
     )
 
-    asyncio.run(
-        extract_data_sources(config_model, data_sources, max_concurrent_requests=max_concurrent_requests)  # type: ignore[call-arg] # noqa: E501
-    )
+    # asyncio.run(
+    #     async_extract_data_sources(config_model, data_sources, max_concurrent_requests=max_concurrent_requests)  # type: ignore[call-arg] # noqa: E501
+    # )
+
+    extract_data_sources(config_model, data_sources, max_concurrent_requests=max_concurrent_requests)
 
 
 @app.command()
