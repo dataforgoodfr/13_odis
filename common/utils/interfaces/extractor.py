@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Generator, AsyncGenerator, Optional
 
 from pydantic import BaseModel, Field
+from prefect import task
 
 from common.utils.interfaces.http import HttpClient
 from common.utils.logging_odis import logger
@@ -116,7 +117,8 @@ class SynchronousExtractor(AbstractSourceExtractor):
         """
         pass
 
-    def execute(self) -> None:
+    @task
+    def execute(self) -> Generator[DataArtifact, None, None]:
         """Method to be called to start the extraction process.
         This method will download the data and store it in a local file; it will also
         store the metadata of the extraction in a separate file.
@@ -149,6 +151,8 @@ class SynchronousExtractor(AbstractSourceExtractor):
                 if result.success:                    
                     last_page_downloaded += 1
                     storage_info = self.handler.file_dump(self.model, data=result.payload)
+
+                    yield result
                 
                 else:
                     errors += 1

@@ -8,6 +8,7 @@ from typing import Annotated
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from prefect import flow, task
 
 import typer
 from rich import print
@@ -205,6 +206,57 @@ def extract_data_sources(
 
         except Exception as e:
             logger.exception(f"Error extracting data from {ds.name}: {str(e)}")
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    logger.info(
+        f"Extraction completed in {elapsed_time:.2f} seconds for {len(data_sources)} data sources"
+    )
+
+
+@app.command()
+@flow
+def extract_and_load(
+    config_model: DataSourceModel,
+    data_sources: list[DomainModel]
+    ):
+
+    start_time = time.time()
+
+    # share the same http client for all the extractors
+    # to avoid creating too many connections
+    http_client = HttpxClient()
+
+    logger.info(
+        f"Starting extraction for {len(data_sources)} data sources"
+    )
+
+    for model in data_sources:
+
+        logger.debug(f"Harvesting data from {model.name}")
+
+        try:
+
+            extractor = create_extractor(
+                config_model,
+                model,
+                http_client=http_client,
+                handler=FileHandler(),
+            )
+
+            loader = create_loader(
+                config_model,
+                model,
+                http_client=http_client,
+                handler=FileHandler(),
+            )
+
+            extractor.execute()
+            loader.execute.sumbit()
+
+        except Exception as e:
+            logger.exception(f"Error harvesting data from {model.name}: {str(e)}")
 
     end_time = time.time()
     elapsed_time = end_time - start_time

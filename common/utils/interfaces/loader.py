@@ -7,6 +7,7 @@ from typing import Generator, Optional
 
 import psycopg2
 from pydantic import BaseModel, ValidationInfo, field_validator
+from prefect import task
 
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.interfaces.data_handler import IDataHandler, OperationType, PageLog
@@ -169,6 +170,7 @@ class AbstractDataLoader(ABC):
             # always close the db connection
             self.db_client.close()
 
+    @task
     def execute(self, overwrite_table: bool = True):
         """
         loads extracted data into the target system
