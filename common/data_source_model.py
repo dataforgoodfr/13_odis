@@ -74,6 +74,7 @@ class DataLoadParameters(BaseModel):
     )
 
 
+
 class DataProcessingParameters(BaseModel):
 
     name: str = Field(
@@ -90,6 +91,7 @@ class DataProcessingParameters(BaseModel):
             Type of the processor.
             The following values are accepted :
              - "notebook" (default)
+             - "python" (python class)
         """,
     )
 
@@ -98,6 +100,13 @@ class DataProcessingParameters(BaseModel):
         description="""
             Base folder path where the preprocessr code is to be found
         """,
+    )
+
+    sheets: Optional[list[str]] = Field(
+        default=None,
+        description="""
+            List of sheet names that need to be extracted.
+        """
     )
 
     @computed_field

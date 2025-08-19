@@ -261,6 +261,16 @@ domains:
       type: JsonExtractor
       endpoint: /epcis
       format: json
+    
+    intercommunalites:
+      API: data.gouv.fr
+      description:  base nationale sur les intercommunalités (BANATIC)
+      endpoint: /datasets/r/348cc004-22b4-4b12-9281-b00d4ccb1d88
+      type: FileExtractor
+      format: xlsx
+      preprocessor:
+        name: excelfile_dfload
+        type: notebook
 
   accueil:
 

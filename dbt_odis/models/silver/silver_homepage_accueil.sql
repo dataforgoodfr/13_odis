@@ -5,18 +5,18 @@
 
 with accueil as (
     select
-        "id",
-        "latitude"::float as acc_latitude,
-        "longitude"::float as acc_longitude,
+        id,
+        latitude::float as acc_latitude,
+        longitude::float as acc_longitude,
         "type",
-        "places"
+        SPLIT_PART(places, '.', 1)::INTEGER as places
     from {{ ref('homepage_accueil') }}
 ),
 geopoint_code_commune as (
     select
-        "latitude"::float as com_latitude,
-        "longitude"::float as com_longitude,
-        "code_officiel_commune"
+        latitude::float as com_latitude,
+        longitude::float as com_longitude,
+        code_officiel_commune
     from {{ ref('geographical_references_geopoint_communes') }}
 ),
 distances as (
