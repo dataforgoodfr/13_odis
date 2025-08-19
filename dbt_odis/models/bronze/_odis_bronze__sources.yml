@@ -138,6 +138,10 @@ sources:
         description: Source CSV
         loaded_at_field: created_at
       
+      - name: population_nb_menages
+        description: Source CSV
+        loaded_at_field: created_at
+      
       - name: accueil_cada_cph_huda
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
