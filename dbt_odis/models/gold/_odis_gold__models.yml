@@ -330,8 +330,8 @@ models:
   - name: gold_homepage_accueil
     description: Table contenant les données sur les structures d'accueil regroupées par département
     columns:
-    - name: codegeo
-      description: Code commune (5 chiffres) ou du département (2 chiffres)
+    - name: codgeo
+      description: Code commune (5 chiffres) ou du département (2 chiffres) ou de la région (reg + 2 chiffres)
       data_type: text
     - name: total
       description: nombre total de places dans les structures d'accueil
