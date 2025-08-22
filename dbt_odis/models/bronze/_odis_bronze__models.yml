@@ -3581,7 +3581,7 @@ models:
   # Services
   - name: services_services
     description: |-
-      Extraction du JSON source logement nombre de logements totaux par zone géographique, granularité fine au niveau du code INSEE
+      Extraction du JSON source nombre de services totaux par zone géographique, granularité fine au niveau du code INSEE
       Les indicateurs ne concernent que certains types de services inclus dans la requête, les facility_type suivants :
       Réseau de proximité Pôle emploi: A122
       Implantations France services: A128

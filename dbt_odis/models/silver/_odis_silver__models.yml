@@ -1028,7 +1028,7 @@ models:
       - name: f90p
         description: population de femmes de 90 ou plus
         data_type: numeric
-  
+
   - name: silver_homepage_accueil
     description: Table transformée contenant les indicateurs des structures d'accueil commune
     columns:
@@ -1044,3 +1044,33 @@ models:
       - name: places
         description: nombre de places dans la structure d'accueil
         data_type: integer
+  - name: silver_services
+    description: nombre de services totaux par zone géographique, granularité fine au niveau du code INSEE, les indicateurs ne concernent que certains types de services
+    columns:
+      - name: geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+      - name: time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: bpe_measure
+        description: services
+        data_type: text
+      - name: facility_dom
+        description: 1er niveau de classification de service
+        data_type: text
+      - name: facility_sdom
+        description: 2eme niveau de classification de service
+        data_type: text
+      - name: facility_type
+        description: type de service
+        data_type: text
+      - name: value
+        description: nombre mesuré du total de services par type, par zone géographique et par année
+        data_type: double precision
+      - name: type_geo
+        description: Niveau géographique des données, agrégations pour départements et régions actuelles
+        data_type: text
+      - name: code_geo
+        description: Code INSEE officiel pour les 3 niveaux géographiques
+        data_type: text
