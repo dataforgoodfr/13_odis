@@ -11,6 +11,9 @@ from common.data_source_model import FILE_FORMAT
 from common.utils.interfaces.extractor import AbstractSourceExtractor, ExtractionResult
 from common.utils.logging_odis import logger
 
+MELODI_DATA_KEY = 'observations'
+MELODI_NEXT_KEY = 'paging.next'
+MELODI_ISLAST_KEY = 'paging.isLast'
 
 class FileExtractor(AbstractSourceExtractor):
     """Generic extractor for a file dump from an API"""
@@ -82,27 +85,38 @@ class MelodiExtractor(FileExtractor):
 
         try:
             # Send request to API
-            payload = await self.http_client.get(
+            response = await self.http_client.get(
                 url,
                 headers=self.model.headers.model_dump(mode="json"),
                 params=passed_params,
                 as_json=True,
             )
 
+            # Get actual payload
+            data_key = self.model.response_map.get("data", MELODI_DATA_KEY)
+            payload = jmespath.search(data_key, response)
+            if payload is None:
+                payload = response
+
             # Get next page URL
-            next_key = self.model.response_map.get("next")
-            next_url = jmespath.search(next_key, payload) if next_key else None
+            next_key = self.model.response_map.get("next", MELODI_NEXT_KEY)
+            next_url = jmespath.search(next_key, response)
 
             # Determine whether this is the last page :
             # if explicitly given by the API response, get the explicit value
             # if not given in API response, BUT if no next page could be derived, then true
             # else: false
-            is_last_key = self.model.response_map.get("is_last")
-            is_last = (
-                jmespath.search(is_last_key, payload)
-                if is_last_key
-                else (next_url is None)
-            )
+
+            is_last_key = self.model.response_map.get("is_last", MELODI_ISLAST_KEY)
+            is_last = jmespath.search(is_last_key, response)
+            if is_last is None:
+                is_last = (next_url is None) or (next_url == '')
+
+            # debug logging
+            logger.debug(f'Full Response: {response}')
+            logger.debug(f'Next URL: {next_url}')
+            logger.debug(f'Payload: {payload}')
+            logger.debug(f'is_last_key: {is_last_key}')
 
             # If all went well, success = true
             success = True
