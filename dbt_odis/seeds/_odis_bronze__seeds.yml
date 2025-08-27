@@ -37,15 +37,17 @@ seeds:
         code_bassin_BMO: integer
         lib_bassin_BMO: text
 
-  - name: Intitulés_FAP2009
+  - name: Intitulés_FAP2021
     description: "Correspondance des codes FAP Métiers et FAP secteurs avec leurs intitulés"
     config:
       quote_columns: true 
       delimiter: ';'
       column_types:
-        Code_FAP_détaillées: text
-        FAP_détaillées: text
-        Code_FAP_agrégées: text
-        FAP_agrégées: text
-        Code_domaines_professionnels: text
-        domaines_professionnels: text
+        Code_FAP341: text
+        Intitulé_FAP341: text
+        Code_FAP228: text
+        Intitulé_FAP228: text
+        Code_FAP86: text
+        Intitulé_FAP86: text
+        Code_FAP22: text
+        Intitulé_FAP22: text

@@ -152,4 +152,7 @@ sources:
       - name: corresp_geo_point_codes_communes
         description: export des données des communes sur opendatasoft, en ne gardant que les colonnes en lien avec les coordonées et les codes communes
         loaded_at_field: created_at  
-
+  
+      - name: Intitulés_FAP2021
+        description: correspondance entre les intitulés de métiers et les codes FAP 2009
+        loaded_at_field: created_at

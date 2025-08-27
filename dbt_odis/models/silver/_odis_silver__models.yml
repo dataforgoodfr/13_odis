@@ -831,7 +831,7 @@ models:
         data_type: decimal
 
   - name: emploi_bmo_avec_communes
-    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+    description: Nombre de recrutements par métiers avec communes
     columns:
       - name: annee
         description: annee
@@ -888,6 +888,9 @@ models:
       - name: code_commune_insee
         description: Code commune de l'insee
         data_type: integer
+
+  - name: silver_emploi_bmo
+    description: Nombre de recrutements par métiers avec communes
 
   - name: emploi_salaire_median_filo2021
     description: Salaire Médian
