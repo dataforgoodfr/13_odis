@@ -361,11 +361,11 @@ models:
         data_type: numeric
         quote: true
       - name: Difficultés à recruter
-        description: Nombre de projets de recrutements jugés difficile pour une zone géographique donnée
+        description: Pourcentage sur le nombre total de projets de recrutements jugés difficile pour une zone géographique donnée
         data_type: numeric
         quote: true
       - name: Emplois saisonniers
-        description: Nombre de projets de recrutements d'emplois saisonniers pour une zone géographique donnée
+        description: Pourcentage sur le nombre total de projets de recrutements d'emplois saisonniers pour une zone géographique donnée
         data_type: numeric
         quote: true
 
