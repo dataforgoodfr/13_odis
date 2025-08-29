@@ -830,67 +830,74 @@ models:
         description: Nombre de personne concerné
         data_type: decimal
 
-  - name: emploi_bmo_avec_communes
-    description: Nombre de recrutements par métiers avec communes
+  - name: silver_emploi_bmo
+    description: Nombre de recrutements par métiers et secteurs rattachés, descendu au niveau granulaire des communes correspondantes aux bassins d'emploi
     columns:
-      - name: annee
-        description: annee
-        data_type: integer
+      - name: YEAR
+        description: Année de mesure
+        data_type: numeric
+        quote: true
       - name: Code métier BMO
-        description: Code métier BMO
+        description: Code du métier de la classification FAP 2021
         data_type: text
         quote: true
       - name: Nom métier BMO
-        description: Nom métier BMO
+        description: Nom du métier de la classification FAP 2021
         data_type: text
         quote: true
       - name: Famille_met
-        description: Famille de métier
         data_type: text
         quote: true
       - name: Lbl_fam_met
-        description: Libélé famille de métier
+        data_type: text
+        quote: true
+      - name: Code_FAP22
+        description: Code du secteur professionnel de la classification FAP 2021
+        data_type: text
+        quote: true
+      - name: Intitulé_FAP22
+        description: Nom du secteur professionnel de la classification FAP 2021
         data_type: text
         quote: true
       - name: REG
-        description: Numéro région
-        data_type: integer
+        description: Code de la région de rattachement de la commune
+        data_type: text
         quote: true
       - name: NOM_REG
-        description: Nom de la région
+        description: Nom de la région de rattachement de la commune
         data_type: text
         quote: true
       - name: Dept
-        description: Numéro département
-        data_type: integer
+        description: Code du département de rattachement de la commune
+        data_type: text
         quote: true
       - name: NomDept
-        description: Nom du département
+        description: Nom du département de rattachement de la commune
         data_type: text
         quote: true
       - name: BE24
-        description: Bassin d'emploi définition 2024
-        data_type: integer
+        description: Code du bassin d'emploi de rattachement de la commune
+        data_type: text
         quote: true
       - name: NOMBE24
-        description: Nom des bassins d'emploi définition 2024
-        data_type: integer
+        description: Nom du bassin d'emploi de rattachemnt de la commune, nom du département ou de la région pour les zones géographiques supérieures
+        data_type: text
         quote: true
       - name: met
-        description: Nombre de projet de recrutement
-        data_type: integer
+        description: Nombre total de recrutements dans le bassin d'emploi
+        data_type: bigint
       - name: xmet
-        description: Nombre de projet de recrutement jugés difficiles
-        data_type: integer
+        description: Nombre de recrutements jugés difficile dans le bassin d'emploi
+        data_type: bigint
       - name: smet
-        description: Nombre de projet de recrutement saisonniers
-        data_type: integer
-      - name: code_commune_insee
-        description: Code commune de l'insee
-        data_type: integer
-
-  - name: silver_emploi_bmo
-    description: Nombre de recrutements par métiers avec communes
+        description: Nombre de recrutements d'emplois saisonniers dans le bassin d'emploi
+        data_type: bigint
+      - name: code_geo
+        description: Code géographique INSEE de la zone géographique identifiée dans type_geo
+        data_type: text
+      - name: type_geo
+        description: Type de la zone géographique identifiée, 3 zones empilées commune-départemnt-région
+        data_type: text
 
   - name: emploi_salaire_median_filo2021
     description: Salaire Médian

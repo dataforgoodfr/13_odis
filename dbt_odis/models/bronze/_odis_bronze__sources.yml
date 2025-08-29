@@ -156,3 +156,7 @@ sources:
       - name: Intitulés_FAP2021
         description: correspondance entre les intitulés de métiers et les codes FAP 2009
         loaded_at_field: created_at
+
+      - name: bassin_emploi
+        description: correspondance entre communes et bassins d'emploi
+        loaded_at_field: created_at

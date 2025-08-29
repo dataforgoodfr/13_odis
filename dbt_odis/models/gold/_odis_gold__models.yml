@@ -312,19 +312,61 @@ models:
         data_type: integer
         quote: true
 
-  - name: emploi_bmo_metier
-    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+  - name: gold_emploi_bmo_metiers
+    description: Table contenant les besoins en main d'oeuvre pour 2024 par métiers de la FAP 2021
     columns:
       - name: codgeo
-        description: Code commune de l'insee
+        description: Code INSEE de la zone géographique, "reg"+code pour les régions
         data_type: integer
       - name: Bassin_Emploi
-        description: Nom des bassins d'emploi définition 2024
+        description: Nom des bassins d'emploi définition 2024, nom des départements ou régions si nécessaire pour l'application
         data_type: text
         quote: true
       - name: YEAR
-        description: annee
+        description: année de mesure
         data_type: integer
+        quote: true
+
+  - name: gold_emploi_bmo_secteurs
+    description: Table contenant les besoins en main d'oeuvre pour 2024 par secteurs professionnels de la FAP 2021
+    columns:
+      - name: codgeo
+        description: Code INSEE de la zone géographique, "reg"+code pour les régions
+        data_type: integer
+      - name: Bassin_Emploi
+        description: Nom des bassins d'emploi définition 2024, nom des départements ou régions si nécessaire pour l'application
+        data_type: text
+        quote: true
+      - name: YEAR
+        description: année de mesure
+        data_type: integer
+        quote: true
+
+  - name: gold_emploi_bmo_recrutement
+    description: Table contenant les besoins en main d'oeuvre pour 2024 par recrutements
+    columns:
+      - name: codgeo
+        description: Code INSEE de la zone géographique, "reg"+code pour les régions
+        data_type: integer
+      - name: Bassin_Emploi
+        description: Nom des bassins d'emploi définition 2024, nom des départements ou régions si nécessaire pour l'application
+        data_type: text
+        quote: true
+      - name: YEAR
+        description: année de mesure
+        data_type: integer
+        quote: true
+      - name: Projets de recrutement
+        description: Nombre total de projets de recrutement pour une zone géographique donnée
+        data_type: numeric
+        quote: true
+      - name: Difficultés à recruter
+        description: Nombre de projets de recrutements jugés difficile pour une zone géographique donnée
+        data_type: numeric
+        quote: true
+      - name: Emplois saisonniers
+        description: Nombre de projets de recrutements d'emplois saisonniers pour une zone géographique donnée
+        data_type: numeric
         quote: true
 
   - name: gold_homepage_accueil
