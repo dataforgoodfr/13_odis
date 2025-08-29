@@ -32,7 +32,9 @@ sources:
         description: Table contenant
         loaded_at_field: created_at
 
-      - name: emploi_bmo_avec_communes
+      - name: silver_emploi_bmo
+        description: Table contenant les besoins en main d'oeuvre par métiers pour 2024
+        loaded_at_field: created_at
       
       - name: emploi_salaire_median_filo2021
         description: Table contenant

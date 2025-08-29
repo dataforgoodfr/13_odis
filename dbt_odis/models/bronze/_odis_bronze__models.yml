@@ -954,6 +954,63 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
+  - name: emploi_bmo_2024
+    description: Besoins en main d'oeuvre par métier par Bassin d'emploi pour l'année 2024
+    columns:
+      - name: index
+        description: index
+        data_type: bigint
+      - name: annee
+        description: Période de mesure
+        data_type: bigint
+      - name: Code métier BMO
+        description: Code du métier de la classification FAP 2021
+        data_type: text
+        quote: true
+      - name: Nom métier BMO
+        description: Nom du métier de la classification FAP 2021
+        data_type: text
+        quote: true
+      - name: Famille_met
+        data_type: text
+        quote: true
+      - name: Lbl_fam_met
+        data_type: text
+        quote: true
+      - name: REG
+        description: Code de la région de rattachement du bassin d'emploi
+        data_type: bigint
+        quote: true
+      - name: NOM_REG
+        description: Nom de la région de rattachement du bassin d'emploi
+        data_type: text
+        quote: true
+      - name: Dept
+        description: Code du département de rattachement du bassin d'emploi
+        data_type: text
+        quote: true
+      - name: NomDept
+        description: Nom du département de rattachement du bassin d'emploi
+        data_type: text
+        quote: true
+      - name: BE24
+        description: Code du bassin d'emploi mesuré
+        data_type: bigint
+        quote: true
+      - name: NOMBE24
+        description: Nom du Bassin d'emploi mesuré
+        data_type: text
+        quote: true
+      - name: met
+        description: Nombre total de projets de recrutements dans le bassin d'emploi
+        data_type: text
+      - name: xmet
+        description: Nombre de projets de recrutements jugés difficile dans le bassin d'emploi
+        data_type: text
+      - name: smet
+        description: Nombre de projets de recrutements d'emplois saisonniers dans le bassin d'emploi
+        data_type: text
+
   - name: emploi_deplacement_domicile_travail_ds_rp_navettes_princ_data
     description: Déplacement et mode de transport domicile / travail
     columns:
@@ -1319,16 +1376,6 @@ models:
       - name: created_at
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
-
-  - name: logements_annuel_dept_data
-    columns:
-      - name: id
-        description: id
-
-  - name: logements_dido_catalogue
-    columns:
-      - name: id
-        description: id
 
   # Logement_social
 
@@ -3591,7 +3638,7 @@ models:
   # Services
   - name: services_services
     description: |-
-      Extraction du JSON source logement nombre de logements totaux par zone géographique, granularité fine au niveau du code INSEE
+      Extraction du JSON source nombre de services totaux par zone géographique, granularité fine au niveau du code INSEE
       Les indicateurs ne concernent que certains types de services inclus dans la requête, les facility_type suivants :
       Réseau de proximité Pôle emploi: A122
       Implantations France services: A128
@@ -3649,9 +3696,31 @@ models:
   - name: presentation_page_population_communes
 
   - name: population_categorie_socio_pro
+    description: Extraction du JSON source CSP par population
     columns:
-      - name: id
-        description: id
+      - name: dimension_age
+        description: Segmentation âge
+        data_type: integer
+      - name: dimensions_geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+        tests:
+          - not_null
+      - name: dimensions_pcs
+        description: _
+        data_type: text
+      - name: dimensions_sex
+        description: _
+        data_type: text
+      - name: dimensions_rp_measure
+        description: _
+        data_type: text
+      - name: dimensions_time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: measures_obs_value_niveau_value
+        description: nombre mesuré du type d'habitation = appartement par zone géographique et par année
+        data_type: text
 
   # Population
 
@@ -3665,7 +3734,7 @@ models:
         description: unité géographique (REG, DEP, COM)
         data_type: text
       - name: dimensions_SEX
-        description: |- 
+        description: |-
           Filtre par genre (H/F et cis/trans).
           _T = total tout confondu
         data_type: text
@@ -3697,7 +3766,7 @@ models:
         description: unité géographique (REG, DEP, COM)
         data_type: text
       - name: dimensions_SEX
-        description: |- 
+        description: |-
           Filtre par genre (H/F et cis/trans).
           _T = total tout confondu
           H = Homme (all)
@@ -3756,4 +3825,3 @@ models:
       - name: nb
         description: TBD
         data_type: float
-

@@ -5,7 +5,13 @@
 
 with base as (
     select
-        code_commune as codgeo,
+        case
+            when type_geo = 'arrondissement' then code_geo
+            when type_geo = 'commune' then code_geo
+            when type_geo = 'departement' then code_geo
+            when type_geo = 'region' then concat('reg', code_geo)
+            else code_geo
+        end as codgeo,
         annee as year,
         grand_secteur_d_activite,
         nombre_d_etablissements,
@@ -53,11 +59,11 @@ unioned as (
 
 select
     codgeo,
-    year,
+    year as "YEAR",
     case
         when type = 'nombre_d_etablissements' then 'Nombre d''établissements'
         when type = 'effectifs_salaries' then 'Effectifs salariés'
-    end as type,
+    end as "Type",
     "GS1 Industrie",
     "GS2 Construction",
     "GS3 Commerce",

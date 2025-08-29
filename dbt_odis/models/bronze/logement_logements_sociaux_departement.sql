@@ -6,9 +6,9 @@
 
 select 
     "DEP" as dep,
-    "Unnamed: 1" as libdep,
+    "LIBDEP" as libdep,
     {{ dbt_utils.star(
         from=source('bronze', 'logement_social_logements_sociaux_departement'),
-        except=["DEP", "Unnamed: 1"]
+        except=["DEP", "LIBDEP"]
     ) }}
 from {{ source('bronze', 'logement_social_logements_sociaux_departement') }}

@@ -1,6 +1,7 @@
 {{ config(
-    alias='stg_logement_logements_sociaux_communes',
-    tags=['silver', 'logement_social']
+    alias='vw_stg_logement_logements_sociaux_communes',
+    tags=['silver', 'logement_social'],
+    materialized='view'
 ) }}
 
 with
@@ -62,7 +63,7 @@ densite_block as (
     libcom,
     dep,
     reg,
-    2021 as year,
+    2019 as year,
     densite
   from {{ ref('logement_logements_sociaux_communes') }}
 ),

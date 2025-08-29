@@ -205,6 +205,15 @@ domains:
       preprocessor:
         name: bmo_2024
 
+    bmo_2025:
+      API: data.gouv.fr
+      description: Fichier BMO (Besoins en Main d'Oeuvre) - 2025
+      endpoint: /datasets/r/54478315-aafd-4070-b8df-a5647297e0c0
+      type: FileExtractor
+      format: zip
+      preprocessor:
+        name: bmo_2025
+
   presentation:
 
     elus_communes:

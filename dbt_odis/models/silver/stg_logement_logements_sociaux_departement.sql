@@ -1,6 +1,7 @@
 {{ config(
-    alias='stg_logement_logements_sociaux_departement',
-    tags=['silver', 'logement_social']
+    alias='vw_stg_logement_logements_sociaux_departement',
+    tags=['silver', 'logement_social'],
+    materialized='view'
 ) }}
 
 with
@@ -65,7 +66,7 @@ densite_block as (
   select
     dep as codgeo,
     libdep,
-    2021 as year,
+    2019 as year,
     densite
   from {{ ref('logement_logements_sociaux_departement') }}
 ),
