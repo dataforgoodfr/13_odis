@@ -56,13 +56,11 @@ sources:
         loaded_at_field: created_at
 
       - name: vw_emploi_bmo_2024
+        description: View contenant les besoins en main d'oeuvre pour 2024
+        loaded_at_field: created_at
 
       - name: vw_emploi_salaire_median_filo2021_disp_com
         description: View contenant
-        loaded_at_field: created_at
-
-      - name: vw_logement_annuel_dept_data
-        description: View contenants
         loaded_at_field: created_at
 
       - name: vw_logements_appartement
@@ -123,4 +121,6 @@ sources:
 
 
 
-      
+      - name: vw_population_categorie_socio_pro
+        description: View contenant les informations de références des communes
+        loaded_at_field: created_at      

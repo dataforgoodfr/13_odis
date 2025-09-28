@@ -6,20 +6,22 @@
 
 with departments as 
 (
-    select 
-        id as id, 
-        json_value(data, '$.uri') as uri, 
-        json_value(data, '$.code') as code, 
-        json_value(data, '$.type') as type,  
-        json_value(data, '$.chefLieu') as chef_lieu,
-        json_value(data, '$.intitule') as intitule, 
-        json_value(data, '$.typeArticle') as type_article, 
-        json_value(data, '$.dateCreation') as date_creation,
-        json_value(data, '$.intituleSansArticle') as intitule_sans_article,
-        created_at as created_at
+    select   
+        (data::jsonb)->'dimensions'->>'AGE'::text as dimensions_AGE,        
+        (data::jsonb)->'dimensions'->>'GEO'::text as dimensions_GEO,
+        (data::jsonb)->'dimensions'->>'PCS'::text as dimensions_PCS,
+        (data::jsonb)->'dimensions'->>'SEX'::text as dimensions_SEX,
+        (data::jsonb)->'dimensions'->>'RP_MEASURE'::text as dimensions_RP_MEASURE,
+        (data::jsonb)->'dimensions'->>'TIME_PERIOD'::text as dimensions_TIME_PERIOD,
+        (data::jsonb)->'measures'->'OBS_VALUE_NIVEAU'->>'value'::text as measures_OBS_VALUE_NIVEAU_value   
 
     from {{ source('bronze', 'population_categorie_socio_pro') }}  
+    
 )
 
 select * from departments
+
+
+
+
 

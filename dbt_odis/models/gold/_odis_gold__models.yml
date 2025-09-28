@@ -97,7 +97,41 @@ models:
       - name: year
         description: Année de référence
       - name: nb_ls
-        description: Parc complet Ensemble du parc social  
+        description: Parc complet Ensemble du parc social
+      - name: nb_loues
+        description: Parc complet proposés à la location loués
+      - name: nb_vacants
+        description: Parc complet proposés à la location vacants
+      - name: nb_vides
+        description: Parc complet Ensemble du parc vide
+      - name: nb_asso
+        description: Parc complet pris en charge par une association
+      - name: nb_occup_finan
+        description: Parc complet occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: Parc complet occupé pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Parc complet Nombre de logements en QPV
+      - name: tx_vac
+        description: PTaux de vacance % totale Au 01/01
+      - name: tx_vac3
+        description: Taux de vacance % > 3 mois Au 01/01
+      - name: tx_mob
+        description: Taux de mobilité % Au 01/01
+      - name: densite
+        description: Parc complet Densité pour 100 résidences principales
+
+  - name: gold_logement_logements_sociaux_filtered
+    description: Table filtrée contenant les indicateurs logements sociaux pour tous les niveaux géograpiques (région, département, commune, epci) pour l'année 2024
+    columns:
+      - name: codgeo
+        description: Parc complet Ensemble du parc social
+        tests:
+          - not_null
+      - name: year
+        description: Année de référence
+      - name: nb_ls
+        description: Parc complet Ensemble du parc social
       - name: nb_loues
         description: Parc complet proposés à la location loués
       - name: nb_vacants
@@ -236,7 +270,7 @@ models:
         quote: true
 
   - name: emploi_gds_secteurs
-    description: Table recensant le nombre de demandeurs d'emploi pour une zone géographique identifiée et un mois de mesure donné
+    description: Table des effectifs salariés et du nombre d'établissements par grands secteurs d'activités identifiés GS 1 à 7, pour les 3 niveaux géographiques commune/département/région
     columns:
       - name: codgeo
         description: code INSEE de la zone géographique
@@ -278,48 +312,90 @@ models:
         data_type: integer
         quote: true
 
-  - name: emploi_bmo_metier
-    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+  - name: gold_emploi_bmo_metiers
+    description: Table contenant les besoins en main d'oeuvre pour 2024 par métiers de la FAP 2021
     columns:
       - name: codgeo
-        description: Code commune de l'insee
+        description: Code INSEE de la zone géographique, "reg"+code pour les régions
         data_type: integer
       - name: Bassin_Emploi
-        description: Nom des bassins d'emploi définition 2024
+        description: Nom des bassins d'emploi définition 2024, nom des départements ou régions si nécessaire pour l'application
         data_type: text
         quote: true
       - name: YEAR
-        description: annee
+        description: année de mesure
         data_type: integer
         quote: true
-  
+
+  - name: gold_emploi_bmo_secteurs
+    description: Table contenant les besoins en main d'oeuvre pour 2024 par secteurs professionnels de la FAP 2021
+    columns:
+      - name: codgeo
+        description: Code INSEE de la zone géographique, "reg"+code pour les régions
+        data_type: integer
+      - name: Bassin_Emploi
+        description: Nom des bassins d'emploi définition 2024, nom des départements ou régions si nécessaire pour l'application
+        data_type: text
+        quote: true
+      - name: YEAR
+        description: année de mesure
+        data_type: integer
+        quote: true
+
+  - name: gold_emploi_bmo_recrutement
+    description: Table contenant les besoins en main d'oeuvre pour 2024 par recrutements
+    columns:
+      - name: codgeo
+        description: Code INSEE de la zone géographique, "reg"+code pour les régions
+        data_type: integer
+      - name: Bassin_Emploi
+        description: Nom des bassins d'emploi définition 2024, nom des départements ou régions si nécessaire pour l'application
+        data_type: text
+        quote: true
+      - name: YEAR
+        description: année de mesure
+        data_type: integer
+        quote: true
+      - name: Projets de recrutement
+        description: Nombre total de projets de recrutement pour une zone géographique donnée
+        data_type: numeric
+        quote: true
+      - name: Difficultés à recruter
+        description: Pourcentage sur le nombre total de projets de recrutements jugés difficile pour une zone géographique donnée
+        data_type: numeric
+        quote: true
+      - name: Emplois saisonniers
+        description: Pourcentage sur le nombre total de projets de recrutements d'emplois saisonniers pour une zone géographique donnée
+        data_type: numeric
+        quote: true
+
   - name: gold_homepage_accueil
     description: Table contenant les données sur les structures d'accueil regroupées par département
     columns:
-    - name: codegeo
-      description: Code commune (5 chiffres) ou du département (2 chiffres)
-      data_type: text
-    - name: total
-      description: nombre total de places dans les structures d'accueil
-      data_type: integer
-    - name: cada
-      description: nombre de places dans les cada
-      data_type: integer
-    - name: urgences
-      description: nombre de places dans les urgences
-      data_type: integer
-    - name: huda
-      description: nombre de places dans les huda
-      data_type: integer
-    - name: cph
-      description: nombre de places dans les cph
-      data_type: integer
-    - name: chrs
-      description: nombre de places dans les chrs
-      data_type: integer
-    - name: chrs_etab
-      description: nombre de places dans les chrs_etab
-      data_type: integer
+      - name: codgeo
+        description: Code commune (5 chiffres) ou du département (2 chiffres) ou de la région (reg + 2 chiffres)
+        data_type: text
+      - name: total
+        description: nombre total de places dans les structures d'accueil
+        data_type: integer
+      - name: cada
+        description: nombre de places dans les cada
+        data_type: integer
+      - name: urgences
+        description: nombre de places dans les urgences
+        data_type: integer
+      - name: huda
+        description: nombre de places dans les huda
+        data_type: integer
+      - name: cph
+        description: nombre de places dans les cph
+        data_type: integer
+      - name: chrs
+        description: nombre de places dans les chrs
+        data_type: integer
+      - name: chrs_etab
+        description: nombre de places dans les chrs_etab
+        data_type: integer
 
   - name: gold_population_by_age_gender
     description: Table transformée contenant les indicateurs de population par tranche d'âge et sexe par commune
@@ -381,4 +457,49 @@ models:
       - name: f90p
         description: population de femmes de 90 ou plus
         data_type: numeric
-
+  - name: gold_services
+    description: Table recensant les nombres de services identifiés d'une zone géographique identifiée
+    columns:
+      - name: codgeo
+        description: Code INSEE officiel pour les 3 zones géographiques
+        data_type: text
+      - name: YEAR
+        description: Année de mesure des données
+        data_type: numeric
+        quote: true
+      - name: Réseau de proximité Pôle emploi
+        description: Nombre de réseau de proximité dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Implantations France services
+        description: Nombre d'implantations France services dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Banques, caisses d'épargne
+        description: Nombre de banques, de caisse d'épargne dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Bureau de poste
+        description: Nombre de bureau de poste dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Agence postale
+        description: Nombre d'agences postales dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: École de conduite
+        description: Nombre d'écoles de conduite dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Salon de Coiffure
+        description: Nombre de salons de coiffure dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Agence de travail temporaire
+        description: Nombre d'agnece de travail temporaire dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Restaurant ou Restauration rapide
+        description: Nombre de restaurants ou restauration rapide dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
