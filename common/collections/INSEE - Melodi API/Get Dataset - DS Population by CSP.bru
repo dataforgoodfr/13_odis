@@ -1,11 +1,11 @@
 meta {
-  name: Get Dataset : DS Population histo
+  name: Get Dataset : DS Population by CSP
   type: http
-  seq: 10
+  seq: 11
 }
 
 get {
-  url: {{base_url}}/data/DS_RP_SERIE_HISTORIQUE?page=1&maxResult=20&totalCount=true&TIME_PERIOD=2021&idObservation=true&OCS=_T&GEO=REG&RP_MEASURE=POP
+  url: {{base_url}}/data/DS_RP_POPULATION_COMP?page=1&maxResult=20&TIME_PERIOD=2021&includeHistory=true&SEX=_T&RP_MEASURE=POP&AGE=Y_GE15&GEO=REG
   body: none
   auth: none
 }
@@ -13,16 +13,13 @@ get {
 params:query {
   page: 1
   maxResult: 20
-  totalCount: true
   TIME_PERIOD: 2021
-  idObservation: true
-  OCS: _T
-  GEO: REG
+  includeHistory: true
+  SEX: _T
   RP_MEASURE: POP
-  ~range: true
-  ~idTerritoire: true
-  ~includeHistory: true
-  ~endPeriod: 2019-01-01
+  AGE: Y_GE15
+  GEO: REG
+  ~totalCount: true
 }
 
 tests {
