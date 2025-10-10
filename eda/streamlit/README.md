@@ -6,7 +6,7 @@
 
 ## 🎯 Contexte et Objectifs du Projet
 
-Ce projet, surnommé **"Stream 2"**, est un prototype fonctionnel explorant une approche de **"recherche inversée"** pour l'aide à la relocalisation des personnes et familles accompagnées par des structures d'insertion comme [J'accueille](https://www.jaccueille.fr/) ou [SINGA](https://www.singafrance.com/).
+Ce projet, surnommé **"Stream 2"**, est un prototype fonctionnel explorant une approche de **"recherche inversée"** pour l'aide à la relocalisation des personnes et familles accompagnées par des structures d'insertion comme le programme [J'accueille](https://www.jaccueille.fr/) de [SINGA](https://www.singafrance.com/).
 
 Il s'inscrit en complément du projet principal [13_odis](https://github.com/dataforgoodfr/13_odis) (ou "Stream 1"), qui se concentre sur l'exploration et la comparaison d'indicateurs pour une commune déjà sélectionnée.
 
@@ -82,22 +82,28 @@ Le cœur de l'application est un pipeline de scoring qui évalue les communes en
 *   **Scoring & Normalisation :** [Scikit-learn](https://scikit-learn.org/)
 *   **Cartographie Interactive :** [Folium](https://python-visualization.github.io/folium/) & [streamlit-folium](https://github.com/randyzwitch/streamlit-folium)
 *   **Graphiques :** [Plotly Express](https://plotly.com/python/plotly-express/)
-*   **Sources de Données :** Les données sont agrégées depuis de nombreuses sources ouvertes, notamment l'INSEE, Data.gouv.fr, France Travail (Pôle Emploi), etc. Le jeu de données principal est `odis_june_2025_jacques.parquet`.
+*   **Sources de Données :** Les données sont agrégées depuis de nombreuses sources ouvertes, notamment l'INSEE, Data.gouv.fr, France Travail (Pôle Emploi), etc. 
+
+> Note
+> Le jeu de données principal qui se trouve dans `odis_june_2025_jacques.parquet` est une compilation de plusieurs autres jeux de données. La logique de cette compilation se trouve dans le Notebook `odis_stream2_data_gathering.ipynb`
 
 ## 📂 Structure du Projet
+Le code de l'application Streamlit est organisé de manière modulaire au sein du répertoire eda/streamlit/ pour séparer les différentes logiques :
 
-L'application Streamlit est contenue dans le répertoire `eda/streamlit/` :
-
-```
 eda/streamlit/
-├── README.md          # Ce fichier
-├── main.py            # Point d'entrée, gestion de l'état et mise en page
-├── ui.py              # Composants de l'interface utilisateur (sidebar, onglets, etc.)
-├── scoring.py         # Pipeline de scoring et de traitement des données
-├── maps.py            # Fonctions pour la création des cartes Folium
-├── config.py          # Chemins de fichiers, valeurs par défaut et scénarios de démo
-└── *.png              # Captures d'écran pour la documentation
-```
+├── README.md
+├── main.py
+├── ui.py
+├── scoring.py
+├── maps.py
+└── config.py
+
+- main.py : C'est le point d'entrée principal de l'application. Il initialise l'état de la session, charge les données, orchestre l'affichage des différentes sections (barre latérale, carte, résultats) et déclenche le calcul du score.
+- ui.py : Ce fichier est responsable de la création de tous les composants de l'interface utilisateur avec Streamlit. Il contient le code pour la barre latérale, les onglets de saisie du projet de vie, et l'affichage de la liste des résultats.
+- scoring.py : Le cœur logique du prototype. Il contient l'ensemble du pipeline de traitement et de notation, depuis le calcul des scores de critères individuels jusqu'à l'agrégation finale et la gestion de la logique de "binômes".
+- maps.py : Regroupe toutes les fonctions liées à la génération des cartes interactives avec Folium. Il gère la création de la carte de base, l'affichage des communes colorées par score, et les différentes couches d'informations (écoles, santé, etc.).
+- config.py : Un fichier central pour la configuration. Il définit les chemins d'accès aux données, les paramètres par défaut de l'application, et contient les scénarios pré-configurés pour le mode de démonstration.
+
 
 ## 🔮 Feuille de Route et Améliorations Futures
 
