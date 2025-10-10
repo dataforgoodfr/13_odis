@@ -1,113 +1,125 @@
-# OD&IS Prototype du Stream 2: Recherche Inversée
+# OD&IS - Prototype d'Aide à la Localisation (Recherche Inversée)
 
-## Contexte du projet
-Ce projet est une extension du projet principal: [13_odis](https://github.com/dataforgoodfr/13_odis) qui est communément appelé le "Stream 1". Ce premier projet consiste à améliorer la data platform soutenant une application existante d'exploration et de comparaison d'indicateurs d'une commune sélectionnée dans le context de l'inclusion sociale.
+[![Python Version](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
+[![Framework](https://img.shields.io/badge/Framework-Streamlit-red.svg)](https://streamlit.io)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](../../LICENSE)
 
-Le Stream 2 consiste en une exploration pour un autre cas d'usage autour des mêmes données: rechercher des localités pertinentes pour la relocalisation de personnes ou familles nouvellement arrivées en France. Cette fois-ci on part de la personne accompagnée d'où le nom de "recherche inversée".
-![Comparaison stream 1 vs stream 2](Screenshot-3.png)
+## 🎯 Contexte et Objectifs du Projet
 
-Plus précisemment le projet consistait en deux livrables:
-- Des maquettes présentant un outil cible de recherche de localités selon un projet de vie spécifique
-- Un prototype présentant des résultats de cette recherche identifés par une notation (scoring) des localités dans la zone de recherche selon les préférences de la ou des personnes accompagnées.
+Ce projet, surnommé **"Stream 2"**, est un prototype fonctionnel explorant une approche de **"recherche inversée"** pour l'aide à la relocalisation des personnes et familles accompagnées par des structures d'insertion comme [J'accueille](https://www.jaccueille.fr/) ou [SINGA](https://www.singafrance.com/).
 
+Il s'inscrit en complément du projet principal [13_odis](https://github.com/dataforgoodfr/13_odis) (ou "Stream 1"), qui se concentre sur l'exploration et la comparaison d'indicateurs pour une commune déjà sélectionnée.
 
+L'innovation de ce prototype est de renverser la logique : au lieu de partir d'un lieu, **on part des besoins et du projet de vie de la personne**. Le persona principal est le travailleur social qui, à travers cet outil, peut identifier les territoires les plus prometteurs pour la réussite d'un projet d'intégration.
 
-Le persona principal pour cette application est le ou la travailleur.e social.e 
+![Comparaison Stream 1 vs Stream 2](Screenshot-3.png)
 
-## Objectifs du prototype
+Ce prototype a un triple objectif :
+1.  **Valider la pertinence de l'approche** auprès des futurs utilisateurs (travailleurs sociaux, accompagnants).
+2.  **Démontrer la faisabilité technique** de construire un score de pertinence en utilisant exclusivement des données ouvertes (Open Data).
+3.  **Promouvoir l'intérêt de cette démarche** auprès de potentiels partenaires, décideurs et financeurs.
 
-Le prototype dont le code est partagé dans ce repertoire a un triple objectif :
-1. Valider la pertinence de l'approche auprès de futurs utilisateurs
-2. Démontrer de notre capacité à mettre en avant des résultats pertinents en utilisant les données ouvertes disponibles
-3. Promouvoir l'intéret de cette approche auprès de décideurs et donateurs potentiels 
+## ✨ Fonctionnalités Principales
 
-## Approche technique
+*   **Profil Personnalisé :** Définissez un "projet de vie" détaillé incluant la composition du foyer, le niveau scolaire des enfants, les métiers visés, les besoins en formation, etc.
+*   **Pondération des Critères :** Ajustez l'importance de chaque grande catégorie (emploi, logement, éducation, inclusion) pour l'adapter aux priorités de chaque projet.
+*   **Scoring Intelligent :** Chaque commune de France est évaluée sur sa compatibilité avec le profil, en s'appuyant sur une multitude de sources de données ouvertes.
+*   **Système de "Binômes" :** L'algorithme associe de manière unique des communes voisines (`binômes`) pour proposer des solutions conjointes qui répondent à l'ensemble des besoins, même si une seule commune ne le pourrait pas.
+*   **Carte Interactive :** Visualisez les localités les mieux notées, leur score, et superposez des couches d'informations additionnelles (écoles, établissements de santé, services d'inclusion).
+*   **Résultats Détaillés :** Explorez les 5 meilleurs résultats avec une analyse de leurs points forts, un "radar" visuel des scores par catégorie, et des liens pour approfondir.
+*   **Scénarios de Démonstration :** Chargez rapidement des profils pré-configurés pour découvrir le potentiel de l'outil.
 
+## 📸 Aperçu de l'Application
 
-Le prototype est construit en trois parties:
-1. Un Notebook Jupyter [odis_stream2_data_gathering.ipynb](../notebooks/odis_stream2_data_gathering.ipynb) qui aggrège un certains nombres de datasets issue des base de données ouverte type [Data Gouv](data.gouv.fr) (voir Data Gathering ci-dessous)
+| Page des résultats | Vue détaillée d'un résultat |
+| :---: | :---: |
+| ![Screenshot Page résultats](Screenshot-1.png) | ![Screenshot détail d'un résultat](Screenshot-2.png) |
 
-2. Un Notebook Jupyter [odis_stream2_scoring.ipynb](../notebooks/odis_stream2_scoring.ipynb) qui contient toutes la logique pour établir un score pour chaque localité (voir Scoring ci-dessous)
+## 🚀 Installation et Lancement
 
-3. D'une application basée sur le framework Streamlit qui permet de définir des critères de recherches et de visualiser les résultats (voir Streamlit App ci-dessous)
+### Prérequis
 
+*   [Python 3.10+](https://www.python.org/)
+*   [Poetry](https://python-poetry.org/docs/#installation) pour la gestion des dépendances.
 
-### Data gathering
+### Instructions
 
-Dans le cadre de ce prototype, l'étape de Data Gathering est très simple:
-- Des données sont récupérées au format CSV (essentiellement depuis data.gouv.fr). Elles sont stockées dans deux repertoires: csv qui est synchronisé avec Github et csv_large qui n'est pas synchronisé car les fichiers sont trop volumineux --> il faudra retélécharger les données à la main
-- Les données sont ensuites nettoyées, aggrégées (Mega Merge) par commune
-- Un dataset `principal odis_june_2025_jacques.parquet` est généré au format parquet et réutilisé par la suite. Il est disponible dans le dossier ../csv/  
+1.  **Clonez le dépôt :**
+    ```bash
+    git clone https://github.com/dataforgoodfr/13_odis.git
+    cd 13_odis
+    ```
 
-> Note: le code pour le data gathering est dans le Notebook `odis_stream2_data_gathering.ipynb`
+2.  **Installez les dépendances :**
+    Ce projet utilise Poetry. Depuis la racine du projet, exécutez :
+    ```bash
+    poetry install
+    ```
 
-### Scoring
+3.  **Lancez l'application Streamlit :**
+    Le fichier principal de l'application se trouve dans `eda/streamlit/`.
+    ```bash
+    poetry run streamlit run eda/streamlit/main.py
+    ```
+    L'application devrait s'ouvrir dans votre navigateur web.
 
-Le but du scoring est de noter chaque localité entre 0 et 100, 100 étant la note maximale et correspond à la meilleur correspondance avec les préférences (= projet de vie) exprimées dans le formulaire.
+## ⚙️ Fonctionnement : Le Moteur de Scoring
 
-Une **localité** peut correspondre soit à une commune en particulier (autrement appelé monôme dans le code) ou un binôme de deux communes limitrophes. L'idée est de ne pas se restreindre à un découpage administratif qui exclurait artificiellement des opportunités "de l'autre côté de la rue". 
+Le cœur de l'application est un pipeline de scoring qui évalue les communes en fonction du profil utilisateur.
 
-Dans la pratique cela veut dire que l'on établit un score pour chaque commune ainsi que pour tous les couples consitutés avec chaque commune voisine. On ajoute néanmoins un paramètre ajustable de pénalité `binome_penalty` pour privilégier les options de type monôme (tous les besoins sont couverts dans la même commune).
+1.  **Filtrage :** Le moteur délimite d'abord la zone de recherche en fonction de la distance souhaitée par rapport au lieu de vie actuel et d'un filtre de population minimale.
+2.  **Calcul des Critères :** Il calcule ensuite des dizaines de scores individuels pour chaque commune (ex: adéquation des offres d'emploi, disponibilité de logements sociaux, capacité des écoles). Ces scores sont normalisés pour permettre une comparaison équitable.
+3.  **Logique de Binôme :** Le moteur identifie les communes voisines et les évalue par paires (`binôme`). Cela permet de recommander deux villes qui, ensemble, remplissent tous les critères (ex: l'une a les emplois, l'autre les logements). Une petite pénalité (`binome_penalty`) est appliquée pour privilégier les solutions au sein d'une même commune (`monôme`) lorsque c'est possible.
+4.  **Agrégation par Catégorie :** Les scores des critères individuels sont ensuite moyennés pour former des scores de catégories (Emploi, Logement, Éducation, etc.).
+5.  **Score Pondéré Final :** Enfin, un `weighted_score` global est calculé pour chaque commune ou binôme en appliquant les poids définis par l'utilisateur. Les résultats sont ensuite classés selon ce score final.
 
-> Note: le code du scoring est dans le Notebook `odis_stream2_scoring.ipynb` cependant il est manuellement exporté en fichier python `odis_stream2_scoring.py` depuis le notebook.
+![Explication de la logique de scoring](Screenshot-4.png)
 
-L'approche est volontairement très simple (pour commencer) et peut se décrire en 5 étapes:
-0. On récupère les préférences exprimées dans le formulaires qui sont stockées dans un dict `prefs`
-1. Selon les préférences on calcule un score pour chaque critère pertinent (ex. on ignore les critères de la catégorie éducation s'il n'y a pas d'enfants). Ce score par critère est normalisé sous forme de centiles pour la zone de recherche (score entre 0 et 100).
-2. On compare ensuite avec les scores de tous les voisins (pondérés par la pénalité) pour garder le meilleur score
-3. La meilleure combinaison est moyennée par catégorie de critères. Cette catégorisation, ainsi que d'autres éléments de configuration des scores de critères, sont définis dans le fichier `odis_scores_cat.csv` (dossier ../csv/)
-4. On associe à chaque catégorie une pondération qui reflète l'importance d'une catégorie par rapport à une autre (il n'y a pas de pondération au niveau de chaque critère au sein d'une catégorie)
-5. On effectue une moyenne pondérée par catégorie, trie les résultats et garde le meilleur résultat pour chaque commune qui nous donne un `odis score` entre 0 et 100 qui est utilisé par la suite
+## 🛠️ Stack Technique
 
+*   **Framework Applicatif :** [Streamlit](https://streamlit.io/)
+*   **Analyse de Données :** [Pandas](https://pandas.pydata.org/), [GeoPandas](https://geopandas.org/), [NumPy](https://numpy.org/)
+*   **Scoring & Normalisation :** [Scikit-learn](https://scikit-learn.org/)
+*   **Cartographie Interactive :** [Folium](https://python-visualization.github.io/folium/) & [streamlit-folium](https://github.com/randyzwitch/streamlit-folium)
+*   **Graphiques :** [Plotly Express](https://plotly.com/python/plotly-express/)
+*   **Sources de Données :** Les données sont agrégées depuis de nombreuses sources ouvertes, notamment l'INSEE, Data.gouv.fr, France Travail (Pôle Emploi), etc. Le jeu de données principal est `odis_june_2025_jacques.parquet`.
 
-![Explication du scoring](Screenshot-4.png)
+## 📂 Structure du Projet
 
-Dans le code voici les étapes:
-1. On stocke les préférences dans `prefs` et on rçupère les catégorisations de critères du fichier de configuration `odis_scores_cat.csv`
-2. On  calcul la distance de chaque commune par rapport à la commune actuelle de la personne accompagnéee `add_distance_to_current_loc`
-3. On filtre pour ne garder que les communes qui sont dans le rayon de recherche
-`filter_loc_by_distance`
-4. On calcule tous les scores pour chaque commune pour chaque critère pertinent `compute_criteria_scores`
-5. Pour chaque commune on ajoute toutes les données pour chacune de ses voisines `adding_score_voisins`
-6. On calcule les scores pour chaque catégorie de critères en comparant les scores de critères deux à deux entre la commune et sa voisine (en incluant la pénalité) et en gardant la meilleure option avec la fonction `compute_cat_scores`
-7. On cacul le score pondéré final selont les préférences de pondération dans `prefs`
-avec la fonction `compute_binome_score`
-8. On trie et garde la meilleure option pour chaque commune (binôme ou monôme) avec `best_score_compute`
+L'application Streamlit est contenue dans le répertoire `eda/streamlit/` :
 
+```
+eda/streamlit/
+├── README.md          # Ce fichier
+├── main.py            # Point d'entrée, gestion de l'état et mise en page
+├── ui.py              # Composants de l'interface utilisateur (sidebar, onglets, etc.)
+├── scoring.py         # Pipeline de scoring et de traitement des données
+├── maps.py            # Fonctions pour la création des cartes Folium
+├── config.py          # Chemins de fichiers, valeurs par défaut et scénarios de démo
+└── *.png              # Captures d'écran pour la documentation
+```
 
-Voici la liste des critères utilisés dans le cadre de ce prototype:
-> Note: ce choix de critères est totalement arbitraire (motivé par nos discussions avec J'Accueille et la disponibilité des données) et doit être revisité !
+## 🔮 Feuille de Route et Améliorations Futures
 
-- met_scaled: Taux Besoin Emploi
-- met_tension_scaled: Taux Besoin Emploi en Tension
-- svc_incl_scaled: Taux Services Inclusion
-- log_vac_scaled: Taux Logements Vacants
-- log_soc_inoc_scaled: Taux de Logements Sociaux Inoccupés (Vacants ou Vides)
-- log_5p_scaled: Taux Grandes Résidences Principales
-- classes_ferm_scaled: Taux Classes à Risque de Fermeture
-- pol_scaled: Couleur Politique de la commmue
-- met_match_adult1_scaled: Match compétences et Besoin Emploi Adult 1
-- met_match_adult2_scaled: Match compétences et Besoin Emploi Adult 2
-- form_match_adult1_scaled: Match besoins et Centres de formation
-- form_match_adult2_scaled: Match besoins et Centres de formation
-- reloc_dist_scaled: Distance de la localisation actuelle
-- reloc_epci_scaled: Même agglomération que la localisation actuelle
-- besoins_match_scaled: Présence de solutions de soutien spécifiques
+Ce prototype est une base solide qui peut être grandement améliorée :
 
+*   **⭐ Fonctionnalités :**
+    *   **Comptes Utilisateurs :** Permettre de sauvegarder, nommer et gérer plusieurs scénarios de "projets de vie".
+    *   **Export PDF :** Implémenter un export propre et imprimable de la synthèse des résultats.
+    *   **Filtres Avancés :** Ajouter des filtres plus fins (ex: exclure certaines régions, filtrer par couleur politique).
+    *   **Comparaison des Résultats :** Ajouter une fonction pour comparer 2 ou 3 des meilleurs résultats côte à côte.
 
-### Streamlit App
+*   **📊 Données & Scoring :**
+    *   **Étendre les Sources de Données :** Intégrer plus de jeux de données (transports en commun, services de santé spécifiques, activités culturelles).
+    *   **Fraîcheur des Données :** Mettre en place un pipeline pour mettre à jour automatiquement les données sous-jacentes.
+    *   **Affiner les Critères :** Travailler avec des travailleurs sociaux pour affiner la liste des critères et leur pertinence.
 
-Rendu du prototype de l'application à la fin juin 2025
-|![Screenshot Page résultats](Screenshot-1.png)| ![Screenshot détail d'un résultat](Screenshot-2.png)| 
-| ----------- | ----------- |
-|Page résultats|Détail d'un résultat|
+*   **💻 Technique & UX :**
+    *   **Refactoring du Scoring :** La logique de scoring, actuellement dans un fichier Python exporté d'un notebook, mériterait d'être réécrite dans une bibliothèque plus modulaire et testable.
+    *   **Tests :** Ajouter des tests unitaires et d'intégration pour fiabiliser le pipeline de scoring et l'interface.
+    *   **Performance :** Optimiser le chargement des données et les calculs de score pour une meilleure fluidité.
+    *   **Design UI/UX :** Améliorer le design visuel, la mise en page et l'ergonomie sur mobile.
 
+## ⚖️ Licence
 
-#### Formulaire
-
-#### Meilleurs Résultats
-
-#### Carte
-
-
-## Limites du prototype
+Ce projet est sous licence MIT. Consultez le fichier [LICENSE](../../LICENSE) à la racine du projet pour plus de détails.
