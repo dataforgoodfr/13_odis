@@ -8,6 +8,8 @@ import geopandas as gpd
 import shapely as shp
 from sklearn import preprocessing
 
+from config import ScoringConfig
+
 # --- Constants ---
 PROJECTED_CRS = "EPSG:2154"  # RGF93 / Lambert-93, suitable for metropolitan France
 
@@ -114,9 +116,8 @@ def compute_criteria_scores(df: gpd.GeoDataFrame, prefs: Dict[str, Any], incl_in
     for i in range(prefs['nb_adultes']):
         adult_key = f'adult{i+1}'
         if prefs['codes_metiers'][i]:
-            # Note: Using a vectorized approach would be faster if 'be_codfap_top' contains lists.
-            # Assuming it does for now. If not, the original .apply is fine.
-            df[f'met_match_codes_{adult_key}'] = df.be_codfap_top.apply(lambda x: list(set(x).intersection(prefs['codes_metiers'][i])) if x is not None else [])
+            prefs_metiers = set(prefs['codes_metiers'][i])
+            df[f'met_match_codes_{adult_key}'] = [list(set(x).intersection(prefs_metiers)) if x is not None else [] for x in df.be_codfap_top]
             df[f'met_match_{adult_key}'] = df[f'met_match_codes_{adult_key}'].str.len()
             df[f'met_match_{adult_key}_scaled'] = transformer.fit_transform(df[[f'met_match_{adult_key}']].fillna(0))
     
@@ -124,7 +125,8 @@ def compute_criteria_scores(df: gpd.GeoDataFrame, prefs: Dict[str, Any], incl_in
     for i in range(prefs['nb_adultes']):
         adult_key = f'adult{i+1}'
         if prefs['codes_formations'][i]:
-            df[f'form_match_codes_{adult_key}'] = df.codes_formations.apply(lambda x: list(set(x).intersection(prefs['codes_formations'][i])) if x is not None else [])
+            prefs_formations = set(prefs['codes_formations'][i])
+            df[f'form_match_codes_{adult_key}'] = [list(set(x).intersection(prefs_formations)) if x is not None else [] for x in df.codes_formations]
             df[f'form_match_{adult_key}'] = df[f'form_match_codes_{adult_key}'].str.len()
             df[f'form_match_{adult_key}_scaled'] = transformer.fit_transform(df[[f'form_match_{adult_key}']].fillna(0))
 
@@ -163,9 +165,7 @@ def compute_criteria_scores(df: gpd.GeoDataFrame, prefs: Dict[str, Any], incl_in
         df_merged = df.join(incl_index, how='left')
         
         # Calculate the number of matching services for each commune
-        df['besoins_match'] = df_merged['key'].apply(
-            lambda available_services: len(all_needed_services.intersection(available_services if isinstance(available_services, set) else set()))
-        )
+        df['besoins_match'] = [len(all_needed_services.intersection(s)) if isinstance(s, set) else 0 for s in df_merged['key']]
         df['besoins_match_scaled'] = transformer.fit_transform(df[['besoins_match']].fillna(0))
     else:
         # If no specific needs, score based on the general availability of inclusion services
@@ -191,7 +191,9 @@ def add_neighbor_scores(df_search: gpd.GeoDataFrame, scores_cat: pd.DataFrame) -
     # Create a series with the commune itself and its neighbors.
     # Using .copy() on df_search prevents SettingWithCopyWarning.
     df_search_copy = df_search.copy()
-    df_search_copy['codgeo_voisins_and_self'] = df_search_copy.apply(lambda x: np.append(x.codgeo_voisins, x.name), axis=1)
+    df_search_copy['codgeo_voisins_and_self'] = [
+        np.append(voisins, codgeo) for voisins, codgeo in zip(df_search_copy['codgeo_voisins'], df_search_copy.index)
+    ]
 
     # Explode the dataframe to have one row per (commune, neighbor) pair.
     df_search_exploded = df_search_copy.explode('codgeo_voisins_and_self')

@@ -21,7 +21,7 @@ st.markdown(
 
 ### INIT OF THE STREAMLIT APP ###
 
-def session_states_init():
+def session_states_init(defaults):
     """Initializes all necessary keys in Streamlit's session state."""
     # App data and results
     if 'app_data' not in st.session_state:
@@ -46,7 +46,6 @@ def session_states_init():
         st.session_state['center'] = cfg.DEFAULT_MAP_CENTER
 
     # Initialize UI state from default config
-    defaults = cfg.DEMO_DATA_DEFAULT
     ui_keys_map = {
         'ui_departement': 'departement_actuel',
         'ui_commune': 'commune_actuelle',
@@ -168,8 +167,8 @@ def load_demo_data(demo_data):
     return demo_data
 
 # --- Main App Execution ---
-
-session_states_init()
+defaults = cfg.DEMO_DATA_DEFAULT
+session_states_init(defaults)
 
 # Load all datasets and cache them
 st.session_state.app_data = init_datasets()

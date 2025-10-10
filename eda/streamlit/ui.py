@@ -24,6 +24,7 @@ def display_sidebar(demo_data: dict):
     st.selectbox("Commune", communes, index=com_index, key="ui_commune")
 
     # --- Weights ---
+    st.divider()
     with st.expander('Pondérations des critères', expanded=False):
         st.select_slider("Education", [0, 25, 50, 100], value=demo_data.get('poids_education', 100), key="ui_poids_education")
         st.select_slider("Projet Pro", [0, 25, 50, 100], value=demo_data.get('poids_emploi', 100), key="ui_poids_emploi")
@@ -32,7 +33,7 @@ def display_sidebar(demo_data: dict):
         st.select_slider("Mobilité", [0, 25, 50, 100], value=demo_data.get('poids_mobilité', 100), key="ui_poids_mobilité")
 
     # --- Technical Params ---
-    st.divider()
+    
     with st.expander('Paramètres avancés'):
         st.select_slider("Décote binôme %", [1, 10, 25, 50, 100], value=int(demo_data.get('binome_penalty', 0.5)*100), key="ui_penalite_binome")
         st.select_slider("Population Minimum", [0, 500, 1000, 5000, 10000], value=demo_data.get('pop_min', 1000), key="ui_pop_min")
