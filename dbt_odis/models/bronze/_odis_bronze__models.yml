@@ -1047,6 +1047,13 @@ models:
       - name: OBS_VALUE
         description: Nombre de personee concerné
         data_type: decimal
+  - name: emploi_ds_flores
+    description: Extraction du JSON emploi.ds_flores qui contient les flux d'actifs de 15 ou plus.
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
 
   # Geographical references
   - name: geographical_references_communes
