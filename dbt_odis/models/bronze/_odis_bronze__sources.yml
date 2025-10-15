@@ -61,6 +61,10 @@ sources:
         description: Source CSV loadée dans le champ data contenant 
         loaded_at_field : created_at
 
+      - name: emploi_base_flux_mobilite_domicile_lieu_travail_2022
+        description: Source CSV - Base flux mobilité domicile-lieu de travail 2022 avec croisement commune de résidence / commune de travail
+        loaded_at_field : created_at
+
       - name: education_moyenne_eleve_commune
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at

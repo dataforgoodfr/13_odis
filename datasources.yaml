@@ -195,7 +195,22 @@ domains:
       preprocessor:
         type: notebook
         name: unzip_load_csv_files
-        
+
+    deplacement_domicile_travail_croisement_lieu_residence_lieu_travail:
+      API: INSEE.statistiques
+      description: |
+        Déplacement domicile travail avec croisement lieu de résidence/lieu de travail
+        Référence du fichier INSEE : 8582949
+        Millésime 2022
+      type: FileExtractor
+      endpoint: /fichier/8582949/base-flux-mobilite-domicile-lieu-travail-2022_csv.zip
+      format: zip
+      headers:
+        accept: application/zip, application/octet-stream
+      preprocessor:
+        type: notebook
+        name: unzip_load_csv_files
+
     bmo_2024:
       API: data.gouv.fr
       description: Fichier BMO (Besoins en Main d'Oeuvre) - 2024
