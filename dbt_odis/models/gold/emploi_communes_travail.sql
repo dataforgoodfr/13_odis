@@ -1,6 +1,6 @@
 {{ config(
     tags = ['gold', 'emploi', 'communes_travail'],
-    alias = 'gold_emploi_communes_travails'
+    alias = 'gold_emploi_communes_travail'
     )
 }}
 
