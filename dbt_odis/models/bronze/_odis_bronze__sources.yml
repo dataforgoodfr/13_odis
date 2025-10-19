@@ -100,6 +100,14 @@ sources:
       - name: presentation_page_elus_communes
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
+      - name: presentation_elus_communes
+        description: Source JSON loadée dans le champ data contenant 
+        loaded_at_field: created_at
+
+      - name: presentation_elections_municipales
+        description: Informations sur la nuance politique des élues
+        loaded_at_field: created_at
+
 
       - name: presentation_page_epci
         description: Source JSON loadée dans le champ data contenant 
