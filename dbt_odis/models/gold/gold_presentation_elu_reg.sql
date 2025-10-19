@@ -1,5 +1,5 @@
 {{ config(
-    tags = ['silver', 'presentation','elu'],
+    tags = ['gold', 'presentation','elu'],
     )
 }}
 

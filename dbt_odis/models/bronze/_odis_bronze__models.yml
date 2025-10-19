@@ -3832,3 +3832,139 @@ models:
       - name: nb
         description: TBD
         data_type: float
+  - name: presentation_elus_communes
+    description: "Bronze view exposing elected representatives information enriched with administrative geographic hierarchy."
+    columns:
+      - name: id
+        description: "Unique identifier of the elected representative record."
+      - name: prenom_de_l_elu
+        description: "First name of the elected official."
+      - name: nom_de_l_elu
+        description: "Last name of the elected official."
+      - name: date_de_naissance
+        description: "Birth date of the elected official."
+      - name: libelle_de_la_fonction
+        description: "Job title or mandate role of the elected representative."
+      - name: filename
+        description: "Name of the file from which the record was ingested."
+      - name: date_de_debut_du_mandat
+        description: "Start date of the mandate."
+      - name: date_de_debut_de_la_fonction
+        description: "Start date of the function or position."
+      - name: libelle_de_la_categorie_socio_professionnelle
+        description: "Socio-professional category label."
+      - name: code_de_la_categorie_socio_professionnelle
+        description: "Code of the socio-professional category."
+      - name: code_nationalite
+        description: "Nationality code of the elected representative."
+      - name: code_sexe
+        description: "Gender code of the elected representative."
+      - name: reg_name
+        description: "Name of the administrative region."
+      - name: reg_code
+        description: "Code of the administrative region."
+      - name: dep_name
+        description: "Name of the department."
+      - name: dep_code
+        description: "Code of the department."
+      - name: libelle_de_la_section_departementale
+        description: "Departmental section label."
+      - name: code_de_la_section_departementale
+        description: "Departmental section code."
+      - name: epci_name
+        description: "Name of the public inter-municipal cooperation establishment (EPCI)."
+      - name: epci_code
+        description: "EPCI code."
+      - name: com_name
+        description: "Name of the commune."
+      - name: com_code
+        description: "Code of the commune."
+      - name: libelle_du_canton
+        description: "Canton label."
+      - name: code_du_canton
+        description: "Canton code."
+      - name: libelle_de_la_circonscription_metropolitaine
+        description: "Metropolitan district label."
+      - name: code_de_la_circonscription_metropolitaine
+        description: "Metropolitan district code."
+      - name: libelle_de_la_collectivite_a_statut_particulier
+        description: "Label of the special status collectivity."
+      - name: code_de_la_collectivite_a_statut_particulier
+        description: "Code of the special status collectivity."
+      - name: created_at
+        description: "Record ingestion timestamp."
+  - name: presentation_elections_municipales
+    description: "Bronze view containing municipal election results with vote details by candidate and geographic information."
+    columns:
+      - name: id
+        description: "Unique identifier of the record."
+      - name: code_officiel_du_departement
+        description: "Official department code."
+      - name: nom_officiel_du_departement
+        description: "Official department name."
+      - name: nom_officiel_commune
+        description: "Official commune name."
+      - name: code_bvote
+        description: "Polling station code."
+      - name: inscrits
+        description: "Number of registered voters."
+      - name: abstentions
+        description: "Number of abstentions."
+      - name: absins
+        description: "Rate of abstentions among registered voters."
+      - name: votants
+        description: "Number of voters."
+      - name: votins
+        description: "Participation rate among registered voters."
+      - name: blancs
+        description: "Number of blank votes."
+      - name: blancsins
+        description: "Blank votes among registered voters."
+      - name: blancsvot
+        description: "Blank votes among total votes."
+      - name: nuls
+        description: "Number of invalid (null) votes."
+      - name: nulsins
+        description: "Null votes among registered voters."
+      - name: nulsvot
+        description: "Null votes among total votes."
+      - name: exprimes
+        description: "Number of valid expressed votes."
+      - name: expins
+        description: "Expressed votes among registered voters."
+      - name: expvot
+        description: "Expressed votes among total votes."
+      - name: npan
+        description: "Unknown voting metric (NPAN)."
+      - name: code_nuance
+        description: "Political nuance or party code."
+      - name: sexe
+        description: "Gender of the candidate."
+      - name: nom
+        description: "Last name of the candidate."
+      - name: prenom
+        description: "First name of the candidate."
+      - name: liste
+        description: "Political list or group."
+      - name: voix
+        description: "Number of votes received by the candidate."
+      - name: voixins
+        description: "Votes received as percentage of registered voters."
+      - name: voixexp
+        description: "Votes received as percentage of expressed votes."
+      - name: nom_prenom
+        description: "Full name of the candidate."
+      - name: code_officiel_commune
+        description: "Official commune code."
+      - name: localisation
+        description: "Geographic description of the polling location."
+      - name: nom_du_bureau
+        description: "Name of the voting bureau."
+      - name: code_officiel_region
+        description: "Official region code."
+      - name: nom_officiel_region
+        description: "Official region name."
+      - name: code_iso_31663_zone
+        description: "ISO 3166-3 zone code."
+      - name: created_at
+        description: "Record ingestion timestamp."
