@@ -21,8 +21,9 @@ with renommage_et_ajout_nuance as (
     left join {{ ref ("silver_presentation_elus_dim_nuance_politique") }} as nuance_politique
         on presentation_elus_communes.nom_de_l_elu = nuance_politique.nom
         and presentation_elus_communes.prenom_de_l_elu = nuance_politique.prenom
-        --and presentation_elus_communes.com_code = nuance_politique.code_officiel_commune
+        and presentation_elus_communes.dep_code = nuance_politique.code_officiel_du_departement
     where type_de_la_fonction = 'Départemental'
+    and libelle_de_la_fonction = 'Président du conseil départemental'
 )
 
 
