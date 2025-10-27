@@ -19,13 +19,12 @@ with renommage_et_ajout_nuance as (
         presentation_elus_communes.reg_code as "Code de la région",
         presentation_elus_communes.dep_code as "Code du département"
     from {{ ref ("silver_presentation_elus_communes") }} as presentation_elus_communes
-    left join {{ ref ("silver_presentation_elus_dim_nuance_politique") }} as nuance_politique
+    left join {{ ref ("silver_presentation_dim_nuance_politique_com") }} as nuance_politique
         on presentation_elus_communes.nom_de_l_elu = nuance_politique.nom
         and presentation_elus_communes.prenom_de_l_elu = nuance_politique.prenom
         and presentation_elus_communes.com_code = nuance_politique.code_officiel_commune
     where type_de_la_fonction = 'Municipal'
     and libelle_de_la_fonction = 'Maire'
 )
-
 
 select * from renommage_et_ajout_nuance

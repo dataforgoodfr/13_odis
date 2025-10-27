@@ -8,8 +8,6 @@ with unique_code_nuance as (
         nom,
         prenom,
         code_officiel_commune,
-        code_officiel_du_departement,
-        code_officiel_region,
         code_nuance
         --row_number() over(partition by nom,prenom order by id desc) rank_
     from {{ ref ("presentation_elections_municipales") }}
@@ -20,8 +18,6 @@ nuance_libelle as (
         unique_code_nuance.nom,
         unique_code_nuance.prenom,
         unique_code_nuance.code_officiel_commune,
-        unique_code_nuance.code_officiel_du_departement,
-        unique_code_nuance.code_officiel_region,
         unique_code_nuance.code_nuance,
         corresp_codes_nuances.libelle as libelle_nuance
     from unique_code_nuance

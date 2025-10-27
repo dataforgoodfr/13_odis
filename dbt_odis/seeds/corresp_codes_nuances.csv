@@ -61,3 +61,36 @@ LNC;Liste Non Communiquée / Sans étiquette
 LREG;Liste Régionaliste
 LSOC;Liste Socialiste
 LUDI;Liste Union des Démocrates et Indépendants (UDI)
+LDSV;Liste Droite souverainiste
+LUCD;Liste Union au centre et à droite
+LUGE;Liste Union à gauche avec des écologistes
+BC-EXG;Binôme d'extrême-gauche
+BC-COM;Binôme du Parti communiste français
+BC-FI;Binôme de La France Insoumise
+BC-SOC;Binôme du Parti Socialiste
+BC-UG;Binôme Union à gauche
+BC-RDG;Binôme du Parti radical de gauche
+BC-DVG;Binôme Divers gauche
+BC-ECO;Binôme écologiste
+BC-UGE;Binôme d'union à gauche avec des écologistes
+BC-DIV;Binôme Divers
+BC-REG;Binôme régionaliste
+BC-GJ;Binôme gilets jaunes
+BC-UCG;Binôme d'union au centre et à gauche
+BC-REM;Binôme La République en Marche
+BC-UDI;Binôme Union des Démocrates et Indépendants
+BC-LR;Binôme Les Républicains
+BC-DVD;Binôme Divers droite
+BC-RN;Binôme Rassemblement national
+BC-UD;Binôme Union à droite
+BC-DVC;Binôme Divers centre
+BC-UC;Binôme Union du centre
+BC-DVS;Binôme Droite souverainiste
+BC-DVG;Binôme Divers gauche
+BC-DIV;Binôme Divers
+BC-REG;Binôme Régionaliste
+BC-DSV;Binôme Droite souverainiste
+BC-EXD;Binôme d'Extrême droite
+BC-MDM;Binôme du Modem
+BC-UCD;Binôme d'union au centre et à droite
+BC-UXD;Binôme Union Extrême droite
