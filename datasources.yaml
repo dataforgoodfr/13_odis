@@ -537,7 +537,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2023
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM","REG","DEP"]
           FACILITY_TYPE: ["A122", "A128", "A203", "A206", "A208","A304","A501","A503", "A504"]
         response_map:
@@ -611,7 +612,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM","DEP","REG"]
           RP_MEASURE: ["POP","SUP"]
           OCS: "_T"
@@ -628,7 +630,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM","DEP","REG"]
           SEX: "_T"
           RP_MEASURE: "POP"
