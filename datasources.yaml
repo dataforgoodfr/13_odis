@@ -244,7 +244,7 @@ domains:
       API: Opendatasoft
       description: Elections municipales 2020
       type: FileExtractor
-      endpoint: /catalog/datasets/election-france-municipale-2020-deuxieme-tour/exports/csv?use_labels=true
+      endpoint: /catalog/datasets/election-france-municipale-2020-premier-tour/exports/csv?use_labels=true
       format: csv
       load_params:
         separator: ;

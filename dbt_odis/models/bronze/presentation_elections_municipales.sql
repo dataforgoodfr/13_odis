@@ -6,8 +6,8 @@
 
 select 
     "id",
-  "code_officiel_du_departement",
-  "nom_officiel_du_departement",
+  "code_officiel_departement",
+  "nom_officiel_departement",
   "nom_officiel_commune",
   "code_bvote",
   "inscrits",
@@ -36,7 +36,7 @@ select
   "nom_prenom",
   "code_officiel_commune",
   "localisation",
-  "nom_du_bureau",
+  "nom_bureau",
   "code_officiel_region",
   "nom_officiel_region",
   "code_iso_31663_zone",

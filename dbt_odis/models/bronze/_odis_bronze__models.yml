@@ -3894,13 +3894,13 @@ models:
       - name: created_at
         description: "Record ingestion timestamp."
   - name: presentation_elections_municipales
-    description: "Bronze view containing municipal election results with vote details by candidate and geographic information."
+    description: "Bronze view containing municipal election (first round) with vote details by candidate and geographic information."
     columns:
       - name: id
         description: "Unique identifier of the record."
-      - name: code_officiel_du_departement
+      - name: code_officiel_departement
         description: "Official department code."
-      - name: nom_officiel_du_departement
+      - name: nom_officiel_departement
         description: "Official department name."
       - name: nom_officiel_commune
         description: "Official commune name."
@@ -3958,7 +3958,7 @@ models:
         description: "Official commune code."
       - name: localisation
         description: "Geographic description of the polling location."
-      - name: nom_du_bureau
+      - name: nom_bureau
         description: "Name of the voting bureau."
       - name: code_officiel_region
         description: "Official region code."
