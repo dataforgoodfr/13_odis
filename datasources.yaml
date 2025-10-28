@@ -326,7 +326,6 @@ domains:
             - REG # régions
           RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH: # statut d'occupation du logement
@@ -350,7 +349,7 @@ domains:
         response_map:
           data: observations
           next: paging.next
-          is_last: paging.isLast
+          # is_last: paging.isLast
 
       logements_total:
         API: INSEE.Melodi
@@ -364,7 +363,6 @@ domains:
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH: # statut d'occupation du logement
@@ -397,7 +395,6 @@ domains:
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH:
@@ -427,7 +424,6 @@ domains:
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH:
@@ -457,7 +453,6 @@ domains:
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS_ROOMS # nombre de pièces
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH: # statut d'occupation du logement
