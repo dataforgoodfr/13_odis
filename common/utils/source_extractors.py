@@ -98,11 +98,11 @@ class MelodiExtractor(FileExtractor):
             # if not given in API response, BUT if no next page could be derived, then true
             # else: false
             is_last_key = self.model.response_map.get("is_last")
-            is_last = (
-                jmespath.search(is_last_key, payload)
-                if is_last_key
-                else (next_url is None)
-            )
+            if is_last_key:
+                is_last_from_response = jmespath.search(is_last_key, payload)
+                is_last = is_last_from_response if is_last_from_response is not None else (next_url is None)
+            else:
+                is_last = (next_url is None)
 
             # If all went well, success = true
             success = True
