@@ -319,7 +319,7 @@ domains:
           maxResult: 10000
           # TIME_PERIOD: 2021
           startPeriod: "2009-01-01"
-          endPeriod: "2025-01-01"
+          endPeriod: "2025-10-01"
           GEO: # géographies
             - COM # communes
             - DEP # départements
@@ -359,7 +359,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
@@ -391,7 +392,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
@@ -420,7 +422,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
@@ -449,7 +452,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS_ROOMS # nombre de pièces
           L_STAY: _T
