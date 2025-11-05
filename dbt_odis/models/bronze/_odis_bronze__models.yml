@@ -1101,6 +1101,9 @@ models:
       - name: geo_coordonnees_longitude
         description: Coordonnées longitudinales, string pour données en -01.00
         data_type: text
+      - name: epci
+        description: Code de l'EPCI rattaché à la commune
+        data_type: integer
       - name: created_at
         description: date d'extraction des données
         data_type: timestamp without time zone
@@ -3699,6 +3702,25 @@ models:
   - name: presentation_page_elus_communes
 
   - name: presentation_page_epci
+    description: Extraction du JSON source geographical_references_epcis
+    columns:
+      - name: nom
+        description: Nom de l'EPCI
+        data_type: text
+      - name: code
+        description: Code SIREN de l'EPCI
+        data_type: integer
+        tests:
+          - unique
+      - name: population
+        description: Population totale regroupée en vigueur selon le dernier recensement INSEE
+        data_type: integer
+      - name: codesRegions
+        description: Code de la région associée
+        data_type: integer
+      - name: codesDepartements
+        description: Code du département associé
+        data_type: integer
 
   - name: presentation_page_population_communes
 
