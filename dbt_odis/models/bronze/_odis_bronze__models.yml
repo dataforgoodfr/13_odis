@@ -1101,8 +1101,11 @@ models:
       - name: geo_coordonnees_longitude
         description: Coordonnées longitudinales, string pour données en -01.00
         data_type: text
-      - name: epci
+      - name: epci_code
         description: Code de l'EPCI rattaché à la commune
+        data_type: integer
+      - name: epci_nom
+        description: Nom de l'EPCI rattaché à la commune
         data_type: integer
       - name: created_at
         description: date d'extraction des données
