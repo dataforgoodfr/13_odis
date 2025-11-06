@@ -3,19 +3,26 @@
     alias = 'silver_presentation_page_epci'
 ) }}
 
-WITH epci AS (
+WITH nb_membres AS (
     SELECT
-        code::int AS code,
-        COUNT(*) AS nb_membres
-    FROM {{ ref('presentation_page_epci') }}
-    GROUP BY code
+        epci_code,
+        COUNT(*) AS nb_membres,
+        SUM(population::int) AS population_totale
+    FROM {{ ref('geographical_references_communes') }} communes
+    GROUP BY epci_code
 )
 SELECT
-    bronze_epci.*,
-    epci.nb_membres,
-    corresp_siren_codes_communes
-FROM {{ ref('presentation_page_epci') }} bronze_epci
-INNER JOIN epci
-    ON epci.code = bronze_epci.code
-INNER JOIN corresp_siren_codes_communes
-    ON corresp_siren_codes_communes.SIREN = bronze_epci.code
+    communes.code AS codgeo,
+    communes.nom,
+    communes.epci_nom AS raison_sociale,
+    nb_membres.nb_membres,
+    -- nb_membres.population_totale AS total_pop_tot,
+    epci.population AS total_pop_mun,
+    communes.population AS pmun_derniere_annee
+FROM {{ ref('geographical_references_communes') }} communes
+INNER JOIN nb_membres
+    ON nb_membres.epci_code = communes.epci_code
+LEFT JOIN {{ ref('presentation_page_epci') }} epci
+    ON epci.code = communes.epci_code
+WHERE TRUE
+;

@@ -25,17 +25,6 @@ seeds:
         latitude: float
         longitude: float
 
-  - name: corresp_siren_codes_communes
-    description: "Correspondance des codes SIREN avec les codes INSEE"
-    config:
-      quote_columns: false 
-      delimiter: ';'
-      column_types:
-        Niveau: text
-        Type: text
-        SIREN: int
-        Code_INSEE_Officiel: text
-
   - name: bassin_emploi
     description: "Correspondance des codes INSEE des communes avec les bassins d'emploi"
     config:
