@@ -21,13 +21,13 @@ class AsyncHttpClient(HttpClient):
     _session: aiohttp.ClientSession
     _timeout: aiohttp.ClientTimeout
 
-    def __init__(self, max_connections: int = 100, timeout: int = 600):
+    def __init__(self, max_connections: int = 100, timeout: int = 1200):
         """
         Args:
             max_connections (int, optional): The max number of concurrent connections.
                 Defaults to 100.
             timeout (int, optional): The timeout in seconds for each individual HTTP request.
-                Defaults to 600 (10 minutes).
+                Defaults to 1200 (20 minutes).
         """
 
         conn = aiohttp.TCPConnector(limit=max_connections)
@@ -40,9 +40,9 @@ class AsyncHttpClient(HttpClient):
 
     @retry(
         retry=retry_if_exception_type(aiohttp.ClientError),
-        stop=(stop_after_delay(1200) | stop_after_attempt(3)),
+        stop=(stop_after_delay(2400) | stop_after_attempt(3)),
         before=before_log(logger, logging.DEBUG),
-        reraise=True,  # re-raise the last exception
+        reraise=True,  
     )
     async def get(
         self,
