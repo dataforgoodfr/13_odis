@@ -1,3 +1,10 @@
+{{ config(
+    tags = ['silver', 'presentation','elu'],
+    alias = 'vw_silver_presentation_dim_nuance_politique_dep',
+    materialized = 'view'
+    )
+}}
+
 with unique_code_nuance as (
     select distinct
         nom_candidat as nom,
@@ -16,7 +23,6 @@ nuance_libelle as (
     from unique_code_nuance
     left join {{ ref('corresp_codes_nuances') }} as corresp_codes_nuances
         on unique_code_nuance.code_nuance = corresp_codes_nuances.code_nuance
-    --where unique_code_nuance.rank_=1
 )
 
 select * from nuance_libelle

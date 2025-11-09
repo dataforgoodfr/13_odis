@@ -1,3 +1,10 @@
+{{ config(
+    tags = ['silver', 'presentation','elu'],
+    alias = 'vw_silver_presentation_dim_nuance_politique_reg',
+    materialized = 'view'
+    )
+}}
+
 with unique_code_nuance as (
     select distinct
         (regexp_match(

@@ -1,5 +1,7 @@
 {{ config(
     tags = ['silver', 'presentation','elu'],
+    alias = 'vw_silver_presentation_elus_communes',
+    materialized = 'view'
     )
 }}
 
