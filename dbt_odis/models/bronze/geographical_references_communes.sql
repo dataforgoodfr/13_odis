@@ -18,7 +18,9 @@ with communes as
         (data::jsonb) -> 'region' ->> 'code' as region_code,
         (data::jsonb) -> 'departement' ->> 'nom' as departement_nom,
         (data::jsonb) -> 'departement' ->> 'code' as departement_code,
-        (data::jsonb) -> 'population' as population,        
+        (data::jsonb) -> 'population' as population,
+        (data::jsonb) -> 'epci' ->> 'code' as epci_code,
+        (data::jsonb) -> 'epci' ->> 'nom' as epci_nom,
         created_at
     from {{ source('bronze', 'geographical_references_communes') }} 
 )
