@@ -129,6 +129,31 @@ endpoint: /data/model?scope=FR&annual_data=2024
 
 Le Path a priorité sur le champ `extract_params` : Si une configuration définit à la fois une querystring dans le champ `endpoint` et un champ `extract_params`, le contenu de `extract_params` est ignoré dans la construction de la requête.
 
+#### Paramètres temporels pour l'API Melodi
+
+Pour filtrer les données par période, les paramètres suivants peuvent être utilisés dans `extract_params`:
+
+- `startPeriod` : Str - Date de début de la période souhaitée au format YYYY-MM-DD. Permet de récupérer toutes les données depuis cette date.
+- `endPeriod` : Str - Date de fin de la période souhaitée au format YYYY-MM-DD. Permet de récupérer toutes les données jusqu'à cette date.
+- `TIME_PERIOD` : Int ou \[Int\] - Année(s) spécifique(s) au format YYYY. 
+
+Exemples d'utilisation:
+
+```yaml
+endpoint: /domain/model
+extract_params:
+  startPeriod: "2009-01-01"
+  endPeriod: "2025-10-01"
+  maxResult: 10000
+```
+Avec `TIME_PERIOD`:
+```yaml
+endpoint: /domain/model
+extract_params:
+  TIME_PERIOD: [2011, 2016]
+  maxResult: 10000
+```
+
 ### Headers spécifiques du Endpoint
 
 Le endpoint peut surcharger les `default_headers` de l'API, on peut donc avoir la configuration suivante:
