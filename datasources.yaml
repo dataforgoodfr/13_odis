@@ -349,7 +349,7 @@ domains:
         response_map:
           data: observations
           next: paging.next
-          # is_last: paging.isLast
+          is_last: paging.isLast
 
       logements_total:
         API: INSEE.Melodi
