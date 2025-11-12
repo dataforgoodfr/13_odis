@@ -7,14 +7,7 @@
 
 with unique_code_nuance as (
     select distinct
-        (regexp_match(
-     nom_tete_de_liste,
-     '^([[:upper:]\-\'']+(?:\s+[[:upper:]\-\'']+)*)\s+(.+)$'
-  ))[1] AS nom,
-		(regexp_match(
-     nom_tete_de_liste,
-     '^([[:upper:]\-\'']+(?:\s+[[:upper:]\-\'']+)*)\s+(.+)$'
-  ))[2] AS prenom,
+        {{ split_last_and_first_name('nom_tete_de_liste') }},
         reg_code as code_officiel_region,
         nuance_liste as code_nuance
     from "odis"."bronze"."vw_presentation_elections_regionales"
