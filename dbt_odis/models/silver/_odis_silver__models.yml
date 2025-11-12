@@ -1084,3 +1084,47 @@ models:
       - name: code_geo
         description: Code INSEE officiel pour les 3 niveaux géographiques
         data_type: text
+  
+  - name: silver_presentation_elus_communes
+    description: "Silver model providing standardized information about elected officials filtered by function type (Municipal, Departmental, Regional)."
+    columns:
+      - name: prenom_de_l_elu
+        description: "First name of the elected official."
+      - name: nom_de_l_elu
+        description: "Last name of the elected official."
+      - name: libelle_de_la_fonction
+        description: "Label describing the elected official's function."
+      - name: type_de_la_fonction
+        description: "Type of function based on source filename (Municipal, Departmental, or Regional)."
+      - name: date_de_debut_du_mandat
+        description: "Start date of the elected official's mandate."
+      - name: date_de_debut_de_la_fonction
+        description: "Start date of the elected official's function."
+      - name: code_sexe
+        description: "Gender code of the elected official."
+      - name: reg_code
+        description: "Region code where the elected official exercises their mandate."
+      - name: dep_code
+        description: "Department code where the elected official exercises their mandate."
+      - name: com_code
+        description: "Commune code where the elected official exercises their mandate."
+      - name: reg_name
+        description: "Region name where the elected official exercises their mandate."
+      - name: dep_name
+        description: "Department name where the elected official exercises their mandate."
+      - name: com_name
+        description: "Commune name where the elected official exercises their mandate."
+  
+  - name: silver_presentation_elus_dim_nuance_politique
+    description: |
+      Silver model adding political nuance label to elected officials based on municipal election results.  
+      Select the most recent record base in ID if an elected officials have different nuances over time.
+    columns:
+      - name: nom
+        description: "Last name of the elected official."
+      - name: prenom
+        description: "First name of the elected official."
+      - name: code_nuance
+        description: "Political nuance or party code associated with the elected official."
+      - name: libelle_nuance
+        description: "Label or description of the political nuance, joined from the correspondence table."
