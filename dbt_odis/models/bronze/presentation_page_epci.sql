@@ -12,4 +12,4 @@ SELECT
     (data::jsonb)->'codesRegions'->>0 AS codesRegions,
     (data::jsonb)->'codesDepartements'->>0 AS codesDepartements,
     created_at
-FROM {{ source('bronze', 'geographical_references_epcis') }}
+FROM {{ ref('geographical_references_epcis') }}

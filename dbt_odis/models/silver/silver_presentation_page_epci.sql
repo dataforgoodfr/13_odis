@@ -25,4 +25,3 @@ INNER JOIN nb_membres
 LEFT JOIN {{ ref('presentation_page_epci') }} epci
     ON epci.code = communes.epci_code
 WHERE TRUE
-;
