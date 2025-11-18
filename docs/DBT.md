@@ -83,7 +83,7 @@ models:
 
 Power User for Dbt génère une documentation interactive pour votre projet, facilitant la compréhension des modèles de données.
 
-Une que vous avez run votre model une première fois
+Une fois que vous avez run votre model une première fois
 Commencez par renseigner le nom et la description de votre table issue du model dans le couche_models.yml
 Power User va détecter l'emplacement de la table/view dans Postgre et de sa documentation, puis synchroniser
 
@@ -93,10 +93,10 @@ Power User va détecter l'emplacement de la table/view dans Postgre et de sa doc
     description: CSV contenant les logements sociaux déclarés par départements
 ```
 
-Ensuite revenez sur votre model, allez sur la barre d'outils de votre termin, onglet Documentation Editor
+Ensuite revenez sur votre model, allez sur la barre d'outils de votre terminal, onglet Documentation Editor
 Vous retrouvez votre description
 Synchronisez avec la base de donnée (bouton jaune)
-Vous découvrez vos colonnes, rensignez leur description pour chaque
+Vous découvrez vos colonnes, renseignez leur description pour chaque
 (vous pouvez ajouter des tests)
 Vérifiez vos data_types
 Bouton 'Save', Power User réécrit le models.yml directement
