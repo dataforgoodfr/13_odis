@@ -693,4 +693,26 @@ domains:
           name: unzip_load_csv_files
           type: notebook
 
+      taux_pauvrete_communes:
+        API: INSEE.statistiques
+        description: |
+          Taux de pauvretés au niveau des communes par seuil
+          Millésime 2021
+        type: FileExtractor
+        endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-COMMUNES_csv.zip
+        format: zip
+        preprocessor:
+          name: unzip_load_csv_files
+          type: notebook
 
+      taux_pauvrete_supra:
+        API: INSEE.statistiques
+        description: |
+          Taux de pauvretés au niveau des arrondissements, departements, région par seuil
+          Millésime 2021
+        type: FileExtractor
+        endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-SUPRA_csv.zip
+        format: zip
+        preprocessor:
+          name: unzip_load_csv_files
+          type: notebook
