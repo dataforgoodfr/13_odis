@@ -4,19 +4,19 @@ dbt_odis:
     dev_live:
       dbname: odis
       host: localhost
-      pass: odis
+      pass: password
       port: 5432
       schema: bronze
       threads: 16
       type: postgres
-      user: odis
+      user: postgres
 
     dev_custom:
       dbname: odis
       host: localhost
-      pass: odis
+      pass: password
       port: 5432
       schema: JBN
       threads: 16
       type: postgres
-      user: odis
+      user: postgres

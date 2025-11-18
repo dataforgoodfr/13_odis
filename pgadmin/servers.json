@@ -5,7 +5,7 @@
       "Group": "Servers",
       "Host": "db",
       "Port": 5432,
-      "Username": "odis",
+      "Username": "postgres",
       "SSLMode": "prefer",
       "MaintenanceDB": "postgres"
     }
