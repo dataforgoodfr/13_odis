@@ -22,6 +22,8 @@ from common.utils.file_handler import FileHandler
 from common.utils.http.async_client import AsyncHttpClient
 from common.utils.logging_odis import logger
 
+from pipeline.extract_service import run_extraction
+from pipeline.load_service import run_load
 # this module is the entry point for the CLI
 # it will parse the arguments and execute the requested operation
 
@@ -379,7 +381,7 @@ def extract(
     )
 
     asyncio.run(
-        extract_data_sources(config_model, data_sources, max_concurrent_requests=max_concurrent_requests)  # type: ignore[call-arg] # noqa: E501
+        run_extraction(config_model, data_sources, max_concurrent_requests)
     )
 
 
@@ -467,8 +469,7 @@ def load(
 
                 print(f"\n[blue]Loading data into {ds.name}[/blue]")
 
-                loader = create_loader(config_model, ds, handler=FileHandler())
-                loader.execute()
+                run_load(config_model, data_sources)
 
                 print(f"[blue]Data loaded into {ds.name}[/blue]")
 
