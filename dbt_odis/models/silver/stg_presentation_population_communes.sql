@@ -7,14 +7,18 @@
 with cleaned as (
     select 
         split_part("GEO", '-', 3) as codgeo,
-        "value"::float as population_totale,
+        "value"::float as population,
         "TIME_PERIOD"::integer as year,
         "GEO" as geo_original
     from {{ ref("presentation_population_communes") }}
-    where "GEO" like '%COM-%'
+    where ("GEO" like '%COM-%') 
         and "AGE" = '_T'
         and "SEX" = '_T'
         and "RP_MEASURE" = 'POP'
 )
 
-select * from cleaned
+select 
+    codgeo,
+    population as population_totale,
+    year
+from cleaned

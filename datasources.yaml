@@ -254,15 +254,19 @@ domains:
       description: Population des communes
       type: MelodiExtractor
       endpoint: /data/DS_RP_POPULATION_PRINC
-      format: json     
+      format: json
       extract_params:
         maxResult: 10000
         startPeriod: "2009-01-01"
         endPeriod: "2025-10-01"
-        GEO: ["COM"]
+        GEO: "COM"
         RP_MEASURE: POP
         SEX: _T
         AGE: _T
+      response_map:
+        data: observations
+        next: paging.next
+        is_last: paging.isLast
 
 
   geographical_references:
