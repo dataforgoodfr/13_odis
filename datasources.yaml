@@ -248,6 +248,22 @@ domains:
       format: csv
       load_params:
         separator: ;
+      
+    population_communes:
+      API: INSEE.Melodi
+      description: Population des communes
+      type: MelodiExtractor
+      endpoint: /data/DS_RP_POPULATION_PRINC
+      format: json     
+      extract_params:
+        maxResult: 10000
+        startPeriod: "2009-01-01"
+        endPeriod: "2025-10-01"
+        GEO: ["COM"]
+        RP_MEASURE: POP
+        SEX: _T
+        AGE: _T
+
 
   geographical_references:
 
@@ -676,26 +692,4 @@ domains:
           name: unzip_load_csv_files
           type: notebook
 
-      taux_pauvrete_communes:
-        API: INSEE.statistiques
-        description: |
-          Taux de pauvretés au niveau des communes par seuil
-          Millésime 2021
-        type: FileExtractor
-        endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-COMMUNES_csv.zip
-        format: zip
-        preprocessor:
-          name: unzip_load_csv_files
-          type: notebook
 
-      taux_pauvrete_supra:
-        API: INSEE.statistiques
-        description: |
-          Taux de pauvretés au niveau des arrondissements, departements, région par seuil
-          Millésime 2021
-        type: FileExtractor
-        endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-SUPRA_csv.zip
-        format: zip
-        preprocessor:
-          name: unzip_load_csv_files
-          type: notebook
