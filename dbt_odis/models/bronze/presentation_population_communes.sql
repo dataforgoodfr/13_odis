@@ -1,6 +1,6 @@
 {{ config(
     tags = ['bronze', 'presentation'],
-    alias = 'vw_presentation_page_population_communes'
+    alias = 'vw_presentation_population_communes'
     )
 }}
 
@@ -16,7 +16,7 @@ with population_communes as
         (data::jsonb)->'dimensions' ->> 'RP_MEASURE' as RP_MEASURE,
         (data::jsonb)->'dimensions' ->> 'TIME_PERIOD' as TIME_PERIOD,
         created_at
-    from {{ source('bronze', 'presentation_page_population_communes') }} 
+    from {{ source('bronze', 'presentation_population_communes') }} 
 )
 
 select * from population_communes
