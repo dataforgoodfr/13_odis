@@ -503,3 +503,189 @@ models:
         description: Nombre de restaurants ou restauration rapide dans la zone géographique identifiée
         data_type: double precision
         quote: true
+  - name: gold_presentation_elu_reg
+    description: |
+      Table de présentation des élus régionaux enrichie avec les nuances politiques.
+      Ce modèle combine les données des élus (par région) avec la dimension de nuance politique,
+      permettant d’identifier l’appartenance politique de chaque élu au niveau régional.
+    columns:
+      - name: "Code de la région"
+        description: Code INSEE de la région de l’élu
+        quote: true
+        data_type: text
+
+      - name: "Nom de la région"
+        description: Nom officiel de la région de l’élu
+        quote: true
+        data_type: text
+
+      - name: "Prénom de l’élu"
+        description: Prénom de l’élu tel que déclaré dans les données publiques
+        quote: true
+        data_type: text
+
+      - name: "Nom de l’élu"
+        description: Nom de famille de l’élu tel que déclaré dans les données publiques
+        quote: true
+        data_type: text
+
+      - name: "Nom de la fonction"
+        description: Intitulé officiel de la fonction occupée par l’élu au sein de la collectivité
+        quote: true
+        data_type: text
+
+      - name: "Libellé de la nuance du mandat"
+        description: Nuance politique associée à l’élu (libellé enrichi via table de dimension)
+        quote: true
+        data_type: text
+
+      - name: "Type de la fonction"
+        description: |
+          Type de mandat exercé par l’élu (ex: Régional, Municipal, Départemental)
+        quote: true
+        data_type: text
+
+      - name: "Date de début du mandat"
+        description: Date officielle de prise de fonction de l’élu pour le mandat en cours
+        quote: true
+        data_type: date
+
+      - name: "Date de début de la fonction"
+        description: Date de début d’occupation de la fonction spécifique par l’élu
+        quote: true
+        data_type: date
+
+      - name: "Genre de l’élu"
+        description: Code du genre de l’élu (F = Femme, M = Homme)
+        quote: true
+        data_type: text
+  - name: gold_presentation_elu_com
+    description: |
+      Table de présentation des élus municcommunaux enrichie avec les nuances politiques.
+      Ce modèle regroupe les élus au niveau communal et complète les informations avec
+      la dimension de nuance politique pour chaque élu.
+    columns:
+      - name: "CODGEO"
+        description: Code officiel INSEE de la commune
+        quote: true
+        data_type: text
+
+      - name: "LIBGEO"
+        description: Nom officiel de la commune avec accents et tirets
+        quote: true
+        data_type: text
+
+      - name: "Prénom de l’élu"
+        description: Prénom de l’élu tel que déclaré dans les registres officiels
+        quote: true
+        data_type: text
+
+      - name: "Nom de l’élu"
+        description: Nom de famille de l’élu tel que déclaré dans les registres officiels
+        quote: true
+        data_type: text
+
+      - name: "Nom de la fonction"
+        description: |
+          Fonction municipale exercée par l’élu (ex: Maire, Adjoint, Conseiller municipal)
+        quote: true
+        data_type: text
+
+      - name: "Libellé de la nuance du mandat"
+        description: Nuance politique associée à l’élu (appartenance ou tendance politique)
+        quote: true
+        data_type: text
+
+      - name: "Type de la fonction"
+        description: |
+          Type de mandat de l’élu au niveau communal (ici: Municipal)
+        quote: true
+        data_type: text
+
+      - name: "Date de début du mandat"
+        description: Date officielle de prise de fonction pour le mandat actuel
+        quote: true
+        data_type: date
+
+      - name: "Date de début de la fonction"
+        description: Date de début d’occupation de la fonction actuelle de l’élu
+        quote: true
+        data_type: date
+
+      - name: "Genre de l’élu"
+        description: Genre déclaré de l’élu (F = Femme, M = Homme)
+        quote: true
+        data_type: text
+
+      - name: "Code de la région"
+        description: Code INSEE de la région à laquelle appartient la commune
+        quote: true
+        data_type: text
+
+      - name: "Code du département"
+        description: Code INSEE du département auquel appartient la commune
+        quote: true
+        data_type: text
+  - name: gold_presentation_elu_dep
+    description: |
+      Table de présentation des élus départementaux enrichie avec les nuances politiques.
+      Ce modèle regroupe les élus au niveau des conseils départementaux et ajoute
+      leur appartenance politique via la dimension de nuance politique.
+    columns:
+      - name: "CODGEO"
+        description: Code officiel INSEE du département
+        quote: true
+        data_type: text
+
+      - name: "LIBGEO"
+        description: Nom officiel du département
+        quote: true
+        data_type: text
+
+      - name: "Prénom de l’élu"
+        description: Prénom de l’élu tel que déclaré dans les données officielles
+        quote: true
+        data_type: text
+
+      - name: "Nom de l’élu"
+        description: Nom de famille de l’élu tel que déclaré dans les données officielles
+        quote: true
+        data_type: text
+
+      - name: "Nom de la fonction"
+        description: Fonction occupée au sein du conseil départemental
+        quote: true
+        data_type: text
+
+      - name: "Libellé de la nuance du mandat"
+        description: Nuance politique associée à l’élu (tendance ou appartenance politique)
+        quote: true
+        data_type: text
+
+      - name: "Type de la fonction"
+        description: |
+          Type de mandat départemental exercé par l’élu (ici: Départemental)
+        quote: true
+        data_type: text
+
+      - name: "Date de début du mandat"
+        description: |
+          Date officielle de prise de fonction de l’élu pour le mandat en cours
+        quote: true
+        data_type: date
+
+      - name: "Date de début de la fonction"
+        description: |
+          Date de début d’exercice de la fonction spécifique par l’élu
+        quote: true
+        data_type: date
+
+      - name: "Genre de l’élu"
+        description: Genre de l’élu (F = Femme, M = Homme)
+        quote: true
+        data_type: text
+
+      - name: "Code de la région"
+        description: Code officiel INSEE de la région à laquelle est rattaché le département
+        quote: true
+        data_type: text
