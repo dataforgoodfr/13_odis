@@ -129,6 +129,10 @@ sources:
         description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
         loaded_at_field : created_at
 
+      - name: population_population_totale
+        description: Source JSON loadée dans le champ data 
+        loaded_at_field: created_at
+
       - name: population_categorie_socio_pro
         description: Source JSON loadée dans le champ data 
         loaded_at_field: created_at
