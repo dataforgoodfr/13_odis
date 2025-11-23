@@ -620,6 +620,23 @@ domains:
           data: observations
           next: paging.next
           is_last: paging.isLast
+
+      population_totale:
+        API: INSEE.Melodi
+        description: recuperation des populations communale et totale des communes
+        type: MelodiExtractor
+        endpoint: /data/DS_POPULATIONS_REFERENCE
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2022
+          GEO: ["COM"]
+          POPREF_MEASURE: ["PMUN", "PTOT"]
+          page: 1
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
       
       categorie_socio_pro:
         API: INSEE.Melodi
