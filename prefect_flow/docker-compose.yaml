@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: prefect
+      POSTGRES_PASSWORD: prefect
+      POSTGRES_DB: prefect
+    ports:
+      - "5432:5432"
