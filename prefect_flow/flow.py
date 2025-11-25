@@ -1,4 +1,4 @@
-# src/prefect_flow/flow.py
+# prefect_flow/flow.py
 
 from prefect import flow, task
 from pipeline.extract_service import run_extraction
@@ -23,28 +23,48 @@ def prefect_load(config, ds):
 
 @task
 def prefect_dbt_run():
-    subprocess.run(["dbt", "run"], check=True)
+    subprocess.run(["dbt", "run"], check=True, capture_output=True, text=True)
 
 
 @flow
 async def full_pipeline(config_path: str, max_concurrency: int = 4):
     config = load_config(config_path, response_model=DataSourceModel)
 
-    # 1. Extraction : on lance toutes les tasks Prefect en parallèle
+    # Extraction en parallèle
     extract_tasks = [
         prefect_extract.submit(config, ds, max_concurrency)
         for ds in config.get_models().values()
     ]
+    await asyncio.gather(*extract_tasks)
 
-    # On doit attendre les tasks via leur future Prefect
-    await asyncio.gather(*(t.wait_for_completion() for t in extract_tasks))
-
-    # 2. Génération sources dbt
     generate_dbt_sources(config_path)
 
-    # 3. Load dans PostgreSQL
-    for ds in config.get_models().values():
+    # Load
+    load_tasks = [
         prefect_load.submit(config, ds)
+        for ds in config.get_models().values()
+    ]
 
-    # 4. dbt run
+    # dbt run
     prefect_dbt_run.submit()
+
+if __name__ == "__main__":
+    full_pipeline.serve(
+        name="full_pipeline",
+        parameters={
+            "config_path": "datasources.yaml",
+            "max_concurrency": 4,
+        },
+        tags=["local"],
+    ).apply()
+
+
+    ####################### SANS UI
+    #import asyncio
+
+    #asyncio.run(
+    #    full_pipeline(
+    #        config_path="datasources.yaml",
+    #        max_concurrency=4,
+    #    )
+    #)
