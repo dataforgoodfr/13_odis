@@ -503,3 +503,11 @@ models:
         description: Nombre de restaurants ou restauration rapide dans la zone géographique identifiée
         data_type: double precision
         quote: true
+  - name: gold_presentation_population_communes
+    description: Table contenant le nombre d'habitants par communes. Les grandes villes sont considérées à l'échelle de la commune, pas de l'arrondissement.
+    columns:
+      - name: codgeo
+        description: Code INSEE de la commune (différent du code postal)
+        data_type: text
+        tests:
+          - assert_big_cities_exist
