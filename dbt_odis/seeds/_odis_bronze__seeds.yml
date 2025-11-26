@@ -51,3 +51,16 @@ seeds:
         Intitulé_FAP86: text
         Code_FAP22: text
         Intitulé_FAP22: text
+  - name: insee_top_50_communes_par_habitants
+    description: "50 communes françaises principales par nombre d'habitants."
+    config:
+      quote_columns: true 
+      delimiter: ';'
+      column_types:
+        AGE: text
+        GEO: text
+        GEO_OBJECT: text
+        RP_MEASURE: text
+        SEX: text
+        TIME_PERIOD: float
+        OBS_VALUE: float

@@ -511,3 +511,7 @@ models:
         data_type: text
         tests:
           - assert_big_cities_exist
+      - name: population_totale
+        description: Population totale de la commune d'après les données INSEE
+        data_type: float
+
