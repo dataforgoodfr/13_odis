@@ -47,11 +47,12 @@ class MelodiExtractor(FileExtractor):
 
         is_last = False
         url = self.url
+        is_first_page = True
 
         while not is_last:
 
             # yield the request result
-            result = await self.download_page(url)
+            result = await self.download_page(url, is_first_page)
 
             is_last = result.is_last
 
@@ -60,12 +61,13 @@ class MelodiExtractor(FileExtractor):
                 await asyncio.sleep(60 / self.api_config.throttle)
 
                 url = result.next_url
+                is_first_page = False
 
                 logger.debug(f"Next page: {result.next_url}")
 
             yield result
 
-    async def download_page(self, url: str) -> ExtractionResult:
+    async def download_page(self, url: str, is_first_page: bool = False) -> ExtractionResult:
         """Downloads data corresponding to the given source model.
         The parameters of the request (URL, headers etc) are set using the inherited set_query_parameters method.
         """
@@ -73,6 +75,12 @@ class MelodiExtractor(FileExtractor):
         # if url has a query string, ignore the dict-defined parameters
         url_querystr = urllib.parse.urlparse(url).query
         passed_params = self.model.extract_params if url_querystr == "" else None
+
+        # For INSEE Melodi API: add page=1 for first request if not already present
+        # This ensures the API returns proper pagination metadata (next, isLast)
+        if is_first_page and passed_params is not None and "page" not in passed_params:
+            passed_params = {**passed_params, "page": 1}
+
         # logger.info(f"querying '{url}'")
 
         success = False
