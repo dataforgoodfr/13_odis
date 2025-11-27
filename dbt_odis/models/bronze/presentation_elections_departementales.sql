@@ -1,5 +1,5 @@
 {{ config(
-    tags = ['bronze', 'presentation'],
+    tags = ['bronze', 'presentation','elu'],
     alias = 'vw_presentation_elections_departementales'
     )
 }}

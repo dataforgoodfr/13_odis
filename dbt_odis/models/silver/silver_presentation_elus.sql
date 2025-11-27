@@ -1,19 +1,14 @@
 {{ config(
     tags = ['silver', 'presentation','elu'],
+    alias = 'silver_presentation_elus'
     )
 }}
 
 with ajout_nuance_par_codego as (
     select
-        case
-            when elus.libelle_de_la_fonction = 'Maire' 
-                then elus.com_code 
-            when elus.libelle_de_la_fonction = 'Président du conseil départemental' 
-                then dep_code 
-            when elus.libelle_de_la_fonction = 'Président du conseil régional' 
-                then concat('reg', elus.reg_code) 
-            else 'erreur' 
-        end as codgeo,
+        elus.com_code,
+        elus.dep_code,
+        elus.reg_code,
         elus.prenom_de_l_elu,
         elus.nom_de_l_elu,
         elus.libelle_de_la_fonction,
@@ -24,7 +19,6 @@ with ajout_nuance_par_codego as (
                 then nuance_dep.libelle_nuance
             when elus.libelle_de_la_fonction = 'Président du conseil régional' 
                 then nuance_reg.libelle_nuance
-            else 'erreur' 
         end as libelle_nuance
     from {{ ref ("silver_presentation_elus_communes") }} as elus
     left join {{ ref ("silver_presentation_dim_nuance_politique_reg") }} as nuance_reg
