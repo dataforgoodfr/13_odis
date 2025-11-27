@@ -16,7 +16,7 @@ nuance_libelle as (
     select
         unique_code_nuance.nom,
         unique_code_nuance.prenom,
-        lpad(unique_code_nuance.code_officiel_region::numeric::text, 2, '0') as code_officiel_region,
+        code_officiel_region,
         unique_code_nuance.code_nuance,
         corresp_codes_nuances.libelle as libelle_nuance
     from unique_code_nuance
