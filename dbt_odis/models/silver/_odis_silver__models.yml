@@ -1086,45 +1086,103 @@ models:
         data_type: text
   
   - name: silver_presentation_elus_communes
-    description: "Silver model providing standardized information about elected officials filtered by function type (Municipal, Departmental, Regional)."
+    description: |
+      Filtre des résultats des élections sur les types de fonctions:
+
+      - municipaux
+      - départementaux
+      - régionaux 
     columns:
       - name: prenom_de_l_elu
-        description: "First name of the elected official."
+        description: "Prénom de l'élu ou de la personne titulaire de la fonction."
       - name: nom_de_l_elu
-        description: "Last name of the elected official."
+        description: "Nom de famille de l'élu ou de la personne titulaire de la fonction."
       - name: libelle_de_la_fonction
-        description: "Label describing the elected official's function."
+        description: "Intitulé précis de la fonction ou du mandat exercé (ex: 'Maire', 'Conseiller municipal', 'Vice-Président')."
       - name: type_de_la_fonction
-        description: "Type of function based on source filename (Municipal, Departmental, or Regional)."
+        description: "Niveau de l'élection ou du mandat (filtré sur 'Municipal', 'Départemental', ou 'Régional'). Cette colonne est renommée depuis la colonne source 'filename'."
       - name: date_de_debut_du_mandat
-        description: "Start date of the elected official's mandate."
+        description: "Date de début du mandat électoral (date des élections)."
       - name: date_de_debut_de_la_fonction
-        description: "Start date of the elected official's function."
+        description: "Date de début de l'exercice de la fonction actuelle."
       - name: code_sexe
-        description: "Gender code of the elected official."
+        description: "Code représentant le sexe de l'élu (généralement 'M' ou 'F')."
       - name: reg_code
-        description: "Region code where the elected official exercises their mandate."
-      - name: dep_code
-        description: "Department code where the elected official exercises their mandate."
-      - name: com_code
-        description: "Commune code where the elected official exercises their mandate."
+        description: "Code officiel de la région administrative."
       - name: reg_name
-        description: "Region name where the elected official exercises their mandate."
+        description: "Nom de la région administrative."
+      - name: dep_code
+        description: "Code officiel du département."
       - name: dep_name
-        description: "Department name where the elected official exercises their mandate."
+        description: "Nom du département."
+      - name: com_code
+        description: "Code officiel de la commune (Code Insee)."
       - name: com_name
-        description: "Commune name where the elected official exercises their mandate."
+        description: "Nom de la commune."
   
-  - name: silver_presentation_elus_dim_nuance_politique
+  - name: silver_presentation_dim_nuance_politique_com
     description: |
-      Silver model adding political nuance label to elected officials based on municipal election results.  
-      Select the most recent record base in ID if an elected officials have different nuances over time.
+      Table de dimension regroupant, de manière unique, la nuance politique des candidats aux élections municipales.  
+      Elle enrichit le code de nuance politique (issu de `presentation_elections_municipales`) avec son libellé complet grâce au seed de correspondance (`corresp_codes_nuances`).
     columns:
       - name: nom
-        description: "Last name of the elected official."
+        description: "Nom de famille du candidat aux élections municipales."
       - name: prenom
-        description: "First name of the elected official."
+        description: "Prénom du candidat aux élections municipales."
+      - name: code_officiel_commune
+        description: "Code Insee officiel de la commune concernée par l'élection."
       - name: code_nuance
-        description: "Political nuance or party code associated with the elected official."
+        description: "Code court de la nuance politique du candidat (ex: LR, RN, LFI, DIV)."
       - name: libelle_nuance
-        description: "Label or description of the political nuance, joined from the correspondence table."
+        description: "Jointure avec la table de correspondance (`corresp_codes_nuances`)."
+  
+  - name: silver_presentation_dim_nuance_politique_dep
+    description: |
+      Table de dimension regroupant, de manière unique, la nuance politique des binômes candidats aux élections départementales.  
+      Elle enrichit le code de nuance politique (issu de `presentation_elections_departemenales`) avec son libellé complet grâce au seed de correspondance (`corresp_codes_nuances`).
+    columns:
+      - name: nom
+        description: "Nom de famille du candidat (membre du binôme) aux élections départementales."
+      - name: prenom
+        description: "Prénom du candidat (membre du binôme) aux élections départementales."
+      - name: code_officiel_du_departement
+        description: "Code officiel du département concerné par l'élection."
+      - name: code_nuance
+        description: "Code court de la nuance politique du binôme (ex: LR, RN, LFI, DIV). Correspond à la colonne source `nuance_binome`."
+      - name: libelle_nuance
+        description: "Libellé complet de la nuance politique, obtenu par jointure avec la table de correspondance (`corresp_codes_nuances`)."
+
+  - name: silver_presentation_dim_nuance_politique_reg
+    description: |
+      Table de dimension regroupant, de manière unique, la nuance politique des têtes de liste aux élections régionales.  
+      Attention il faut spliter le champ 'nom_tete_de_liste' pour obtenir le nom et le prénom séparément.
+    columns:
+      - name: nom
+        description: "Nom de famille de la tête de liste. Calculé à partir du champ 'nom_tete_de_liste' de la source."
+      - name: prenom
+        description: "Prénom de la tête de liste. Calculé à partir du champ 'nom_tete_de_liste' de la source."
+      - name: code_officiel_region
+        description: "Code officiel de la région concernée par l'élection, potentiellement normalisé."
+      - name: code_nuance
+        description: "Code court de la nuance politique de la liste (ex: LR, PS, EELV). Provient de 'nuance_liste' dans la source."
+      - name: libelle_nuance
+        description: "Libellé complet de la nuance politique, obtenu par jointure avec la table de correspondance (`corresp_codes_nuances`)."
+  - name: silver_presentation_elus
+    description: |
+      Modèle Silver qui joint les informations des élus avec leur nuance politique respective au niveau communal, départemental ou régional.  
+      La jointure est effectuée uniquement pour les fonctions de leadership (Maire, Président du Conseil Départemental/Régional).
+    columns:
+      - name: com_code
+        description: "Code Insee officiel de la commune. Renseigné pour tous les enregistrements, mais utilisé pour la jointure de la nuance politique uniquement pour les **Maires**."
+      - name: dep_code
+        description: "Code officiel du département. Utilisé pour la jointure de la nuance politique uniquement pour les **Présidents du conseil départemental**."
+      - name: reg_code
+        description: "Code officiel de la région. Utilisé pour la jointure de la nuance politique uniquement pour les **Présidents du conseil régional**."
+      - name: prenom_de_l_elu
+        description: "Prénom de l'élu."
+      - name: nom_de_l_elu
+        description: "Nom de famille de l'élu."
+      - name: libelle_de_la_fonction
+        description: "Intitulé de la fonction exercée. Le modèle est filtré pour ne conserver que : 'Maire', 'Président du conseil départemental' et 'Président du conseil régional'."
+      - name: libelle_nuance
+        description: Libellé de la nuance politique de l'élu
