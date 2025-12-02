@@ -37,6 +37,7 @@ papermill = "^2.6.0"
 typer = "^0.15.2"
 aiohttp = {extras = ["speedups"], version = "^3.11.18"}
 sqlalchemy = "^2.0.41"
+prefect = "^3.6.2"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.1.0"
