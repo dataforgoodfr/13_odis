@@ -149,6 +149,10 @@ sources:
         description: Source CSV
         loaded_at_field: created_at
 
+      - name: population_population_superficie
+        description: Source JSON loadée dans le champ data contenant des données sur la superficie et la population par codegeo et année.
+        loaded_at_field: created_at
+
       - name: population_taux_pauvrete_communes_filo2021_disp_pauvres_com
         description: Source CSV, taux de pauvrete au niveau de la commune par seuil
         loaded_at_field: created_at
