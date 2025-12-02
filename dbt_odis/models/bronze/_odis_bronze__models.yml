@@ -3702,6 +3702,7 @@ models:
 
   - name: presentation_page_population_communes
 
+  # Population
   - name: population_categorie_socio_pro
     description: Extraction du JSON source CSP par population
     columns:
@@ -3728,8 +3729,6 @@ models:
       - name: measures_obs_value_niveau_value
         description: nombre mesuré du type d'habitation = appartement par zone géographique et par année
         data_type: text
-
-  # Population
 
   - name: population_by_age
     description: Répartition de la population par tranches d'âge
@@ -3812,7 +3811,7 @@ models:
       - name: nivgeo
         description: |-
           Niveau de granularité géographique.
-          Pour ce dateset, une seul valeur possible :
+          Pour ce dateset, une seule valeur possible :
           COM = Commune
         data_type: text
       - name: codgeo
@@ -3832,3 +3831,31 @@ models:
       - name: nb
         description: TBD
         data_type: float
+
+      - name: population_population_superficie
+        description: |-
+          Extraction du fichier JSON regroupant les données historiques du recensement de la population.
+        columns:
+          - name: id
+            description: index
+            data_type: integer
+          - name: geo
+            description: |-
+              Union de l'année, du niveau et du code géographique.
+              e.g. 2025-COM-01001.
+              L'année correspond à l'année de définition du code géographique par l'insee.
+            data_type: text
+          - name: ocs
+            description: |-
+              Catégorie du logement ("_T" pour total).
+            data_type: text
+          - name: freq
+            description: Intervalle de temps séparant deux observations.
+            data_type: integer
+          - name: rp_measure
+            description: Indicateur d'intérêt.
+            data_type: text
+          - name: time_period
+            description: |-
+              Période ou point dans le temps auquel l'observation se réfère effectivement.
+            data_type: int

@@ -457,6 +457,7 @@ models:
       - name: f90p
         description: population de femmes de 90 ou plus
         data_type: numeric
+
   - name: gold_services
     description: Table recensant les nombres de services identifiés d'une zone géographique identifiée
     columns:
@@ -503,3 +504,16 @@ models:
         description: Nombre de restaurants ou restauration rapide dans la zone géographique identifiée
         data_type: double precision
         quote: true
+
+  - name: gold_population_densite
+    description: Densité de population associée aux codes géographiques (communes, départements, régions), par année.
+    columns:
+      - name: codegeo
+        description: code géographique
+        data_type: text
+      - name: year
+        description: année de la mesure
+        data_type: text
+      - name: densite
+        description: densité de population, nombre d'habitants au kilomètre carré
+        data_type: numeric
