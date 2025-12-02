@@ -8,7 +8,7 @@ from common.utils.factory.extractor_factory import create_extractor
 from common.utils.file_handler import FileHandler
 from common.utils.http.async_client import AsyncHttpClient
 from common.utils.logging_odis import logger
-
+from prefect.logging import get_run_logger
 
 async def run_extraction(
     config_model: DataSourceModel,
@@ -21,10 +21,13 @@ async def run_extraction(
     """
     start_time = time.time()
     http_client = AsyncHttpClient(max_connections=max_concurrent_requests)
+    logger_prefect  = get_run_logger()
 
     tasks = []
     for ds in data_sources:
         logger.info(f"[extract] preparing extractor for {ds.name}")
+        logger_prefect.info(f"[extract] preparing extractor for {ds.name}")
+
         extractor = create_extractor(
             config_model, ds, http_client=http_client, handler=FileHandler()
         )
@@ -37,9 +40,12 @@ async def run_extraction(
     if errors:
         for err in errors:
             logger.error(f"[extract] error: {err}")
+            logger_prefect.error(f"[extract] error: {err}")
+
         raise RuntimeError(f"{len(errors)} extraction errors occurred")
 
     elapsed = time.time() - start_time
     logger.info(f"[extract] completed in {elapsed:.2f}s for {len(data_sources)} sources")
+    logger_prefect.info(f"[extract] completed in {elapsed:.2f}s for {len(data_sources)} sources")
 
     return results

@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import os
-
 from common.config import load_config
 
 # Using classic logger for now. TODO : use python-json-logger
