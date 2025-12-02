@@ -860,3 +860,20 @@ models:
       - name: f90p
         description: population de femmes de 90 ou plus
         data_type: numeric
+  
+  - name: silver_population_nb_menages
+    description: Table nettoyée contenant la taille de chaque ménage en nombre d'occupant par commune,
+      et par la catégorie socioprofessionnelle de la personne de référence.
+    columns: 
+      - name: codgeo
+        description: Code de la commune
+        data_type: text
+      - name: YEAR
+        description: TBD
+        data_type: numeric
+      - name: Nb_Menages
+        descritpion: TBD
+        data_type: numeric
+      - name: NB_Occ_Moyen
+        description: TBD
+        data_type: numeric

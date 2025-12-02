@@ -118,6 +118,6 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
-
-
-      
+      - name: vw_population_nb_menages
+        description: View contenant
+        loaded_at_field: created_at

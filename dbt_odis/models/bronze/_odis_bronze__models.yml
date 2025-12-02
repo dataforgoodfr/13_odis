@@ -3724,36 +3724,37 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
-  - name: population_menages_2021
+  - name: population_menages_td_men1_2021
     description: |-
       Extraction du fichier CSV "MEN1" fourni par l'INSEE. Millésime 2021.
       Taille ( = nb d'occupants) de chaque ménage par commune,
       et par la catégorie socioprofessionnelle de la personne de référence.
     columns:
-      - name: id
+      - name: index
         description: index
         data_type: integer
-      - name: nivgeo
+      - name: NIVGEO
         description: |-
           Niveau de granularité géographique.
           Pour ce dateset, une seul valeur possible :
           COM = Commune
         data_type: text
-      - name: codgeo
+      - name: CODGEO
         description: |-
           Code d'identification géographique.
-          En l'occurrence, code postal de la commune
+          En l'occurrence, code commune
         data_type: text
-      - name: bpe_measure
-        description: FACILITIES = services
+      - name: LIBGEO
+        description: Libellé de la commune
         data_type: text
-      - name: nbperc
-        description: Taille du foyer (nombre de personnes)
+      - name: NPERC
+        description: |-
+          Taille du foyer (en nombre de personnes entre 1 et 6+)
         data_type: integer
-      - name: cs2_24
+      - name: CS2_24
         description: CSP générale de la personne de référence du ménage
         data_type: text
-      - name: nb
-        description: TBD
+      - name: NB
+        description: Nombre de foyers dans la ville
         data_type: float
 
