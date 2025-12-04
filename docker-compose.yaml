@@ -13,13 +13,13 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
-    restart: no
+    restart: 'no'
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: 'False'           # désactive le mode multi-utilisateur
+      PGADMIN_CONFIG_SERVER_MODE: 'False' # désactive le mode multi-utilisateur
       PGADMIN_CONFIG_AUTHENTICATION_SOURCES: '["internal"]'
-      PGADMIN_CONFIG_ALLOW_SAVE_PASSWORD: 'True'    # optionnel
+      PGADMIN_CONFIG_ALLOW_SAVE_PASSWORD: 'True' # optionnel
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
     ports:
       - "5050:80"
