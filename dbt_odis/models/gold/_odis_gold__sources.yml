@@ -51,7 +51,7 @@ sources:
         description: Table contenant
         loaded_at_field: created_at
 
-      - name: silver_population_population_superficie
+      - name: stg_population_population_superficie
         description: Table contenant population et superficie par code géographique et année.
         loaded_at_field: created_at
 

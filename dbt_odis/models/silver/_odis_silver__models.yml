@@ -1086,23 +1086,23 @@ models:
         description: Code INSEE officiel pour les 3 niveaux géographiques
         data_type: text
 
-  - name: silver_population_population_superficie
+  - name: stg_population_population_superficie
     description: population et superficie (mètres carrés) par codegeo et année
     columns:
       - name: codegeo_year
-        description: Année d'établissement du codegeo
+        description: Année d'établissement du codegeo.
         data_type: text
       - name: codegeo_type
-        description: type de zone géographique
+        description: type de code géographique, ne contient pas les arrondissements (COM, DEP, REG).
         data_type: text
       - name: codegeo
-        description: code géographique
+        description: code géographique.
         data_type: text
       - name: year
-        description: année de la mesure
+        description: année de la mesure.
         data_type: text
       - name: population
-        description: population en nombre d'habitants
+        description: population en nombre d'habitants.
         data_type: integer
       - name: superficie
-        description: superficie en mètres carrés
+        description: superficie en mètres carrés.
