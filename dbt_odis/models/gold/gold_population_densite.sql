@@ -5,14 +5,17 @@
 
 with densite as (
     select
-        codegeo,
+        -- ajout d'un prefix pour les regions car on pourrait les confondre avec les departements
+        case
+            when codegeo_type = 'REG' then concat('reg', codegeo) else codegeo end
+        as codegeo,
         "year",
         population,
         superficie,
-        cast(round(population / nullif(superficie * 1e-2, 0), 0) as int) as densite -- densite au km carré, mais superficie exprimée en m2
-    from {{ ref('silver_population_population_superficie') }}
-    where codegeo_type in ('COM', 'REG', 'DEP') -- niveaux requis d'après la documentation Jaccueille
-    and ocs = '_T' -- population totale
+        -- densite au km2, mais superficie exprimee en m2
+        cast(round(population / nullif(superficie * 1e-2, 0), 0) as int) as densite
+    from {{ ref('stg_population_population_superficie') }}
+    where "year" = '2022'
 )
 
 select * from densite

@@ -3834,14 +3834,14 @@ models:
 
       - name: population_population_superficie
         description: |-
-          Extraction du fichier JSON regroupant les données historiques du recensement de la population.
+          Extraction de fichiers JSON avec données historiques population et superficie des territoires.
         columns:
           - name: id
             description: index
             data_type: integer
           - name: geo
             description: |-
-              Union de l'année, du niveau et du code géographique.
+              Union de année - type de code - code géographique.
               e.g. 2025-COM-01001.
               L'année correspond à l'année de définition du code géographique par l'insee.
             data_type: text

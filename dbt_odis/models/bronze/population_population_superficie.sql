@@ -4,7 +4,7 @@
     )
 }}
 
-with pop_superficie as
+with population_superficie as
 (
     select
         id,
@@ -23,4 +23,4 @@ with pop_superficie as
 
 )
 
-select * from pop_superficie
+select * from population_superficie

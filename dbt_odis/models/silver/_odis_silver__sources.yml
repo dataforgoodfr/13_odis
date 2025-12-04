@@ -124,5 +124,5 @@ sources:
         loaded_at_field: created_at
 
       - name: vw_population_population_superficie
-        description: View contenant des mesures de recensement associées aux codes géographiques, dont la population et la superficie.
+        description: View contenant une mesure de recensement (superficie ou population) associée aux codes géographiques.
         loaded_at_field: created_at
