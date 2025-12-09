@@ -612,8 +612,7 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          startPeriod: "2009-01-01"
-          endPeriod: "2025-10-01"
+          TIME_PERIOD: 2022
           GEO: ["COM","DEP","REG"]
           RP_MEASURE: ["POP","SUP"]
           OCS: "_T"

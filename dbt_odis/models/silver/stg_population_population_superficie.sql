@@ -1,10 +1,10 @@
 {{ config(
     tags=['silver', 'population'],
-    alias='stg_population_population_superficie',
+    alias='vw_population_population_superficie_stg',
     materialized='view'
 ) }}
 
-with pop_superficie as
+with pivot_pop_sup as
 (
     select
         split_part("geo", '-', 1) as codegeo_year,
@@ -25,4 +25,4 @@ with pop_superficie as
         time_period
 )
 
-select * from pop_superficie
+select * from pivot_pop_sup

@@ -3841,13 +3841,13 @@ models:
             data_type: integer
           - name: geo
             description: |-
-              Union de année - type de code - code géographique.
+              Union année code - type de code - code géographique.
               e.g. 2025-COM-01001.
               L'année correspond à l'année de définition du code géographique par l'insee.
             data_type: text
           - name: ocs
             description: |-
-              Catégorie du logement ("_T" pour total).
+              Catégorie du logement (seulement "_T", pour total).
             data_type: text
           - name: freq
             description: Intervalle de temps séparant deux observations.
@@ -3858,4 +3858,8 @@ models:
           - name: time_period
             description: |-
               Période ou point dans le temps auquel l'observation se réfère effectivement.
-            data_type: int
+            data_type: text
+          - name: measure_value
+            description: |-
+              Valeur de l'indicateur d'intérêt.
+            data_type: text

@@ -505,7 +505,7 @@ models:
         data_type: double precision
         quote: true
 
-  - name: gold_population_densite
+  - name: vw_population_densite
     description: Densité de population associée aux codes géographiques (communes, départements, régions), par année.
     columns:
       - name: codegeo
