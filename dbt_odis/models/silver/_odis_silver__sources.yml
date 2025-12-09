@@ -120,9 +120,9 @@ sources:
         loaded_at_field: created_at
 
       - name: vw_population_by_age_gender
-        description: View contenant
+        description: Vue contenant la population par tranche d'âge et genre.
         loaded_at_field: created_at
 
       - name: vw_population_categorie_socio_pro
-        description: View contenant la population totale associée aux différentes catégories socio-professionnelles.
+        description: Vue contenant la population associée aux différentes catégories socio-professionnelles.
         loaded_at_field: created_at      

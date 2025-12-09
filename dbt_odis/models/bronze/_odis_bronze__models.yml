@@ -3724,28 +3724,29 @@ models:
   - name: population_categorie_socio_pro
     description: Extraction du JSON source CSP par population
     columns:
-      - name: 
+      - name: age
         description: Segmentation âge
-        data_type: integer
-      - name: dimensions_geo
-        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
         data_type: text
-        tests:
-          - not_null
-      - name: dimensions_pcs
+      - name: geo
+        description: |-
+          Union année code - type de code - code géographique.
+          e.g. 2025-COM-01001.
+          L'année correspond à l'année de définition du code géographique par l'insee.
+        data_type: text
+      - name: pcs
+        description: catégorie socio-professionnelle (de 1 à 9, 8 - étudiants non renseigné en 2022).
+        data_type: text
+      - name: sex
         description: _
         data_type: text
-      - name: dimensions_sex
-        description: _
+      - name: rp_measure
+        description: Indicateur d'intérêt.
         data_type: text
-      - name: dimensions_rp_measure
-        description: _
+      - name: time_period
+        description: Période ou point dans le temps auquel l'observation se réfère effectivement.
         data_type: text
-      - name: dimensions_time_period
-        description: Période temporelle en année de mesure de la donnée
-        data_type: text
-      - name: measures_obs_value_niveau_value
-        description: nombre mesuré du type d'habitation = appartement par zone géographique et par année
+      - name: measure_value
+        description: Valeur de l'indicateur d'intérêt.
         data_type: text
 
   # Population
@@ -3788,33 +3789,27 @@ models:
       - name: id
         description: index
         data_type: integer
-      - name: dimensions_GEO
-        description: unité géographique (REG, DEP, COM)
-        data_type: text
-      - name: dimensions_SEX
+      - name: geo
         description: |-
-          Filtre par genre (H/F et cis/trans).
-          _T = total tout confondu
-          H = Homme (all)
-          F = Femme (all)
-          H_cis = Homme cis
-          F_cis = Femme cis
-          TS = Personne trans
+          Union année code - type de code - code géographique.
+          e.g. 2025-COM-01001.
+          L'année correspond à l'année de définition du code géographique par l'insee.
         data_type: text
-      - name: dimensions_AGE
-        description: filtre par âge
+      - name: sex
+        description: _
         data_type: text
-      - name: dimensions_TIME_PERIOD
-        description: Période temporelle (millésime) de la donnée
+      - name: age
+        description: tranche d'âge.
         data_type: text
-      - name: dimensions_EP_MEASURE
-        description: |-
-          Type de mesure.
-          POP = effectif de population
+      - name: rp_measure
+        description: Indicateur d'intérêt.
         data_type: text
-      - name: measures_OBS_VALUE_NIVEAU_value
-        description: valeur numérique
-        data_type: integer
+      - name: time_period
+        description: Période ou point dans le temps auquel l'observation se réfère effectivement.
+        data_type: text
+      - name: measure_value
+        description: Valeur de l'indicateur d'intérêt.
+        data_type: text
       - name: created_at
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
@@ -3851,41 +3846,3 @@ models:
       - name: nb
         description: TBD
         data_type: float
-
-      - name: population_categorie_socio_pro
-        description: |-
-          Extraction du fichier JSON avec répartition de la population par catégorie socio-professionnelle.
-        columns:
-          - name: id
-            description: index
-            data_type: integer
-          - name: geo
-            description: unité géographique (REG, DEP, COM)
-            data_type: text
-          - name: dimensions_SEX
-            description: |-
-              Filtre par genre (H/F et cis/trans).
-              _T = total tout confondu
-              H = Homme (all)
-              F = Femme (all)
-              H_cis = Homme cis
-              F_cis = Femme cis
-              TS = Personne trans
-            data_type: text
-          - name: dimensions_AGE
-            description: filtre par âge
-            data_type: text
-          - name: dimensions_TIME_PERIOD
-            description: Période temporelle (millésime) de la donnée
-            data_type: text
-          - name: dimensions_EP_MEASURE
-            description: |-
-              Type de mesure.
-              POP = effectif de population
-            data_type: text
-          - name: measures_OBS_VALUE_NIVEAU_value
-            description: valeur numérique
-            data_type: integer
-          - name: created_at
-            description: date d'extraction de la donnée
-            data_type: timestamp without time zone
