@@ -328,14 +328,13 @@ domains:
           maxResult: 10000
           # TIME_PERIOD: 2021
           startPeriod: "2009-01-01"
-          endPeriod: "2025-01-01"
+          endPeriod: "2025-10-01"
           GEO: # géographies
             - COM # communes
             - DEP # départements
             - REG # régions
           RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH: # statut d'occupation du logement
@@ -369,11 +368,11 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH: # statut d'occupation du logement
@@ -402,11 +401,11 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH:
@@ -432,11 +431,11 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH:
@@ -462,11 +461,11 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS_ROOMS # nombre de pièces
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH: # statut d'occupation du logement
@@ -547,7 +546,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2023
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM","REG","DEP"]
           FACILITY_TYPE: ["A122", "A128", "A203", "A206", "A208","A304","A501","A503", "A504"]
         response_map:

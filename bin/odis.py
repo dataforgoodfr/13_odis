@@ -152,7 +152,7 @@ async def extract_data_sources(
         )
 
         for exc in tasks_exceptions:
-            logger.error(f"Error: {exc}")
+            logger.exception(f"Error during extraction: {exc}", exc_info=exc)
 
         # exit with a non-zero status code
         # to indicate that there was an error
