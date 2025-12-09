@@ -296,6 +296,15 @@ domains:
         name: excelfile_dfload
         type: notebook
 
+    geocodes_passage_annuel:
+      API: Opendatasoft
+      description: Table de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)
+      type: FileExtractor
+      endpoint: /catalog/datasets/georef-france-matching-code/exports/csv?use_labels=true
+      format: csv
+      load_params:
+        separator: ;
+
   accueil:
 
     cada_cph_huda:
@@ -550,7 +559,7 @@ domains:
         
   population:
       
-
+      # todo: update with real data not estimation
       by_age:
         API: INSEE.Melodi
         description: Répartition de la population par tranches d'âge
@@ -568,25 +577,21 @@ domains:
 
       by_age_gender:
         API: INSEE.Melodi
-        description: Répartition de la population par tranches d'âge et par genre (M/F, Cis/Trans)
+        description: Répartition de la population par tranches d'âge et par genre
         type: MelodiExtractor
-        endpoint: /data/DS_ESTIMATION_POPULATION # Dataset des estimations de population de l'INSEE
+        endpoint: /data/DS_RP_POPULATION_PRINC # recensement données principales
         format: json
         extract_params:
           maxResult: 10000
-          SEX:
-            - M # Hommes (all)
-            - M_cis # Hommes cis
-            - F # Femmes (all)
-            - F_cis # Femmes cis
-            - TS # Personnes Trans
-            - _Z # 'Non Applicable' 
-          EP_MEASURE: POP # Prendre uniquement la mesure de population
+          TIME_PERIOD: 2022
+          SEX: ["M", "F", "_T"]
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: POP
         response_map:
           data: observations
           next: paging.next
           is_last: paging.isLast
-      
+#
       # repartition_sexe_age:
       #   API: INSEE.Melodi
       #   description: repartition de la population par sexe et par tranche d'age
@@ -612,7 +617,7 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: 2022
           GEO: ["COM","DEP","REG"]
           RP_MEASURE: ["POP","SUP"]
           OCS: "_T"
@@ -629,12 +634,12 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: 2022
           GEO: ["COM","DEP","REG"]
           SEX: "_T"
           RP_MEASURE: "POP"
-          AGE: "Y_GE15"
-          PCS: ["1","2","3","4","5","6","7","9"]
+          AGE: "Y_GE15" # 15 years old or more
+          PCS: ["1", "2", "3", "4", "5", "6", "7", "9", "_T"] # 8 was excluded (students), added it back just in case
         response_map:
           data: observations
           next: paging.next

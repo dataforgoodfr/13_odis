@@ -47,7 +47,7 @@ sources:
         description: Table contenant
         loaded_at_field: created_at 
 
-      - name: silver_population_by_age_gender
+      - name: stg_population_by_age_gender
         description: Table contenant
         loaded_at_field: created_at
 

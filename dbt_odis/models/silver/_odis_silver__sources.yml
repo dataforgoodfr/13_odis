@@ -23,6 +23,10 @@ sources:
         description: View contenant les informations de références des arrondissements
         loaded_at_field: created_at
 
+      - name: vw_geographical_references_geocodes_passage_annuel
+        description: View de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)
+        loaded_at_field: created_at
+
       - name: vw_education_moyenne_eleve_commune
         description: View contenant
         loaded_at_field: created_at
@@ -119,8 +123,6 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
-
-
       - name: vw_population_categorie_socio_pro
-        description: View contenant les informations de références des communes
+        description: View contenant la population totale associée aux différentes catégories socio-professionnelles.
         loaded_at_field: created_at      
