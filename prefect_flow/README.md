@@ -100,3 +100,12 @@ Ce terminal est optionnel : il sert uniquement à lancer un run manuel.
 ```bash
 prefect deployment run "full-pipeline/full_pipeline"
 ```
+
+
+# DEBUG
+
+if __name__ == "__main__":
+    odis_pipeline(
+        config_path="datasources.yaml",
+        max_concurrency=4,
+    )
