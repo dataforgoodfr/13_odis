@@ -1087,7 +1087,7 @@ models:
         data_type: text
 
   - name: vw_population_population_superficie_stg
-    description: population et superficie (mètres carrés) par codegeo et année
+    description: population et superficie par codegeo et année
     columns:
       - name: codegeo_year
         description: Année d'établissement du codegeo.
@@ -1105,4 +1105,4 @@ models:
         description: Population en nombre d'habitants.
         data_type: integer
       - name: superficie
-        description: Superficie en mètres carrés.
+        description: Superficie en hectares.
