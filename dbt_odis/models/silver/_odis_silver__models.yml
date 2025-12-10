@@ -861,7 +861,7 @@ models:
         description: population de femmes de 90 ou plus
         data_type: numeric
   
-  - name: silver_population_nb_menages
+  - name: silver_population_menages
     description: Table nettoyée contenant la taille de chaque ménage en nombre d'occupant par commune,
       et par la catégorie socioprofessionnelle de la personne de référence.
     columns: 
