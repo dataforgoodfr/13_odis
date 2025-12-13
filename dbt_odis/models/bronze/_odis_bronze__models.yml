@@ -954,6 +954,63 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
+  - name: emploi_bmo_2024
+    description: Besoins en main d'oeuvre par métier par Bassin d'emploi pour l'année 2024
+    columns:
+      - name: index
+        description: index
+        data_type: bigint
+      - name: annee
+        description: Période de mesure
+        data_type: bigint
+      - name: Code métier BMO
+        description: Code du métier de la classification FAP 2021
+        data_type: text
+        quote: true
+      - name: Nom métier BMO
+        description: Nom du métier de la classification FAP 2021
+        data_type: text
+        quote: true
+      - name: Famille_met
+        data_type: text
+        quote: true
+      - name: Lbl_fam_met
+        data_type: text
+        quote: true
+      - name: REG
+        description: Code de la région de rattachement du bassin d'emploi
+        data_type: bigint
+        quote: true
+      - name: NOM_REG
+        description: Nom de la région de rattachement du bassin d'emploi
+        data_type: text
+        quote: true
+      - name: Dept
+        description: Code du département de rattachement du bassin d'emploi
+        data_type: text
+        quote: true
+      - name: NomDept
+        description: Nom du département de rattachement du bassin d'emploi
+        data_type: text
+        quote: true
+      - name: BE24
+        description: Code du bassin d'emploi mesuré
+        data_type: bigint
+        quote: true
+      - name: NOMBE24
+        description: Nom du Bassin d'emploi mesuré
+        data_type: text
+        quote: true
+      - name: met
+        description: Nombre total de projets de recrutements dans le bassin d'emploi
+        data_type: text
+      - name: xmet
+        description: Nombre de projets de recrutements jugés difficile dans le bassin d'emploi
+        data_type: text
+      - name: smet
+        description: Nombre de projets de recrutements d'emplois saisonniers dans le bassin d'emploi
+        data_type: text
+
   - name: emploi_deplacement_domicile_travail_ds_rp_navettes_princ_data
     description: Déplacement et mode de transport domicile / travail
     columns:
@@ -990,6 +1047,13 @@ models:
       - name: OBS_VALUE
         description: Nombre de personee concerné
         data_type: decimal
+  - name: emploi_ds_flores
+    description: Extraction du JSON emploi.ds_flores qui contient les flux d'actifs de 15 ou plus.
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
 
   # Geographical references
   - name: geographical_references_communes
@@ -1037,6 +1101,12 @@ models:
       - name: geo_coordonnees_longitude
         description: Coordonnées longitudinales, string pour données en -01.00
         data_type: text
+      - name: epci_code
+        description: Code de l'EPCI rattaché à la commune
+        data_type: integer
+      - name: epci_nom
+        description: Nom de l'EPCI rattaché à la commune
+        data_type: integer
       - name: created_at
         description: date d'extraction des données
         data_type: timestamp without time zone
@@ -1144,6 +1214,25 @@ models:
       - name: created_at
         description: date d'extraction des données
         data_type: timestamp without time zone
+
+      - name: vw_geographical_references_geocodes_passage_annuel
+        description: Extraction du CSV avec l'équivalence des codes géographiques depuis la dernière année d'établissement des codes.
+        columns:
+          - name: geocode_year
+            description: Année la plus récente d'établissement des codes géographiques
+            data_type: text
+          - name: geocode_type
+            description: Type de code géographique ("COM", "ARM", "REG", etc.).
+            data_type: text
+          - name: geocode_type_name
+            description: Description de code géographique ("commune", "arrondisseent municipal", etc.).
+            data_type: text
+          - name: old_geocode
+            description: Ancien code géographique, à l'année d'établissement précédent la plus récente.
+            data_type: text
+          - name: geocode
+            description: Code géographique courant, à l'année d'établissement la plus récente.
+            data_type: text
 
   # Logement
   - name: logements_appartement
@@ -1319,16 +1408,6 @@ models:
       - name: created_at
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
-
-  - name: logements_annuel_dept_data
-    columns:
-      - name: id
-        description: id
-
-  - name: logements_dido_catalogue
-    columns:
-      - name: id
-        description: id
 
   # Logement_social
 
@@ -3591,7 +3670,7 @@ models:
   # Services
   - name: services_services
     description: |-
-      Extraction du JSON source logement nombre de logements totaux par zone géographique, granularité fine au niveau du code INSEE
+      Extraction du JSON source nombre de services totaux par zone géographique, granularité fine au niveau du code INSEE
       Les indicateurs ne concernent que certains types de services inclus dans la requête, les facility_type suivants :
       Réseau de proximité Pôle emploi: A122
       Implantations France services: A128
@@ -3645,15 +3724,56 @@ models:
   - name: presentation_page_elus_communes
 
   - name: presentation_page_epci
+    description: Extraction du JSON source geographical_references_epcis
+    columns:
+      - name: nom
+        description: Nom de l'EPCI
+        data_type: text
+      - name: code
+        description: Code SIREN de l'EPCI
+        data_type: integer
+        tests:
+          - unique
+      - name: population
+        description: Population totale regroupée en vigueur selon le dernier recensement INSEE
+        data_type: integer
+      - name: codesRegions
+        description: Code de la région associée
+        data_type: integer
+      - name: codesDepartements
+        description: Code du département associé
+        data_type: integer
 
   - name: presentation_page_population_communes
 
-  - name: population_categorie_socio_pro
-    columns:
-      - name: id
-        description: id
-
   # Population
+  - name: population_categorie_socio_pro
+    description: Extraction du JSON source CSP par population
+    columns:
+      - name: age
+        description: Segmentation âge
+        data_type: text
+      - name: geo
+        description: |-
+          Union année code - type de code - code géographique.
+          e.g. 2025-COM-01001.
+          L'année correspond à l'année de définition du code géographique par l'insee.
+        data_type: text
+      - name: pcs
+        description: catégorie socio-professionnelle (de 1 à 9, 8 - étudiants non renseigné en 2022).
+        data_type: text
+      - name: sex
+        description: _
+        data_type: text
+      - name: rp_measure
+        description: Indicateur d'intérêt.
+        data_type: text
+      - name: time_period
+        description: Période ou point dans le temps auquel l'observation se réfère effectivement.
+        data_type: text
+      - name: measure_value
+        description: Valeur de l'indicateur d'intérêt.
+        data_type: text
 
   - name: population_by_age
     description: Répartition de la population par tranches d'âge
@@ -3665,7 +3785,7 @@ models:
         description: unité géographique (REG, DEP, COM)
         data_type: text
       - name: dimensions_SEX
-        description: |- 
+        description: |-
           Filtre par genre (H/F et cis/trans).
           _T = total tout confondu
         data_type: text
@@ -3693,33 +3813,27 @@ models:
       - name: id
         description: index
         data_type: integer
-      - name: dimensions_GEO
-        description: unité géographique (REG, DEP, COM)
-        data_type: text
-      - name: dimensions_SEX
-        description: |- 
-          Filtre par genre (H/F et cis/trans).
-          _T = total tout confondu
-          H = Homme (all)
-          F = Femme (all)
-          H_cis = Homme cis
-          F_cis = Femme cis
-          TS = Personne trans
-        data_type: text
-      - name: dimensions_AGE
-        description: filtre par âge
-        data_type: text
-      - name: dimensions_TIME_PERIOD
-        description: Période temporelle (millésime) de la donnée
-        data_type: text
-      - name: dimensions_EP_MEASURE
+      - name: geo
         description: |-
-          Type de mesure.
-          POP = effectif de population
+          Union année code - type de code - code géographique.
+          e.g. 2025-COM-01001.
+          L'année correspond à l'année de définition du code géographique par l'insee.
         data_type: text
-      - name: measures_OBS_VALUE_NIVEAU_value
-        description: valeur numérique
-        data_type: integer
+      - name: sex
+        description: _
+        data_type: text
+      - name: age
+        description: tranche d'âge.
+        data_type: text
+      - name: rp_measure
+        description: Indicateur d'intérêt.
+        data_type: text
+      - name: time_period
+        description: Période ou point dans le temps auquel l'observation se réfère effectivement.
+        data_type: text
+      - name: measure_value
+        description: Valeur de l'indicateur d'intérêt.
+        data_type: text
       - name: created_at
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
@@ -3736,7 +3850,7 @@ models:
       - name: NIVGEO
         description: |-
           Niveau de granularité géographique.
-          Pour ce dateset, une seul valeur possible :
+          Pour ce dateset, une seule valeur possible :
           COM = Commune
         data_type: text
       - name: CODGEO
@@ -3758,3 +3872,34 @@ models:
         description: Nombre de foyers dans la ville
         data_type: float
 
+      - name: population_population_superficie
+        description: |-
+          Extraction de fichiers JSON avec données historiques population et superficie des territoires.
+        columns:
+          - name: id
+            description: index
+            data_type: integer
+          - name: geo
+            description: |-
+              Union année code - type de code - code géographique.
+              e.g. 2025-COM-01001.
+              L'année correspond à l'année de définition du code géographique par l'insee.
+            data_type: text
+          - name: ocs
+            description: |-
+              Catégorie du logement (seulement "_T", pour total).
+            data_type: text
+          - name: freq
+            description: Intervalle de temps séparant deux observations.
+            data_type: integer
+          - name: rp_measure
+            description: Indicateur d'intérêt.
+            data_type: text
+          - name: time_period
+            description: |-
+              Période ou point dans le temps auquel l'observation se réfère effectivement.
+            data_type: text
+          - name: measure_value
+            description: |-
+              Valeur de l'indicateur d'intérêt.
+            data_type: text

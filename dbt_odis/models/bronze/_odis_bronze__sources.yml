@@ -16,12 +16,19 @@ sources:
         description: Source JSON loadée dans le champ data contenant les références des régions
         loaded_at_field: created_at
 
-      - name: geographical_references_epci
+      - name: geographical_references_intercommunalites
+        description: Source xlsx loadée dans le champ data contenant les références des intercommunalites
+
+      - name: geographical_references_epcis
         description: Source JSON loadée dans le champ data contenant les références des EPCI
         loaded_at_field: created_at
 
       - name: geographical_references_arrondissements
         description: Source JSON loadée dans le champ data contenant les références des arrondissements
+        loaded_at_field: created_at
+
+      - name: geographical_references_geocodes_passage_annuel
+        description: Table de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)
         loaded_at_field: created_at
         
       - name: emploi_eff_secteur_prive_gds_secteurs
@@ -54,8 +61,12 @@ sources:
         description: Source CSV loadée dans le champ data contenant 
         loaded_at_field: created_at
 
-      - name: emploi_deplacement_domicile_travail_ds_rp_navettes_princ_data
+      - name: emploi_ds_rp_navettes_princ_2022_data
         description: Source CSV loadée dans le champ data contenant 
+        loaded_at_field : created_at
+
+      - name: emploi_base_flux_mobilite_domicile_lieu_travail_2022
+        description: Source CSV - Base flux mobilité domicile-lieu de travail 2022 avec croisement commune de résidence / commune de travail
         loaded_at_field : created_at
 
       - name: education_moyenne_eleve_commune
@@ -67,14 +78,6 @@ sources:
         loaded_at_field: created_at
 
       - name: education_moyenne_eleve_region
-        description: Source JSON loadée dans le champ data contenant 
-        loaded_at_field: created_at
-
-      - name: logement_annual_dept_data
-        description: Source CSV logements données annuelles par département
-        loaded_at_field: created_at  
-
-      - name: logement_dido_catalogue
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
 
@@ -130,6 +133,10 @@ sources:
         description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
         loaded_at_field : created_at
 
+      - name: population_population_totale
+        description: Source JSON loadée dans le champ data 
+        loaded_at_field: created_at
+
       - name: population_categorie_socio_pro
         description: Source JSON loadée dans le champ data 
         loaded_at_field: created_at
@@ -139,13 +146,37 @@ sources:
         loaded_at_field: created_at
 
       - name: population_by_age_gender
-        description: Source JSON - Estimation de population INSEE par âge et genre
+        description: Source JSON - données de recensement de population par âge et genre
+        loaded_at_field: created_at
+
+      - name: population_categorie_socio_pro
+        description: Source JSON - données de recensement de population par catégorie socio-professionnelle.
         loaded_at_field: created_at
 
       - name: population_menages_td_men1_2021
         description: Source CSV
         loaded_at_field: created_at
       
+      - name: population_nb_menages
+        description: Source CSV
+        loaded_at_field: created_at
+
+      - name: population_population_superficie
+        description: Source JSON, superficie et population associées aux codes geo (COM, DEP, REG) et années de mesure.
+        loaded_at_field: created_at
+
+      - name: population_taux_pauvrete_communes_filo2021_disp_pauvres_com
+        description: Source CSV, taux de pauvrete au niveau de la commune par seuil
+        loaded_at_field: created_at
+
+      - name: population_taux_pauvrete_supra_filo2021_disp_pauvres_reg
+        description: Source CSV, taux de pauvrete au niveau de la région par seuil
+        loaded_at_field: created_at
+
+      - name: population_taux_pauvrete_supra_filo2021_disp_pauvres_dep
+        description: Source CSV, taux de pauvrete au niveau du département par seuil
+        loaded_at_field: created_at
+
       - name: accueil_cada_cph_huda
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
@@ -153,4 +184,11 @@ sources:
       - name: corresp_geo_point_codes_communes
         description: export des données des communes sur opendatasoft, en ne gardant que les colonnes en lien avec les coordonées et les codes communes
         loaded_at_field: created_at  
+  
+      - name: Intitulés_FAP2021
+        description: correspondance entre les intitulés de métiers et les codes FAP 2009
+        loaded_at_field: created_at
 
+      - name: bassin_emploi
+        description: correspondance entre communes et bassins d'emploi
+        loaded_at_field: created_at

@@ -78,6 +78,34 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
+  - name: geographical_references_intercommunalites_filtered
+    description: Silver model for geographical references
+    columns:
+      - name: n_siren
+        description: Siren du groupement interco
+        data_type: integer
+      - name: nom_du_groupement
+        description: Nom du groupement interco
+        data_type: text
+      - name: population_totale
+        description: Population du groupement interco
+        data_type: integer
+      - name: nombre_de_membres
+        description: Nombre de membre dans le groupement
+        data_type: integer
+      - name: siren_membre
+        description: Siren de la commune
+        data_type: integer
+      - name: nom_membre
+        description: Nom de la commune
+        data_type: text
+      - name: categorie_des_membres_du_groupement
+        description: categorie_des_membres_du_groupement
+        data_type: text
+      - name: population_totale_du_membre_du_groupement
+        description: population_totale_du_membre_du_groupement
+        data_type: integer
+
   - name: logements_types_territoires
     description: Table silver joignant tous les types de logements, leur type d'occupation, et les pièces de résidences principales pour une zone géographique identifiée par "geo", pour plusieurs années de mesure
     columns:
@@ -165,38 +193,38 @@ models:
   - name: stg_logement_logements_sociaux_communes_remapped_aggregated
     description: Modèle intermédiaire qui agrège les logements sociaux au niveau des communes(regroupement des arrondissements via `geographical_arrondissements`).
     columns:
-    - name: codgeo
-      description: Code INSEE de la commune (agrégé si initialement arrondissement)
-    - name: type_geo
-      description: Type de géographie (toujours 'commune' ici)
-    - name: libcom
-      description: Nom de la commune
-    - name: year
-      description: Année de l’indicateur
-    - name: nb_ls
-      description: Nombre de logements sociaux
-    - name: tx_vac
-      description: Taux de vacance
-    - name: tx_vac3
-      description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference
-    - name: tx_mob
-      description: Taux de mobilité du parc social au 1er janvier de l'année de référence
-    - name: nb_loues
-      description: Nombre de logements sociaux proposés à location qui sont actuellement loués
-    - name: nb_vacants
-      description: Nombre de logements sociaux proposés à location qui sont actuellement nb_vacants
-    - name: nb_vides
-      description: Nombre de logements sociaux qui sont vides
-    - name: nb_asso
-      description: Nombre de logements sociaux qui sont pris en charge par une association
-    - name: nb_occup_finan
-      description: Nombre de logements sociaux occupés avec ou sans contrepartie financière
-    - name: nb_occup_temp
-      description: Nombre de logements sociaux occupés pour de l'hébergement temporaire
-    - name: nb_ls_en_qpv
-      description: Nombre de logements sociaux en QPV (quartier prioritaire de la politique de la ville)
-    - name: densite
-      description: Densité pour 100 résidences principales (source --> RP 2021)
+      - name: codgeo
+        description: Code INSEE de la commune (agrégé si initialement arrondissement)
+      - name: type_geo
+        description: Type de géographie (toujours 'commune' ici)
+      - name: libcom
+        description: Nom de la commune
+      - name: year
+        description: Année de l’indicateur
+      - name: nb_ls
+        description: Nombre de logements sociaux
+      - name: tx_vac
+        description: Taux de vacance
+      - name: tx_vac3
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference
+      - name: tx_mob
+        description: Taux de mobilité du parc social au 1er janvier de l'année de référence
+      - name: nb_loues
+        description: Nombre de logements sociaux proposés à location qui sont actuellement loués
+      - name: nb_vacants
+        description: Nombre de logements sociaux proposés à location qui sont actuellement nb_vacants
+      - name: nb_vides
+        description: Nombre de logements sociaux qui sont vides
+      - name: nb_asso
+        description: Nombre de logements sociaux qui sont pris en charge par une association
+      - name: nb_occup_finan
+        description: Nombre de logements sociaux occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: Nombre de logements sociaux occupés pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Nombre de logements sociaux en QPV (quartier prioritaire de la politique de la ville)
+      - name: densite
+        description: Densité pour 100 résidences principales (source --> RP 2021)
 
   - name: stg_logement_logements_sociaux_communes
     description: Table transformée contenant les indicateurs logements sociaux au niveau commune
@@ -237,7 +265,7 @@ models:
         description: Nombre de logements sociaux en QPV (quartier prioritaire de la politique de la ville)
       - name: densite
         description: Densité pour 100 résidences principales (source --> RP 2021)
-      
+
   - name: stg_logement_logements_sociaux_departement
     description: Table transformée contenant les indicateurs logements sociaux au niveau département
     columns:
@@ -290,7 +318,7 @@ models:
       - name: tx_vac
         description: Taux de vacance
       - name: tx_vac3
-        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference        
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference
       - name: tx_mob
         description: Taux de mobilité
       - name: nb_loues
@@ -326,7 +354,7 @@ models:
       - name: tx_vac
         description: Taux de vacance
       - name: tx_vac3
-        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference       
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference
       - name: tx_mob
         description: Taux de mobilité
       - name: nb_loues
@@ -348,7 +376,7 @@ models:
 
   - name: silver_logement_logements_sociaux
     description: Table finale rassemblant les indicateurs de logements sociaux à tous les niveaux géographiques (commune, département, région, EPCI). Les données au niveau communal ont été agrégées pour corriger les arrondissements.
-    columns: 
+    columns:
       - name: type_geo
         description: Type géograpique (commune, département, région, epci)
       - name: codgeo
@@ -362,7 +390,7 @@ models:
       - name: tx_vac
         description: Taux de vacance
       - name: tx_vac3
-        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference       
+        description: Taux de vacance d'une période supérieure à 3 mois du parc social au 1er janvier de l'année de réference
       - name: tx_mob
         description: Taux de mobilité
       - name: nb_loues
@@ -638,11 +666,11 @@ models:
         data_type: integer
         description: nombre de demandeurs d'emploi pour la zone identifiée pour un mois-année donnée
 
-  - name: emploi_eff_prive
-    description: Effectifs salariés du secteur privé par grands secteurs, granularité fine au code APE
+  - name: stg_emploi_eff_prive_pivot
+    description: Effectifs salariés du secteur privé par grands secteurs, granularité fine au code APE, aux niveaux géographiques arrondissements et communes
     columns:
       - name: id
-        description: index_année
+        description: index code_APE-code_geo-annee
         data_type: text
       - name: region
         description: Nom de la région rattachée
@@ -694,10 +722,13 @@ models:
         description: Code de l'EPCI rattachée
         data_type: text
       - name: code_commune
-        description: Code de la commune rattachée
+        description: Code INSEE de la commune ou arrondissement
         data_type: text
       - name: code_ape
         description: Code APE
+        data_type: text
+      - name: annee
+        description: année de mesure de la donnée
         data_type: text
       - name: nombre_d_etablissements
         description: Nombre d'établissements pour un code APE dans la commune, pour une année donnée
@@ -705,7 +736,82 @@ models:
       - name: effectifs_salaries
         description: Nombre d'effectif salariés pour un code APE dans la commune, pour une année donnée
         data_type: double precision
+
+  - name: emploi_eff_prive
+    description: Effectifs salariés du secteur privé par grands secteurs, granularité fine au code APE, 3 niveaux géographiques empilés commune/département/région
+    columns:
+      - name: id
+        description: index code_APE-code_geo-annee
+        data_type: text
+      - name: region
+        description: Nom de la région rattachée
+        data_type: text
+      - name: ancienne_region
+        data_type: text
+      - name: departement
+        description: Nom du département rattaché
+        data_type: text
+      - name: zone_d_emploi
+        description: Nom de la zone d'emploi rattachée
+        data_type: text
+      - name: epci
+        description: Nom de l'EPCI rattachée
+        data_type: text
+      - name: commune
+        description: Nom de la commune rattachée
+        data_type: text
+      - name: intitule_commune
+        description: Code INSEE et nom de la commune rattachée
+        data_type: text
+      - name: grand_secteur_d_activite
+        description: Classification et description du grand secteur d'activité
+        data_type: text
+      - name: secteur_na17
+        description: Classification des secteurs d'activité, niveau français intermédiaire entre les niveaux A 10 et A 38
+        data_type: text
+      - name: secteur_na38
+        description: Classification des secteurs d'activité, niveau international, intermédiaire entre sections et divisions
+        data_type: text
+      - name: secteur_na88
+        description: Classification des sous-secteurs d'activité, divisions, niveau standard de l'arborescence de la NAF révision 2
+        data_type: text
+      - name: ape
+        description: Classification des sous divisions des secteurs d'activité, niveau code APE
+        data_type: text
+      - name: code_region
+        description: Code de la région rattachée
+        data_type: text
+      - name: code_ancienne_region
+        data_type: text
+      - name: code_departement
+        description: Code du département rattaché
+        data_type: text
+      - name: code_zone_d_emploi
+        description: Code de la zone d'emploi rattachée
+        data_type: text
+      - name: code_epci
+        description: Code de l'EPCI rattachée
+        data_type: text
+      - name: code_commune
+        description: Code INSEE de la commune
+        data_type: text
+      - name: code_ape
+        description: code APE
+        data_type: text
       - name: annee
+        description: année de mesure de la donnée
+        data_type: text
+      - name: nombre_d_etablissements
+        description: Nombre d'établissements pour un code APE dans la zone géographique, pour une année donnée
+        data_type: double precision
+      - name: effectifs_salaries
+        description: Nombre d'effectif salariés pour un code APE dans la zone géographique, pour une année donnée
+        data_type: double precision
+      - name: code_geo
+        description: Code INSEE officiel pour les 3 niveaux géographiques
+        data_type: text
+      - name: type_geo
+        description: Niveau géographique des données, agrégations pour départements et régions actuelles
         data_type: text
 
   - name: emploi_deplacement_domicile_travail_filtered
@@ -724,64 +830,74 @@ models:
         description: Nombre de personne concerné
         data_type: decimal
 
-  - name: emploi_bmo_avec_communes
-    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+  - name: silver_emploi_bmo
+    description: Nombre de recrutements par métiers et secteurs rattachés, descendu au niveau granulaire des communes correspondantes aux bassins d'emploi
     columns:
-      - name: annee
-        description: annee
-        data_type: integer
+      - name: YEAR
+        description: Année de mesure
+        data_type: numeric
+        quote: true
       - name: Code métier BMO
-        description: Code métier BMO
+        description: Code du métier de la classification FAP 2021
         data_type: text
         quote: true
       - name: Nom métier BMO
-        description: Nom métier BMO
+        description: Nom du métier de la classification FAP 2021
         data_type: text
         quote: true
       - name: Famille_met
-        description: Famille de métier
         data_type: text
         quote: true
       - name: Lbl_fam_met
-        description: Libélé famille de métier
+        data_type: text
+        quote: true
+      - name: Code_FAP22
+        description: Code du secteur professionnel de la classification FAP 2021
+        data_type: text
+        quote: true
+      - name: Intitulé_FAP22
+        description: Nom du secteur professionnel de la classification FAP 2021
         data_type: text
         quote: true
       - name: REG
-        description: Numéro région
-        data_type: integer
+        description: Code de la région de rattachement de la commune
+        data_type: text
         quote: true
       - name: NOM_REG
-        description: Nom de la région
+        description: Nom de la région de rattachement de la commune
         data_type: text
         quote: true
       - name: Dept
-        description: Numéro département
-        data_type: integer
+        description: Code du département de rattachement de la commune
+        data_type: text
         quote: true
       - name: NomDept
-        description: Nom du département
+        description: Nom du département de rattachement de la commune
         data_type: text
         quote: true
       - name: BE24
-        description: Bassin d'emploi définition 2024
-        data_type: integer
+        description: Code du bassin d'emploi de rattachement de la commune
+        data_type: text
         quote: true
       - name: NOMBE24
-        description: Nom des bassins d'emploi définition 2024
-        data_type: integer
+        description: Nom du bassin d'emploi de rattachemnt de la commune, nom du département ou de la région pour les zones géographiques supérieures
+        data_type: text
         quote: true
       - name: met
-        description: Nombre de projet de recrutement
-        data_type: integer
+        description: Nombre total de recrutements dans le bassin d'emploi
+        data_type: bigint
       - name: xmet
-        description: Nombre de projet de recrutement jugés difficiles
-        data_type: integer
+        description: Nombre de recrutements jugés difficile dans le bassin d'emploi
+        data_type: bigint
       - name: smet
-        description: Nombre de projet de recrutement saisonniers
-        data_type: integer
-      - name: code_commune_insee
-        description: Code commune de l'insee
-        data_type: integer
+        description: Nombre de recrutements d'emplois saisonniers dans le bassin d'emploi
+        data_type: bigint
+      - name: code_geo
+        description: Code géographique INSEE de la zone géographique identifiée dans type_geo
+        data_type: text
+      - name: type_geo
+        description: Type de la zone géographique identifiée, 3 zones empilées commune-départemnt-région
+        data_type: text
 
   - name: emploi_salaire_median_filo2021
     description: Salaire Médian
@@ -799,67 +915,271 @@ models:
     columns:
       - name: id
         description: id
+        data_type: integer
+      - name: code_geo
+        description: Code INSEE officiel pour les 3 niveaux géographiques
+        data_type: text
+      - name: code_postal
+        description: Code postal
+        data_type: text
+      - name: nom_geo
+        description: nom de la zone géographique
+        data_type: text
+      - name: type_geo
+        description: niveau géographique des données
+        data_type: text
+      - name: departement
+        description: nom du département
+        data_type: text
+      - name: academie
+        description: nom de l'académie de rattachement
+        data_type: text
+      - name: region_academique
+        description: nom de la région académique de rattachement
+        data_type: text
+      - name: rentree_scolaire
+        description: période temporelle en année de la mesure du nombre d'élèves
+        data_type: text
+      - name: nombre_total_eleves
+        description: nombre total d'élèves dans toutes les classes de toutes les écoles de la zone géographique
+        data_type: integer
+      - name: nombre_total_classes
+        description: nombre total de classes de toutes les écoles de la zone géographique
+        data_type: integer
+      - name: nombre_eleves_ulis
+        description: nombre d'élèves en dispositif ulis dans les écoles de la zone géographique
+        data_type: integer
+      - name: nombre_eleves_cp_hors_ulis
+        description: "nombre d'élèves en CP : cours préparatoire, hors dispositif ulis, dans les écoles de la zone géographique"
+        data_type: integer
+      - name: nombre_eleves_ce1_hors_ulis
+        description: "nombre d'élèves en CE1 : cours élémentaire première année, hors dispositif ulis, dans les écoles de la zone géographique"
+        data_type: integer
+      - name: nombre_eleves_ce2_hors_ulis
+        description: "nombre d'élèves en CE2 : cours élémentaire deuxième année, hors dispositif ulis, dans les écoles de la zone géographique"
+        data_type: integer
+      - name: nombre_eleves_cm1_hors_ulis
+        description: "nombre d'élèves en CM1 : cours moyen première année, hors dispositif ulis, dans les écoles de la zone géographique"
+        data_type: integer
+      - name: nombre_eleves_cm2_hors_ulis
+        description: "nombre d'élèves en CM2 : cours moyen deuxième année, hors dispositif ulis, dans les écoles de la zone géographique"
+        data_type: integer
+      - name: nombre_eleves_elementaire_hors_ulis
+        description: nombre total d'élèves hors dispositif ulis dans les écoles primaires / élémentaires de la zone géographique
+        data_type: integer
+      - name: nombre_eleves_preelementaire_hors_ulis
+        description: nombre total d'élèves hors dispositif ulis dans les écoles maternelles / pré-élémentaires de la zone géographique
+        data_type: integer
+      - name: created_at
+        description: date d'axtraction des données
+        data_type: timestamp without time zone
+    description: Table recensant les nombres d'élèves en niveaux élémentaires et pré-élémentaires dans les 3 niveaux de zones géographiques françaises commune/départemment/région
 
-  - name: silver_population_by_age_gender
-    description: Table transformée contenant les indicateurs de population par tranche d'âge et sexe par commune
+  - name: vw_population_by_age_gender_stg
+    description: Vue transformée contenant les indicateurs de population par tranche d'âge et sexe par commune
+    columns:
+      - name: geo
+        description: Code géo initial avec type, année et code.
+        data_type: text
+      - name: codegeo_year
+        description: Année d'établissement du codegeo.
+        data_type: text
+      - name: codegeo_type
+        description: Type de code géographique ("COM", "DEP" ou "REG").
+        data_type: text
+      - name: codegeo
+        description: Code géographique.
+        data_type: text
+      - name: time_period
+        description: Année de la mesure.
+        data_type: text
+      - name: POP
+        description: Population totale, toutes tranches d'âge et sexe confondus.
+        data_type: numeric
+      - name: POPH
+        description: Population totale pour les hommes, toutes tranches d'âge.
+        data_type: numeric
+      - name: H0015
+        description: population d'hommes entre 0 et 15 ans.
+        data_type: numeric
+      - name: H1524
+        description: population d'hommes entre 15 et 24 ans.
+        data_type: numeric
+      - name: H2539
+        description: population d'hommes entre 25 et 39 ans.
+        data_type: numeric
+      - name: H4054
+        description: population d'hommes entre 40 et 54 ans.
+        data_type: numeric
+      - name: H5564
+        description: population d'hommes entre 55 et 64 ans.
+        data_type: numeric
+      - name: H6579
+        description: population d'hommes entre 65 et 79 ans.
+        data_type: numeric
+      - name: H80P
+        description: population d'hommes de 80 ou plus.
+        data_type: numeric
+      - name: POPF
+        description: population totale de femmes, toutes tranches d'âge.
+        data_type: numeric
+      - name: F0015
+        description: population de femmes entre 0 et 15 ans.
+        data_type: numeric
+      - name: F1524
+        description: population de femmes entre 15 et 24 ans.
+        data_type: numeric
+      - name: F2539
+        description: population de femmes entre 25 et 39 ans.
+        data_type: numeric
+      - name: F4054
+        description: population de femmes entre 40 et 54 ans.
+        data_type: numeric
+      - name: F5564
+        description: population de femmes entre 55 et 64 ans.
+        data_type: numeric
+      - name: F6579
+        description: population de femmes entre 65 et 79 ans.
+        data_type: numeric
+      - name: F80P
+        description: population de femmes de 80 ou plus.
+        data_type: numeric
+
+  - name: vw_population_categorie_socio_pro_stg
+    description: Vue avec population par CSP, pour les 15 ans et plus.
+    columns:
+      - name: codegeo_year
+        description: Année d'établissement du codegeo.
+        data_type: text
+      - name: codegeo_type
+        description: Type de code géographique ("COM", "DEP" ou "REG").
+        data_type: text
+      - name: codegeo
+        description: Code géographique.
+        data_type: text
+      - name: time_period
+        description: Année de la mesure.
+        data_type: text
+      - name: POP15P
+        description: population totale 15 ans et plus.
+        data_type: numeric
+      - name: POP15P_CS1
+        description: population totale 15 ans et plus,  agriculteurs exploitants (CS1).
+        data_type: numeric
+      - name: POP15P_CS2
+        description: population totale 15 ans et plus,  artisants, commerçants, chefs entreprise (CS2).
+        data_type: numeric
+      - name: POP15P_CS3
+        description: population totale 15 ans et plus,  cadres, professions intellectuelles sup (CS3).
+        data_type: numeric
+      - name: POP15P_CS4
+        description: population totale 15 ans et plus,  prof. intermédiaires (CS4).
+        data_type: numeric
+      - name: POP15P_CS5
+        description: population totale 15 ans et plus,  employés (CS5).
+        data_type: numeric
+      - name: POP15P_CS6
+        description: population totale 15 ans et plus,  ouvriers (CS6).
+        data_type: numeric
+      - name: POP15P_CS7
+        description: population totale 15 ans et plus,  retraités (CS7).
+        data_type: numeric
+      - name: POP15P_CS9
+        description: population totale 15 ans et plus,  autres inactifs (CS9).
+        data_type: numeric
+
+  - name: silver_homepage_accueil
+    description: Table transformée contenant les indicateurs des structures d'accueil commune
+    columns:
+      - name: id
+        description: id
+        data_type: integer
+      - name: code_officiel_commune
+        description: code de la commune de la structure d'accueil, obtenu en calculant le centre de commune le plus proche des coordonnées gps de la structure d'accueil
+        data_type: text
+      - name: type
+        description: type de la structure d'accueil
+        data_type: text
+      - name: places
+        description: nombre de places dans la structure d'accueil
+        data_type: integer
+  - name: silver_presentation_page_epci
+    description: Population totale et municipale, et nombre de membres par EPCI et code INSEE des communes rattachées
     columns:
       - name: codgeo
-        description: code geo pour le département, la région ou à l'échelle nationale (france enitère, DOM ou métropole seule)
+        description: "Clé primaire unique d'identification : Code INSEE (COM = 5 chiffres) de la commune rattachée à l'EPCI"
         data_type: text
-      - name: YEAR
-        description: Année de l'étude
+      - name: raison_sociale
+        description: "Raison sociale de l'EPCI"
         data_type: text
-      - name: pop
-        description: population total, toutes tranches d'âge et sexe confondus
-        data_type: numeric
-      - name: poph
-        description: population total pour les hommes, toutes tranches d'âge
-        data_type: numeric
-      - name: h0014
-        description: population d'hommes entre 0 et 14 ans
-        data_type: numeric
-      - name: h1529
-        description: population d'hommes entre 15 et 29 ans
-        data_type: numeric
-      - name: h3044
-        description: population d'hommes entre 30 et 44 ans
-        data_type: numeric
-      - name: h4559
-        description: population d'hommes entre 45 et 59 ans
-        data_type: numeric
-      - name: h6074
-        description: population d'hommes entre 60 et 74 ans
-        data_type: numeric
-      - name: h7589
-        description: population d'hommes entre 75 et 89 ans
-        data_type: numeric
-      - name: h90p
-        description: population d'hommes de 90 ou plus
-        data_type: numeric
-      - name: popf
-        description: population total pour les femmes, toutes tranches d'âge
-        data_type: numeric
-      - name: f0014
-        description: population de femmes entre 0 et 14 ans
-        data_type: numeric
-      - name: f1529
-        description: population de femmes entre 15 et 29 ans
-        data_type: numeric
-      - name: f3044
-        description: population de femmes entre 30 et 44 ans
-        data_type: numeric
-      - name: f4559
-        description: population de femmes entre 45 et 59 ans
-        data_type: numeric
-      - name: f6074
-        description: population de femmes entre 60 et 74 ans
-        data_type: numeric
-      - name: f7589
-        description: population de femmes entre 75 et 89 ans
-        data_type: numeric
-      - name: f90p
-        description: population de femmes de 90 ou plus
-        data_type: numeric
+      - name: nb_membres
+        description: "Nombre de communes rattachées à l'EPCI"
+        data_type: integer
+      - name: total_pop_tot
+        description: "Population totale de l'EPCI (Somme de population municipale et population comptée à part - Ex : étudiants résidant hors commune mais rattachés administrativement)"
+        data_type: integer 
+      - name: total_pop_mun
+        description: "Population municipale de l'EPCI"
+        data_type: integer 
+      - name: ptot_derniere_annee
+        description: "Population totale de la commune à la dernière année connue (Somme de population municipale et population comptée à part)"
+        data_type: integer 
+      - name: pmun_derniere_annee
+        description: "Population municipale de la commune à la dernière année connue"
+        data_type: integer       
+  - name: silver_services
+    description: nombre de services totaux par zone géographique, granularité fine au niveau du code INSEE, les indicateurs ne concernent que certains types de services
+    columns:
+      - name: geo
+        description: "Clé primaire unique d'identification : Année de mesure - Type de zone géographique - Code INSEE (COM = 5 chiffres) ou Code postal (DEP = 3 chiffres et REG = 2 chiffres)"
+        data_type: text
+      - name: time_period
+        description: Période temporelle en année de mesure de la donnée
+        data_type: text
+      - name: bpe_measure
+        description: services
+        data_type: text
+      - name: facility_dom
+        description: 1er niveau de classification de service
+        data_type: text
+      - name: facility_sdom
+        description: 2eme niveau de classification de service
+        data_type: text
+      - name: facility_type
+        description: type de service
+        data_type: text
+      - name: value
+        description: nombre mesuré du total de services par type, par zone géographique et par année
+        data_type: double precision
+      - name: type_geo
+        description: Niveau géographique des données, agrégations pour départements et régions actuelles
+        data_type: text
+      - name: code_geo
+        description: Code INSEE officiel pour les 3 niveaux géographiques
+        data_type: text
+
+  - name: vw_population_population_superficie_stg
+    description: population et superficie par codegeo et année
+    columns:
+      - name: codegeo_year
+        description: Année d'établissement du codegeo.
+        data_type: text
+      - name: codegeo_type
+        description: Type de code géographique ("COM", "DEP" ou "REG").
+        data_type: text
+      - name: codegeo
+        description: Code géographique.
+        data_type: text
+      - name: year
+        description: Année de la mesure.
+        data_type: text
+      - name: population
+        description: Population en nombre d'habitants.
+        data_type: integer
+      - name: superficie
+        description: Superficie en hectares.
+
+
   
   - name: silver_population_menages
     description: Table nettoyée contenant le nombre de ménages et le nombre moyen d'occupants par ménage, agrégés par commune.

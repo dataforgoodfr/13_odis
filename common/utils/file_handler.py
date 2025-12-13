@@ -94,14 +94,46 @@ class XlsxReader(FileReader):
     def __init__(self, import_path: str):
         self.import_path = import_path
 
-    def try_load(self, model: DomainModel) -> pd.DataFrame:
-        return pd.read_excel(
+    def try_load(self, model: DomainModel) -> dict[ str, pd.DataFrame ]:
+
+        wb = pd.ExcelFile( 
             self.import_path,
-            header=model.load_params.header,
-            skipfooter=model.load_params.skipfooter,
-            sep=model.load_params.separator,
-            engine="python",  # Required for skipfooter parameter
-        )
+            engine = "openpyxl"
+            )
+
+        preprocess_params = model.preprocessor
+        sheets_list = preprocess_params.sheets
+        sheet_names = wb.sheet_names
+
+
+        results = {}
+
+        if sheets_list:
+            for sheet_name in [x for x in sheets_list if x in sheet_names]:
+                results[ sheet_name ] = pd.read_excel(
+                    wb,
+                    sheet_name = sheet_name,
+                    header=model.load_params.header,
+                    skipfooter=model.load_params.skipfooter,
+                    engine="openpyxl",
+                )
+        
+        else:
+            pd_load = pd.read_excel(
+                    wb,
+                    header=model.load_params.header,
+                    skipfooter=model.load_params.skipfooter,
+                    engine="openpyxl",
+                )
+
+            if isinstance(pd_load, dict):
+                results = pd_load
+            elif isinstance(pd_load, pd.DataFrame):
+                results['0'] = pd_load
+            else:
+                logger.info(f'Type not recognized: {type(pd_load)}')
+
+        return results
 
 
 class MetadataReader(FileReader):
@@ -365,25 +397,11 @@ class FileHandler(IDataHandler):
         storage_info: StorageInfo,
         model: DomainModel,
     ) -> pd.DataFrame:
-        """Parses an Excel file and returns the data as a pandas dataframe
-
-        TODO:
-        - benchmark usage of pandas vs csv module
-
-        Args:
-            storage_info (StorageInfo) : the info where the file is stored
-            model (DomainModel): the model that generated the data
-
-        Returns:
-            DataFrame: the data from the CSV file as a pandas DataFrame
-
-        Raises:
-            InvalidCSV: if the file is not found or the CSV is invalid
         """
-        raise NotImplementedError(
-            "XLSX file loading is not implemented yet. Please use CSV or JSON files instead."
-        )
-        # _filepath = Path(storage_info.location) / Path(storage_info.file_name)
+        Parses an Excel file and returns the data as a pandas dataframe.
+        """
+        filepath = Path(storage_info.location) / Path(storage_info.file_name)
+        return XlsxReader(filepath).load(model=model)
 
     def load_metadata(
         self, model: DomainModel, operation: OperationType

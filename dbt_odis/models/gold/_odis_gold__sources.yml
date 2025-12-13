@@ -4,8 +4,13 @@ sources:
   - name: silver 
     schema: silver
     tables: 
+    
       - name: geographical_references
         description: Table contenant
+        loaded_at_field: created_at
+
+      - name: geographical_references_intercommunalites_filtered
+        description: Table contenant les informations de références des intercommunalites
         loaded_at_field: created_at
 
       - name: education_moyenne_eleve
@@ -27,15 +32,33 @@ sources:
         description: Table contenant
         loaded_at_field: created_at
 
-      - name: emploi_bmo_avec_communes
+      - name: silver_emploi_bmo
+        description: Table contenant les besoins en main d'oeuvre par métiers pour 2024
+        loaded_at_field: created_at
+      
       - name: emploi_salaire_median_filo2021
         description: Table contenant
         loaded_at_field: created_at
         
       - name: silver_logements_sociaux
         description: join silver logement social
+        
+      - name: silver_homepage_accueil
+        description: Table contenant
+        loaded_at_field: created_at 
 
+      - name: vw_population_by_age_gender_stg
+        description: View avec la population par tranche d'âge et genre.
+        loaded_at_field: created_at
+
+      - name: vw_population_categorie_socio_pro_stg
+        description: Vue avec population par CSP, pour les 15 ans et plus.
+        loaded_at_field: created_at
+
+      - name: vw_population_population_superficie_stg
+        description: Table contenant population et superficie par code géographique et année.
+        loaded_at_field: created_at
+        
       - name: silver_population_menages
-        description: donnees insee nettoyees
-
+        description: donnees nombre de menages insee nettoyees
 

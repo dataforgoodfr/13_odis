@@ -16,8 +16,15 @@ sources:
         description: View contenant les informations de références des régions
         loaded_at_field: created_at
 
+      - name: vw_geographical_references_intercommunalites
+        description: View contenant les informations de références des intercommunalites
+
       - name: vw_geographical_references_arrondissements
         description: View contenant les informations de références des arrondissements
+        loaded_at_field: created_at
+
+      - name: vw_geographical_references_geocodes_passage_annuel
+        description: View de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)
         loaded_at_field: created_at
 
       - name: vw_education_moyenne_eleve_commune
@@ -53,13 +60,11 @@ sources:
         loaded_at_field: created_at
 
       - name: vw_emploi_bmo_2024
+        description: View contenant les besoins en main d'oeuvre pour 2024
+        loaded_at_field: created_at
 
       - name: vw_emploi_salaire_median_filo2021_disp_com
         description: View contenant
-        loaded_at_field: created_at
-
-      - name: vw_logement_annuel_dept_data
-        description: View contenants
         loaded_at_field: created_at
 
       - name: vw_logements_appartement
@@ -115,9 +120,16 @@ sources:
         loaded_at_field: created_at
 
       - name: vw_population_by_age_gender
-        description: View contenant
+        description: Vue contenant la population par tranche d'âge et genre.
         loaded_at_field: created_at
 
       - name: vw_population_nb_menages
         description: View contenant
+
+      - name: vw_population_categorie_socio_pro
+        description: Vue contenant la population associée aux différentes catégories socio-professionnelles.
+        loaded_at_field: created_at      
+        
+      - name: vw_population_population_superficie
+        description: Vue contenant une mesure de recensement (superficie ou population) associée aux codes géographiques.
         loaded_at_field: created_at

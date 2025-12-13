@@ -68,6 +68,25 @@ models:
       - name: population
         description: Nombre d'habitants dans la commune
 
+  - name: geographical_references_intercommunalites_renamed
+    description: Gold model for geographical references
+    columns:
+      - name: codgeo
+        description: Siren de la commune
+        data_type: integer
+      - name: raison_social
+        description: Nom du groupement interco
+        data_type: text
+      - name: nb_membres
+        description: Nombre de membre dans le groupement
+        data_type: integer
+      - name: total_pop_tot
+        description: Population du groupement interco
+        data_type: integer
+      - name: total_pop_mun
+        description: population_totale_du_membre_du_groupement
+        data_type: integer
+
   - name: gold_logement_logements_sociaux
     description: Table transformée contenant les indicateurs logements sociaux pour tous les niveaux géograpiques (région, département, commune, epci)
     columns:
@@ -78,7 +97,41 @@ models:
       - name: year
         description: Année de référence
       - name: nb_ls
-        description: Parc complet Ensemble du parc social  
+        description: Parc complet Ensemble du parc social
+      - name: nb_loues
+        description: Parc complet proposés à la location loués
+      - name: nb_vacants
+        description: Parc complet proposés à la location vacants
+      - name: nb_vides
+        description: Parc complet Ensemble du parc vide
+      - name: nb_asso
+        description: Parc complet pris en charge par une association
+      - name: nb_occup_finan
+        description: Parc complet occupés avec ou sans contrepartie financière
+      - name: nb_occup_temp
+        description: Parc complet occupé pour de l'hébergement temporaire
+      - name: nb_ls_en_qpv
+        description: Parc complet Nombre de logements en QPV
+      - name: tx_vac
+        description: PTaux de vacance % totale Au 01/01
+      - name: tx_vac3
+        description: Taux de vacance % > 3 mois Au 01/01
+      - name: tx_mob
+        description: Taux de mobilité % Au 01/01
+      - name: densite
+        description: Parc complet Densité pour 100 résidences principales
+
+  - name: gold_logement_logements_sociaux_filtered
+    description: Table filtrée contenant les indicateurs logements sociaux pour tous les niveaux géograpiques (région, département, commune, epci) pour l'année 2024
+    columns:
+      - name: codgeo
+        description: Parc complet Ensemble du parc social
+        tests:
+          - not_null
+      - name: year
+        description: Année de référence
+      - name: nb_ls
+        description: Parc complet Ensemble du parc social
       - name: nb_loues
         description: Parc complet proposés à la location loués
       - name: nb_vacants
@@ -217,7 +270,7 @@ models:
         quote: true
 
   - name: emploi_gds_secteurs
-    description: Table recensant le nombre de demandeurs d'emploi pour une zone géographique identifiée et un mois de mesure donné
+    description: Table des effectifs salariés et du nombre d'établissements par grands secteurs d'activités identifiés GS 1 à 7, pour les 3 niveaux géographiques commune/département/région
     columns:
       - name: codgeo
         description: code INSEE de la zone géographique
@@ -259,20 +312,265 @@ models:
         data_type: integer
         quote: true
 
-  - name: emploi_bmo_metier
-    description: Déplacement et mode de transport domicile / travail pour l'année 2021
+  - name: gold_emploi_bmo_metiers
+    description: Table contenant les besoins en main d'oeuvre pour 2024 par métiers de la FAP 2021
     columns:
       - name: codgeo
-        description: Code commune de l'insee
+        description: Code INSEE de la zone géographique, "reg"+code pour les régions
         data_type: integer
       - name: Bassin_Emploi
-        description: Nom des bassins d'emploi définition 2024
+        description: Nom des bassins d'emploi définition 2024, nom des départements ou régions si nécessaire pour l'application
         data_type: text
         quote: true
       - name: YEAR
-        description: annee
+        description: année de mesure
         data_type: integer
         quote: true
+
+  - name: gold_emploi_bmo_secteurs
+    description: Table contenant les besoins en main d'oeuvre pour 2024 par secteurs professionnels de la FAP 2021
+    columns:
+      - name: codgeo
+        description: Code INSEE de la zone géographique, "reg"+code pour les régions
+        data_type: integer
+      - name: Bassin_Emploi
+        description: Nom des bassins d'emploi définition 2024, nom des départements ou régions si nécessaire pour l'application
+        data_type: text
+        quote: true
+      - name: YEAR
+        description: année de mesure
+        data_type: integer
+        quote: true
+
+  - name: gold_emploi_bmo_recrutement
+    description: Table contenant les besoins en main d'oeuvre pour 2024 par recrutements
+    columns:
+      - name: codgeo
+        description: Code INSEE de la zone géographique, "reg"+code pour les régions
+        data_type: integer
+      - name: Bassin_Emploi
+        description: Nom des bassins d'emploi définition 2024, nom des départements ou régions si nécessaire pour l'application
+        data_type: text
+        quote: true
+      - name: YEAR
+        description: année de mesure
+        data_type: integer
+        quote: true
+      - name: Projets de recrutement
+        description: Nombre total de projets de recrutement pour une zone géographique donnée
+        data_type: numeric
+        quote: true
+      - name: Difficultés à recruter
+        description: Pourcentage sur le nombre total de projets de recrutements jugés difficile pour une zone géographique donnée
+        data_type: numeric
+        quote: true
+      - name: Emplois saisonniers
+        description: Pourcentage sur le nombre total de projets de recrutements d'emplois saisonniers pour une zone géographique donnée
+        data_type: numeric
+        quote: true
+
+  - name: gold_homepage_accueil
+    description: Table contenant les données sur les structures d'accueil regroupées par département
+    columns:
+      - name: codgeo
+        description: Code commune (5 chiffres) ou du département (2 chiffres) ou de la région (reg + 2 chiffres)
+        data_type: text
+      - name: total
+        description: nombre total de places dans les structures d'accueil
+        data_type: integer
+      - name: cada
+        description: nombre de places dans les cada
+        data_type: integer
+      - name: urgences
+        description: nombre de places dans les urgences
+        data_type: integer
+      - name: huda
+        description: nombre de places dans les huda
+        data_type: integer
+      - name: cph
+        description: nombre de places dans les cph
+        data_type: integer
+      - name: chrs
+        description: nombre de places dans les chrs
+        data_type: integer
+      - name: chrs_etab
+        description: nombre de places dans les chrs_etab
+        data_type: integer
+
+  - name: vw_population_by_age_gender_csp
+    description: Table transformée contenant les indicateurs de population par tranche d'âge, genre et CSP et code géographique.
+    columns:
+      - name: codegeo
+        description: code des départements, communes ou régions (si préfixe "reg").
+        data_type: text
+      - name: year
+        description: Année de la mesure.
+        data_type: text
+      - name: POP
+        description: Population totale, toutes tranches d'âge et sexe confondus.
+        data_type: numeric
+      - name: POPH
+        description: Population totale pour les hommes, toutes tranches d'âge.
+        data_type: numeric
+      - name: H0015
+        description: population d'hommes entre 0 et 15 ans.
+        data_type: numeric
+      - name: H1524
+        description: population d'hommes entre 15 et 24 ans.
+        data_type: numeric
+      - name: H2539
+        description: population d'hommes entre 25 et 39 ans.
+        data_type: numeric
+      - name: H4054
+        description: population d'hommes entre 40 et 54 ans.
+        data_type: numeric
+      - name: H5564
+        description: population d'hommes entre 55 et 64 ans.
+        data_type: numeric
+      - name: H6579
+        description: population d'hommes entre 65 et 79 ans.
+        data_type: numeric
+      - name: H80P
+        description: population d'hommes de 80 ou plus.
+        data_type: numeric
+      - name: POPF
+        description: population totale de femmes, toutes tranches d'âge.
+        data_type: numeric
+      - name: F0015
+        description: population de femmes entre 0 et 15 ans.
+        data_type: numeric
+      - name: F1524
+        description: population de femmes entre 15 et 24 ans.
+        data_type: numeric
+      - name: F2539
+        description: population de femmes entre 25 et 39 ans.
+        data_type: numeric
+      - name: F4054
+        description: population de femmes entre 40 et 54 ans.
+        data_type: numeric
+      - name: F5564
+        description: population de femmes entre 55 et 64 ans.
+        data_type: numeric
+      - name: F6579
+        description: population de femmes entre 65 et 79 ans.
+        data_type: numeric
+      - name: F80P
+        description: population de femmes de 80 ou plus.
+        data_type: numeric
+      - name: POP15P
+        description: population totale 15 ans et plus.
+        data_type: numeric
+      - name: POP15P_CS1
+        description: population totale 15 ans et plus,  agriculteurs exploitants (CS1).
+        data_type: numeric
+      - name: POP15P_CS2
+        description: population totale 15 ans et plus,  artisants, commerçants, chefs entreprise (CS2).
+        data_type: numeric
+      - name: POP15P_CS3
+        description: population totale 15 ans et plus,  cadres, professions intellectuelles sup (CS3).
+        data_type: numeric
+      - name: POP15P_CS4
+        description: population totale 15 ans et plus,  prof. intermédiaires (CS4).
+        data_type: numeric
+      - name: POP15P_CS5
+        description: population totale 15 ans et plus,  employés (CS5).
+        data_type: numeric
+      - name: POP15P_CS6
+        description: population totale 15 ans et plus,  ouvriers (CS6).
+        data_type: numeric
+      - name: POP15P_CS7
+        description: population totale 15 ans et plus,  retraités (CS7).
+        data_type: numeric
+      - name: POP15P_CS9
+        description: population totale 15 ans et plus,  autres inactifs (CS9).
+        data_type: numeric
+        
+  - name: gold_presentation_page_epci
+    description: Population totale et municipale, et nombre de membres par EPCI et code INSEE des communes rattachées
+    columns:
+      - name: codgeo
+        description: "Clé primaire unique d'identification : Code INSEE (COM = 5 chiffres) de la commune rattachée à l'EPCI"
+        data_type: text
+      - name: raison_sociale
+        description: "Raison sociale de l'EPCI"
+        data_type: text
+      - name: nb_membres
+        description: "Nombre de communes rattachées à l'EPCI"
+        data_type: integer
+      - name: total_pop_tot
+        description: "Population totale de l'EPCI (Somme de population municipale et population comptée à part - Ex : étudiants résidant hors commune mais rattachés administrativement)"
+        data_type: integer 
+      - name: total_pop_mun
+        description: "Population municipale de l'EPCI"
+        data_type: integer 
+      - name: ptot_derniere_annee
+        description: "Population totale de la commune à la dernière année connue (Somme de population municipale et population comptée à part)"
+        data_type: integer 
+      - name: pmun_derniere_annee
+        description: "Population municipale de la commune à la dernière année connue"
+        data_type: integer       
+
+
+  - name: gold_services
+    description: Table recensant les nombres de services identifiés d'une zone géographique identifiée
+    columns:
+      - name: codgeo
+        description: Code INSEE officiel pour les 3 zones géographiques
+        data_type: text
+      - name: YEAR
+        description: Année de mesure des données
+        data_type: numeric
+        quote: true
+      - name: Réseau de proximité Pôle emploi
+        description: Nombre de réseau de proximité dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Implantations France services
+        description: Nombre d'implantations France services dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Banques, caisses d'épargne
+        description: Nombre de banques, de caisse d'épargne dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Bureau de poste
+        description: Nombre de bureau de poste dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Agence postale
+        description: Nombre d'agences postales dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: École de conduite
+        description: Nombre d'écoles de conduite dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Salon de Coiffure
+        description: Nombre de salons de coiffure dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Agence de travail temporaire
+        description: Nombre d'agnece de travail temporaire dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+      - name: Restaurant ou Restauration rapide
+        description: Nombre de restaurants ou restauration rapide dans la zone géographique identifiée
+        data_type: double precision
+        quote: true
+
+  - name: vw_population_densite
+    description: Densité de population associée aux codes géographiques (communes, départements, régions), par année.
+    columns:
+      - name: codegeo
+        description: code géographique (seulement COM, DEP, REGION).
+        data_type: text
+      - name: year
+        description: année de la dernière mesure.
+        data_type: text
+      - name: densite
+        description: densité de population, nombre d'habitants au kilomètre carré.
+        data_type: numeric
+
 
   - name: gold_population_nb_menages
     description: Table contenant le nombre de ménages et le nombre moyen d'occupants par ménage à tous les niveaux géographiques (commune, département, région). Union des tables silver_population_menages, silver_population_menages_departement et silver_population_menages_region.

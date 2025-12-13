@@ -1,25 +1,24 @@
 {{ config(
+    tags = ['bronze', 'population'],
     alias = 'vw_population_categorie_socio_pro'
-    )
-}}
+) }}
 
-
-with departments as 
+with pop_csp as
 (
-    select 
-        id as id, 
-        json_value(data, '$.uri') as uri, 
-        json_value(data, '$.code') as code, 
-        json_value(data, '$.type') as type,  
-        json_value(data, '$.chefLieu') as chef_lieu,
-        json_value(data, '$.intitule') as intitule, 
-        json_value(data, '$.typeArticle') as type_article, 
-        json_value(data, '$.dateCreation') as date_creation,
-        json_value(data, '$.intituleSansArticle') as intitule_sans_article,
-        created_at as created_at
-
-    from {{ source('bronze', 'population_categorie_socio_pro') }}  
+    select   
+        (data::jsonb)->'dimensions'->>'AGE'::text as age,
+        (data::jsonb)->'dimensions'->>'GEO'::text as geo,
+        (data::jsonb)->'dimensions'->>'PCS'::text as pcs,
+        (data::jsonb)->'dimensions'->>'SEX'::text as sex,
+        (data::jsonb)->'dimensions'->>'RP_MEASURE'::text as rp_measure,
+        (data::jsonb)->'dimensions'->>'TIME_PERIOD'::text as time_period,
+        (data::jsonb)->'measures'->'OBS_VALUE_NIVEAU' ->> 'value'::text as measure_value
+    from {{ source('bronze', 'population_categorie_socio_pro') }}
 )
 
-select * from departments
+select * from pop_csp
+
+
+
+
 

@@ -187,7 +187,7 @@ domains:
     deplacement_domicile_travail:
       API: INSEE.Melodi
       description: Mobilités progressionnelles, déplacements domicile - lieu de travail
-      endpoint: /file/DS_RP_NAVETTES_PRINC/DS_RP_NAVETTES_PRINC_CSV_FR
+      endpoint: /file/DS_RP_NAVETTES_PRINC/DS_RP_NAVETTES_PRINC_2022_CSV_FR
       type: FileExtractor
       format: zip
       headers:
@@ -195,7 +195,22 @@ domains:
       preprocessor:
         type: notebook
         name: unzip_load_csv_files
-        
+
+    deplacement_domicile_travail_croisement_lieu_residence_lieu_travail:
+      API: INSEE.statistiques
+      description: |
+        Déplacement domicile travail avec croisement lieu de résidence/lieu de travail
+        Référence du fichier INSEE : 8582949
+        Millésime 2022
+      type: FileExtractor
+      endpoint: /fichier/8582949/base-flux-mobilite-domicile-lieu-travail-2022_csv.zip
+      format: zip
+      headers:
+        accept: application/zip, application/octet-stream
+      preprocessor:
+        type: notebook
+        name: unzip_load_csv_files
+
     bmo_2024:
       API: data.gouv.fr
       description: Fichier BMO (Besoins en Main d'Oeuvre) - 2024
@@ -204,6 +219,15 @@ domains:
       format: zip
       preprocessor:
         name: bmo_2024
+
+    bmo_2025:
+      API: data.gouv.fr
+      description: Fichier BMO (Besoins en Main d'Oeuvre) - 2025
+      endpoint: /datasets/r/54478315-aafd-4070-b8df-a5647297e0c0
+      type: FileExtractor
+      format: zip
+      preprocessor:
+        name: bmo_2025
 
   presentation:
 
@@ -245,7 +269,7 @@ domains:
       API: GEO.api.gouv.fr
       description: Référentiel géographique GEO - niveau commune
       type: JsonExtractor
-      endpoint: /communes?fields=code,nom,population,departement,region,centre
+      endpoint: /communes?fields=code,nom,population,departement,region,centre,epci
       format: json
 
     arrondissements:
@@ -261,6 +285,25 @@ domains:
       type: JsonExtractor
       endpoint: /epcis
       format: json
+    
+    intercommunalites:
+      API: data.gouv.fr
+      description:  base nationale sur les intercommunalités (BANATIC)
+      endpoint: /datasets/r/348cc004-22b4-4b12-9281-b00d4ccb1d88
+      type: FileExtractor
+      format: xlsx
+      preprocessor:
+        name: excelfile_dfload
+        type: notebook
+
+    geocodes_passage_annuel:
+      API: Opendatasoft
+      description: Table de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)
+      type: FileExtractor
+      endpoint: /catalog/datasets/georef-france-matching-code/exports/csv?use_labels=true
+      format: csv
+      load_params:
+        separator: ;
 
   accueil:
 
@@ -285,14 +328,13 @@ domains:
           maxResult: 10000
           # TIME_PERIOD: 2021
           startPeriod: "2009-01-01"
-          endPeriod: "2025-01-01"
+          endPeriod: "2025-10-01"
           GEO: # géographies
             - COM # communes
             - DEP # départements
             - REG # régions
           RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH: # statut d'occupation du logement
@@ -326,11 +368,11 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH: # statut d'occupation du logement
@@ -359,11 +401,11 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH:
@@ -389,11 +431,11 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH:
@@ -419,11 +461,11 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: [2010,2015,2021,2025]
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS_ROOMS # nombre de pièces
           L_STAY: _T
-          TOH: _T
           CARS: _T
           NOR: _T
           TSH: # statut d'occupation du logement
@@ -504,7 +546,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2023
+          startPeriod: "2009-01-01"
+          endPeriod: "2025-10-01"
           GEO: ["COM","REG","DEP"]
           FACILITY_TYPE: ["A122", "A128", "A203", "A206", "A208","A304","A501","A503", "A504"]
         response_map:
@@ -516,7 +559,6 @@ domains:
         
   population:
       
-
       by_age:
         API: INSEE.Melodi
         description: Répartition de la population par tranches d'âge
@@ -534,41 +576,20 @@ domains:
 
       by_age_gender:
         API: INSEE.Melodi
-        description: Répartition de la population par tranches d'âge et par genre (M/F, Cis/Trans)
+        description: Répartition de la population par tranches d'âge et par genre
         type: MelodiExtractor
-        endpoint: /data/DS_ESTIMATION_POPULATION # Dataset des estimations de population de l'INSEE
+        endpoint: /data/DS_RP_POPULATION_PRINC # recensement données principales
         format: json
         extract_params:
           maxResult: 10000
-          SEX:
-            - M # Hommes (all)
-            - M_cis # Hommes cis
-            - F # Femmes (all)
-            - F_cis # Femmes cis
-            - TS # Personnes Trans
-            - _Z # 'Non Applicable' 
-          EP_MEASURE: POP # Prendre uniquement la mesure de population
+          TIME_PERIOD: 2022
+          SEX: ["M", "F", "_T"]
+          GEO: ["COM", "DEP", "REG"]
+          RP_MEASURE: POP
         response_map:
           data: observations
           next: paging.next
           is_last: paging.isLast
-      
-      # repartition_sexe_age:
-      #   API: INSEE.Melodi
-      #   description: repartition de la population par sexe et par tranche d'age
-      #   type: MelodiExtractor
-      #   endpoint: /data/DS_RP_POPULATION_PRINC
-      #   format: json
-      #   extract_params:
-      #     maxResult: 10000
-      #     TIME_PERIOD: 2021
-      #     GEO: ["COM","DEP","REG"]
-      #     SEX: ["F","M"]
-      #     AGE: ["Y_LT15","Y15T24","Y25T39","Y40T54","Y55T64","Y65T79","Y_GE80"]
-      #   response_map:
-      #     data: observations
-      #     next: paging.next
-      #     is_last: paging.isLast
       
       population_superficie:
         API: INSEE.Melodi
@@ -578,10 +599,27 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: 2022
           GEO: ["COM","DEP","REG"]
           RP_MEASURE: ["POP","SUP"]
           OCS: "_T"
+        response_map:
+          data: observations
+          next: paging.next
+          is_last: paging.isLast
+
+      population_totale:
+        API: INSEE.Melodi
+        description: recuperation des populations communale et totale des communes
+        type: MelodiExtractor
+        endpoint: /data/DS_POPULATIONS_REFERENCE
+        format: json
+        extract_params:
+          maxResult: 10000
+          TIME_PERIOD: 2022
+          GEO: ["COM"]
+          POPREF_MEASURE: ["PMUN", "PTOT"]
+          page: 1
         response_map:
           data: observations
           next: paging.next
@@ -595,12 +633,12 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2021
+          TIME_PERIOD: 2022
           GEO: ["COM","DEP","REG"]
           SEX: "_T"
           RP_MEASURE: "POP"
-          AGE: "Y_GE15"
-          PCS: ["1","2","3","4","5","6","7","9"]
+          AGE: "Y_GE15" # 15 years old or more
+          PCS: ["1", "2", "3", "4", "5", "6", "7", "9", "_T"] # 8 was excluded (students), added it back just in case
         response_map:
           data: observations
           next: paging.next
@@ -640,4 +678,26 @@ domains:
           name: unzip_load_csv_files
           type: notebook
 
+      taux_pauvrete_communes:
+        API: INSEE.statistiques
+        description: |
+          Taux de pauvretés au niveau des communes par seuil
+          Millésime 2021
+        type: FileExtractor
+        endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-COMMUNES_csv.zip
+        format: zip
+        preprocessor:
+          name: unzip_load_csv_files
+          type: notebook
 
+      taux_pauvrete_supra:
+        API: INSEE.statistiques
+        description: |
+          Taux de pauvretés au niveau des arrondissements, departements, région par seuil
+          Millésime 2021
+        type: FileExtractor
+        endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-SUPRA_csv.zip
+        format: zip
+        preprocessor:
+          name: unzip_load_csv_files
+          type: notebook
