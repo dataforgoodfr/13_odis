@@ -863,7 +863,7 @@ models:
   
   - name: silver_population_menages
     description: Table nettoyée contenant le nombre de ménages et le nombre moyen d'occupants par ménage, agrégés par commune.
-    columns: 
+    columns:
       - name: codgeo
         description: Code INSEE de la commune
         data_type: text
@@ -876,3 +876,44 @@ models:
       - name: nb_occ_moyen
         description: Nombre moyen d'occupants par ménage dans la commune
         data_type: numeric
+      - name: niveau_geo
+        description: Niveau géographique (COM pour commune)
+        data_type: text
+
+  - name: silver_population_menages_departement
+    description: Table agrégée contenant le nombre de ménages et le nombre moyen d'occupants par ménage au niveau département. Les données communales sont agrégées en utilisant le modèle de référence géographique com_dep_reg.
+    columns:
+      - name: codgeo
+        description: Code INSEE du département
+        data_type: text
+      - name: year
+        description: Année de référence des données du recensement
+        data_type: numeric
+      - name: nb_menages
+        description: Nombre total de ménages dans le département (somme des ménages des communes)
+        data_type: numeric
+      - name: nb_occ_moyen
+        description: Nombre moyen d'occupants par ménage dans le département (moyenne pondérée par le nombre de ménages)
+        data_type: numeric
+      - name: niveau_geo
+        description: Niveau géographique (DEP pour département)
+        data_type: text
+
+  - name: silver_population_menages_region
+    description: Table agrégée contenant le nombre de ménages et le nombre moyen d'occupants par ménage au niveau région. Les données communales sont agrégées en utilisant le modèle de référence géographique com_dep_reg.
+    columns:
+      - name: codgeo
+        description: Code INSEE de la région, préfixé par 'reg' (ex. 'reg84' pour Auvergne-Rhône-Alpes)
+        data_type: text
+      - name: year
+        description: Année de référence des données du recensement
+        data_type: numeric
+      - name: nb_menages
+        description: Nombre total de ménages dans la région (somme des ménages des communes)
+        data_type: numeric
+      - name: nb_occ_moyen
+        description: Nombre moyen d'occupants par ménage dans la région (moyenne pondérée par le nombre de ménages)
+        data_type: numeric
+      - name: niveau_geo
+        description: Niveau géographique (REG pour région)
+        data_type: text
