@@ -6,11 +6,12 @@
 
 with population_nb_menages as (
     select 
-        codgeo,
-        2021 as YEAR,
-        SUM(NB) as Nb_Menages, 
-        SUM(NPERC * NB) / nullif(SUM(NB),0) as Nb_Occ_Moyen 
+        "CODGEO" as codgeo,
+        2021 as year,
+        SUM("NB") as nb_menages, 
+        SUM("NPERC" * "NB") / nullif(SUM("NB"),0) as nb_occ_Moyen 
     from {{ ref('population_menages_2021') }}
+    group by "CODGEO"
 )
 
 select * from population_nb_menages

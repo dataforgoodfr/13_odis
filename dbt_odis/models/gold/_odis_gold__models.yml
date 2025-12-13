@@ -273,3 +273,19 @@ models:
         description: annee
         data_type: integer
         quote: true
+
+  - name: gold_nb_menages
+    description: Table nettoyée contenant le nombre de ménages et le nombre moyen d'occupants par ménage, agrégés par commune.
+    columns: 
+      - name: codgeo
+        description: Code INSEE de la commune
+        data_type: text
+      - name: year
+        description: Année de référence des données du recensement
+        data_type: numeric
+      - name: nb_menages
+        description: Nombre total de ménages dans la commune
+        data_type: numeric
+      - name: nb_occ_moyen
+        description: Nombre moyen d'occupants par ménage dans la commune
+        data_type: numeric
