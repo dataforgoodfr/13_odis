@@ -5,12 +5,13 @@
 }}
 
 with population_nb_menages as (
-    select 
+    select
         "CODGEO" as codgeo,
         2021 as year,
-        SUM("NB") as nb_menages, 
-        SUM("NPERC" * "NB") / nullif(SUM("NB"),0) as nb_occ_Moyen 
-    from {{ ref('population_menages_2021') }}
+        SUM("NB") as nb_menages,
+        SUM("NPERC" * "NB") / nullif(SUM("NB"),0) as nb_occ_Moyen,
+        'COM' as niveau_geo
+    from {{ ref('population_menages_2021') }} where "NIVGEO" = 'COM'
     group by "CODGEO"
 )
 
