@@ -397,66 +397,120 @@ models:
         description: nombre de places dans les chrs_etab
         data_type: integer
 
-  - name: gold_population_by_age_gender
-    description: Table transformée contenant les indicateurs de population par tranche d'âge et sexe par commune
+  - name: vw_population_by_age_gender_csp
+    description: Table transformée contenant les indicateurs de population par tranche d'âge, genre et CSP et code géographique.
     columns:
       - name: codegeo
-        description: code des départements ou des régions si le code est préfixé par 'REG'
+        description: code des départements, communes ou régions (si préfixe "reg").
         data_type: text
-      - name: YEAR
-        description: Année de l'étude
+      - name: year
+        description: Année de la mesure.
         data_type: text
-      - name: pop
-        description: population total, toutes tranches d'âge et sexe confondus
+      - name: POP
+        description: Population totale, toutes tranches d'âge et sexe confondus.
         data_type: numeric
-      - name: poph
-        description: population total pour les hommes, toutes tranches d'âge
+      - name: POPH
+        description: Population totale pour les hommes, toutes tranches d'âge.
         data_type: numeric
-      - name: h0014
-        description: population d'hommes entre 0 et 14 ans
+      - name: H0015
+        description: population d'hommes entre 0 et 15 ans.
         data_type: numeric
-      - name: h1529
-        description: population d'hommes entre 15 et 29 ans
+      - name: H1524
+        description: population d'hommes entre 15 et 24 ans.
         data_type: numeric
-      - name: h3044
-        description: population d'hommes entre 30 et 44 ans
+      - name: H2539
+        description: population d'hommes entre 25 et 39 ans.
         data_type: numeric
-      - name: h4559
-        description: population d'hommes entre 45 et 59 ans
+      - name: H4054
+        description: population d'hommes entre 40 et 54 ans.
         data_type: numeric
-      - name: h6074
-        description: population d'hommes entre 60 et 74 ans
+      - name: H5564
+        description: population d'hommes entre 55 et 64 ans.
         data_type: numeric
-      - name: h7589
-        description: population d'hommes entre 75 et 89 ans
+      - name: H6579
+        description: population d'hommes entre 65 et 79 ans.
         data_type: numeric
-      - name: h90p
-        description: population d'hommes de 90 ou plus
+      - name: H80P
+        description: population d'hommes de 80 ou plus.
         data_type: numeric
-      - name: popf
-        description: population total pour les femmes, toutes tranches d'âge
+      - name: POPF
+        description: population totale de femmes, toutes tranches d'âge.
         data_type: numeric
-      - name: f0014
-        description: population de femmes entre 0 et 14 ans
+      - name: F0015
+        description: population de femmes entre 0 et 15 ans.
         data_type: numeric
-      - name: f1529
-        description: population de femmes entre 15 et 29 ans
+      - name: F1524
+        description: population de femmes entre 15 et 24 ans.
         data_type: numeric
-      - name: f3044
-        description: population de femmes entre 30 et 44 ans
+      - name: F2539
+        description: population de femmes entre 25 et 39 ans.
         data_type: numeric
-      - name: f4559
-        description: population de femmes entre 45 et 59 ans
+      - name: F4054
+        description: population de femmes entre 40 et 54 ans.
         data_type: numeric
-      - name: f6074
-        description: population de femmes entre 60 et 74 ans
+      - name: F5564
+        description: population de femmes entre 55 et 64 ans.
         data_type: numeric
-      - name: f7589
-        description: population de femmes entre 75 et 89 ans
+      - name: F6579
+        description: population de femmes entre 65 et 79 ans.
         data_type: numeric
-      - name: f90p
-        description: population de femmes de 90 ou plus
+      - name: F80P
+        description: population de femmes de 80 ou plus.
         data_type: numeric
+      - name: POP15P
+        description: population totale 15 ans et plus.
+        data_type: numeric
+      - name: POP15P_CS1
+        description: population totale 15 ans et plus,  agriculteurs exploitants (CS1).
+        data_type: numeric
+      - name: POP15P_CS2
+        description: population totale 15 ans et plus,  artisants, commerçants, chefs entreprise (CS2).
+        data_type: numeric
+      - name: POP15P_CS3
+        description: population totale 15 ans et plus,  cadres, professions intellectuelles sup (CS3).
+        data_type: numeric
+      - name: POP15P_CS4
+        description: population totale 15 ans et plus,  prof. intermédiaires (CS4).
+        data_type: numeric
+      - name: POP15P_CS5
+        description: population totale 15 ans et plus,  employés (CS5).
+        data_type: numeric
+      - name: POP15P_CS6
+        description: population totale 15 ans et plus,  ouvriers (CS6).
+        data_type: numeric
+      - name: POP15P_CS7
+        description: population totale 15 ans et plus,  retraités (CS7).
+        data_type: numeric
+      - name: POP15P_CS9
+        description: population totale 15 ans et plus,  autres inactifs (CS9).
+        data_type: numeric
+        
+  - name: gold_presentation_page_epci
+    description: Population totale et municipale, et nombre de membres par EPCI et code INSEE des communes rattachées
+    columns:
+      - name: codgeo
+        description: "Clé primaire unique d'identification : Code INSEE (COM = 5 chiffres) de la commune rattachée à l'EPCI"
+        data_type: text
+      - name: raison_sociale
+        description: "Raison sociale de l'EPCI"
+        data_type: text
+      - name: nb_membres
+        description: "Nombre de communes rattachées à l'EPCI"
+        data_type: integer
+      - name: total_pop_tot
+        description: "Population totale de l'EPCI (Somme de population municipale et population comptée à part - Ex : étudiants résidant hors commune mais rattachés administrativement)"
+        data_type: integer 
+      - name: total_pop_mun
+        description: "Population municipale de l'EPCI"
+        data_type: integer 
+      - name: ptot_derniere_annee
+        description: "Population totale de la commune à la dernière année connue (Somme de population municipale et population comptée à part)"
+        data_type: integer 
+      - name: pmun_derniere_annee
+        description: "Population municipale de la commune à la dernière année connue"
+        data_type: integer       
+
+
   - name: gold_services
     description: Table recensant les nombres de services identifiés d'une zone géographique identifiée
     columns:
@@ -503,3 +557,16 @@ models:
         description: Nombre de restaurants ou restauration rapide dans la zone géographique identifiée
         data_type: double precision
         quote: true
+
+  - name: vw_population_densite
+    description: Densité de population associée aux codes géographiques (communes, départements, régions), par année.
+    columns:
+      - name: codegeo
+        description: code géographique (seulement COM, DEP, REGION).
+        data_type: text
+      - name: year
+        description: année de la dernière mesure.
+        data_type: text
+      - name: densite
+        description: densité de population, nombre d'habitants au kilomètre carré.
+        data_type: numeric
