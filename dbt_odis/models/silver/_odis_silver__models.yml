@@ -1054,6 +1054,7 @@ models:
       - name: places
         description: nombre de places dans la structure d'accueil
         data_type: integer
+
   - name: silver_services
     description: nombre de services totaux par zone géographique, granularité fine au niveau du code INSEE, les indicateurs ne concernent que certains types de services
     columns:
@@ -1084,3 +1085,24 @@ models:
       - name: code_geo
         description: Code INSEE officiel pour les 3 niveaux géographiques
         data_type: text
+
+  - name: vw_population_population_superficie_stg
+    description: population et superficie par codegeo et année
+    columns:
+      - name: codegeo_year
+        description: Année d'établissement du codegeo.
+        data_type: text
+      - name: codegeo_type
+        description: Type de code géographique ("COM", "DEP" ou "REG").
+        data_type: text
+      - name: codegeo
+        description: Code géographique.
+        data_type: text
+      - name: year
+        description: Année de la mesure.
+        data_type: text
+      - name: population
+        description: Population en nombre d'habitants.
+        data_type: integer
+      - name: superficie
+        description: Superficie en hectares.

@@ -119,8 +119,10 @@ sources:
         description: View contenant
         loaded_at_field: created_at
 
-
-
       - name: vw_population_categorie_socio_pro
         description: View contenant les informations de références des communes
-        loaded_at_field: created_at      
+        loaded_at_field: created_at
+
+      - name: vw_population_population_superficie
+        description: Vue contenant une mesure de recensement (superficie ou population) associée aux codes géographiques.
+        loaded_at_field: created_at

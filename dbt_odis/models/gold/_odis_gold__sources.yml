@@ -51,3 +51,7 @@ sources:
         description: Table contenant
         loaded_at_field: created_at
 
+      - name: vw_population_population_superficie_stg
+        description: Table contenant population et superficie par code géographique et année.
+        loaded_at_field: created_at
+
