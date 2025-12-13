@@ -47,8 +47,12 @@ sources:
         description: Table contenant
         loaded_at_field: created_at 
 
-      - name: silver_population_by_age_gender
-        description: Table contenant
+      - name: vw_population_by_age_gender_stg
+        description: View avec la population par tranche d'âge et genre.
+        loaded_at_field: created_at
+
+      - name: vw_population_categorie_socio_pro_stg
+        description: Vue avec population par CSP, pour les 15 ans et plus.
         loaded_at_field: created_at
 
       - name: vw_population_population_superficie_stg
