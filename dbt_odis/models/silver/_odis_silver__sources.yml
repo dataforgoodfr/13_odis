@@ -126,3 +126,7 @@ sources:
       - name: vw_population_categorie_socio_pro
         description: Vue contenant la population associée aux différentes catégories socio-professionnelles.
         loaded_at_field: created_at      
+        
+      - name: vw_population_population_superficie
+        description: Vue contenant une mesure de recensement (superficie ou population) associée aux codes géographiques.
+        loaded_at_field: created_at
