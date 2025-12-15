@@ -244,10 +244,29 @@ domains:
       API: Opendatasoft
       description: Elections municipales 2020
       type: FileExtractor
-      endpoint: /catalog/datasets/election-france-municipale-2020-deuxieme-tour/exports/csv?use_labels=true
+      endpoint: /catalog/datasets/election-france-municipale-2020-premier-tour/exports/csv?use_labels=true
       format: csv
       load_params:
         separator: ;
+
+    elections_regionales:
+      API: Opendatasoft
+      description: Elus des différentes région 
+      type: FileExtractor
+      endpoint: /catalog/datasets/elections-france-regionales-2021-1er-tour-par-bureau-de-vote/exports/csv
+      format: csv
+      load_params:
+        separator: ;
+
+    elections_departementales:
+      API: data.gouv.fr
+      description: Elus des différentes départementales 
+      endpoint: /datasets/r/e9528553-a5d7-43f4-a7f5-cbc4ed1b91da
+      type: FileExtractor
+      format: xlsx
+      preprocessor:
+        name: excelfile_dfload
+        type: notebook
 
   geographical_references:
 
