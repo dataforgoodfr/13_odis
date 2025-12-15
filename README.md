@@ -80,6 +80,20 @@ Pour comprendre en détail comment ça fonctionne :
 
 [Comprendre les Extracteurs de données](./docs/extract.md)
 
+## Chargement
+
+Après avoir extrait les données, il est nécessaire de les charger en base de donnée avant de lancer la transformation dbt.
+
+Le script “load“ se lance exactement comme le script extract ci-dessus, avec les mêmes arguments :
+
+```bash
+# Extraire tous les datasets source du domaine "geographical_references"
+poetry run bin/odis.py load --domain geographical_references
+
+# Extraire seulement les datasets "regions" et "departements du domaine "geographical_references"
+poetry run bin/odis.py load --sources geographical_references.regions, geographical_references.departements
+```
+
 ## Sonder les sources disponibles
 
 L’option “explain” permet de voir facilement comment les API, Domaines et Sources sont définis dans la configuration. Si l’option “explain” est passée, le script n’extrait aucune donnée mais montre seulement les infos sur les configurations demandées.
