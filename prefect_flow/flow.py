@@ -29,7 +29,7 @@ def prefect_dbt_run():
 
 
 @flow
-async def full_pipeline(config_path: str = "datasources.yml", max_concurrency: int = 4):
+async def full_pipeline(config_path: str = "datasources.yaml", max_concurrency: int = 4):
     logger_prefect = get_run_logger()
     logger_prefect.info("START FLOW")
     logger_prefect.info("START DATA EXTRACT")

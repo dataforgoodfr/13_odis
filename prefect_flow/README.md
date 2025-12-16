@@ -109,3 +109,203 @@ if __name__ == "__main__":
         config_path="datasources.yaml",
         max_concurrency=4,
     )
+
+
+
+Oui — ce log donne **l’information clé** qui manquait :
+le problème n’est pas seulement la session aiohttp non fermée, mais aussi que tu passes **des objets non‐awaitables** dans ton `asyncio.gather()`.
+
+Regarde :
+
+```
+TypeError: An asyncio.Future, a coroutine or an awaitable is required
+```
+
+et juste au-dessus :
+
+```
+artifacts = await asyncio.gather(*extract_tasks, return_exceptions=True)
+                ^^^^^^^^^^^^^^^
+```
+
+Donc **`extract_tasks` ne contient pas des coroutines**… mais autre chose.
+
+Et en regardant ton code, on comprend pourquoi 👇
+
+---
+
+# 💥 Cause exacte
+
+Tu construis ta liste ainsi :
+
+```python
+extract_tasks = [
+    prefect_extract.with_options(name=f"Extract {ds.name}").submit(config, ds, max_concurrency)
+    for ds in config.get_models().values()
+]
+```
+
+Et **`.submit()` retourne un objet Prefect TaskRunResult**, pas une future asyncio.
+Donc :
+
+* `submit()` = exécution **async orchestrée par Prefect**, mais **pas une coroutine**
+* `await asyncio.gather(...)` = attend **des coroutines Python**, pas des tâches Prefect
+
+Donc mélanger les deux = ❌ crash.
+
+---
+
+# 🧠 Théorie Prefect (clair et simple)
+
+Deux modèles existent :
+
+## **Modèle 1 : Async Python**
+
+* Tu appelles une `@task async`
+* Tu récupères un `coroutine`
+* Tu `await` avec `gather`
+
+Exemple :
+
+```python
+tasks = [prefect_extract(...), prefect_extract(...)]
+results = await asyncio.gather(*tasks)
+```
+
+## **Modèle 2 : Orchestration Prefect**
+
+* Tu appelles `.submit()`
+* Tu récupères un `PrefectFuture`
+* Tu `.result()` (sync) ou `.wait()` (async)
+
+Exemple :
+
+```python
+tasks = [prefect_extract.submit(...), prefect_extract.submit(...)]
+results = [task.result() for task in tasks]
+```
+
+👉 **NE JAMAIS mélanger les deux modèles**.
+
+Et c’est exactement ce que ton code fait aujourd’hui.
+
+---
+
+# 🟢 Comment corriger
+
+Tu dois **choisir un modèle** :
+
+---
+
+## ✔️ Option A : Flow 100% async Python (recommandé pour API / aiohttp)
+
+### 1) Task async
+
+```python
+@task
+async def prefect_extract(config, ds, max_concurrency):
+    return await run_extraction(config, [ds], max_concurrency)
+```
+
+### 2) Flow async
+
+```python
+@flow
+async def full_pipeline(...):
+    config = load_config(...)
+
+    tasks = [
+        prefect_extract.with_options(name=f"Extract {ds.name}")(
+            config, ds, max_concurrency
+        )
+        for ds in config.get_models().values()
+    ]
+
+    artifacts = await asyncio.gather(*tasks, return_exceptions=True)
+```
+
+👉 Pas de `.submit()`.
+
+* Prefect détecte que ce sont des coroutines et les exécute dans un seul processus
+* parfait si `run_extraction` fait de l’I/O concurrent
+
+---
+
+## ✔️ Option B : Flow orchestré Prefect (pour scalabilité / workers)
+
+Si tu veux lancer **chaque extraction sur un worker séparé**, tu fais :
+
+```python
+tasks = [
+    prefect_extract.with_options(name=f"Extract {ds.name}").submit(
+        config, ds, max_concurrency
+    )
+    for ds in config.get_models().values()
+]
+```
+
+Puis :
+
+```python
+artifacts = [t.result() for t in tasks]
+```
+
+👉 Ici **pas de `await asyncio.gather()`**.
+
+C’est Prefect qui gère le scheduling, l’async, les retries, etc.
+Ton flow reste **synchrone**, mais distribué.
+
+---
+
+# ❗ À propos de l’erreur aiohttp « Unclosed client session »
+
+Elle est probablement causée par :
+
+* des sessions ouvertes dans `run_extraction`
+* un mauvais pattern async
+* l’event loop forcée par Prefect
+
+Quand tu corrigeras **l’un des deux modèles**, l’erreur a de grandes chances de disparaître.
+
+Mais vérifie quand même :
+
+```python
+async with aiohttp.ClientSession() as session:
+    ...
+```
+
+(❌ pas de `session = ClientSession()` sans close)
+
+---
+
+# 🎯 Recommandation
+
+Vu ton code, je pense que tu veux :
+
+* plusieurs extracteurs en parallèle,
+* mais dans **le même process**
+* avec async+await réel
+* sans worker Dist Prefect
+
+Donc **Option A** est ton meilleur choix.
+
+---
+
+# ✨ Résumé ultra court
+
+L’erreur vient de :
+
+```
+.submit() + asyncio.gather() = incompatible
+```
+
+Corrige en :
+
+* soit `await gather(tasks)` **sans submit**
+* soit `submit()` **sans gather**
+
+Et ta stack trace disparaît 💪
+
+---
+
+Si tu veux, je peux te proposer une **version corrigée complète de ton flow** + correction dans `run_extraction` pour fermer les sessions aiohttp proprement.
