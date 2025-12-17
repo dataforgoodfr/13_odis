@@ -7,14 +7,14 @@
 with population_nb_menages_dept as (
     select
         geo."CODDEP" as codgeo,
-        2021 as year,
+        year,
         SUM(pop."NB") as nb_menages,
         SUM(pop."NPERC" * pop."NB") / nullif(SUM(pop."NB"),0) as nb_occ_Moyen,
         'DEP' as niveau_geo
     from {{ ref('population_menages_2021') }} pop
     inner join {{ ref('com_dep_reg') }} geo on pop."CODGEO" = geo."CODGEO"
     where pop."NIVGEO" = 'COM'
-    group by geo."CODDEP"
+    group by geo."CODDEP", year
 )
 
 select * from population_nb_menages_dept
