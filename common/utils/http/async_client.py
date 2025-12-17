@@ -79,3 +79,10 @@ class AsyncHttpClient(HttpClient):
             except aiohttp.ContentTypeError as e:
                 logger.error(f"Failed to parse response: {e}")
                 raise HttpException(f"Failed to parse response from {url}: {e}") from e
+
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession(...)
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.session.close()

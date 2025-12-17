@@ -2,21 +2,21 @@ dbt_odis:
   target: dev_live
   outputs:
     dev_live:
-      dbname: prefect
+      dbname: odis
       host: localhost
-      pass: prefect
+      pass: odis
       port: 5432
       schema: bronze
       threads: 16
       type: postgres
-      user: prefect
+      user: odis
 
     dev_custom:
-      dbname: prefect
+      dbname: odis
       host: localhost
-      pass: prefect
+      pass: odis
       port: 5432
       schema: JBN
       threads: 16
       type: postgres
-      user: prefect
+      user: odis

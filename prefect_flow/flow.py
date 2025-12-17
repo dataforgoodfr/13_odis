@@ -11,9 +11,26 @@ from prefect_flow.generate_sources import generate_dbt_sources
 from common.config import load_config
 import subprocess
 from prefect.logging import get_run_logger
-import asyncio
-from common.data_source_model import DataSourceModel
+from common.data_source_model import DataSourceModel, DomainModel
+from common.utils.file_handler import DEFAULT_BASE_PATH, FileHandler
+from common.utils.interfaces.data_handler import MetadataInfo
+from common.utils.interfaces.data_handler import OperationType
+import re
 
+def artifact_key_safe(name: str) -> str:
+    return re.sub(r"[^a-z0-9-]+", "-", name.lower()).strip("-")
+
+def read_extract_metadata(ds: DomainModel) -> MetadataInfo | None:
+    handler = FileHandler()
+
+    try:
+        return handler.load_metadata(
+            model=ds,
+            operation=OperationType.EXTRACT,
+        )
+    except Exception as e:
+        # le fichier n'existe pas ou est invalide
+        return None
 
 @task
 async def prefect_extract(config, ds, max_concurrency):
@@ -36,7 +53,7 @@ async def full_pipeline(config_path: str = "datasources.yaml", max_concurrency: 
     config = load_config(config_path, response_model=DataSourceModel)
 
     # Extraction tasks dynamiques
-    extract_tasks = [
+    tasks = [
         prefect_extract.with_options(name=f"Extract {ds.name}").submit(
             config,
             ds,
@@ -47,41 +64,103 @@ async def full_pipeline(config_path: str = "datasources.yaml", max_concurrency: 
 
     logger_prefect.info("CHECK ARTIFACT")
     # On récupère les artifacts
-    artifacts = await asyncio.gather(*extract_tasks, return_exceptions=True)
+    artifacts = [
+        t.result(raise_on_failure=False)
+        for t in tasks
+    ]
 
     cleaned_artifacts = []
 
-    for ds, result in zip(config.get_models().values(), artifacts):
-        if isinstance(result, Exception):
-            # On crée un faux artifact expliquant l’erreur
-            cleaned_artifacts.append({
-                "ds_name": ds.name,
-                "artifact_path": None,
-                "error": str(result),
-            })
-
-            # On crée un artifact Prefect indiquant l'échec
-            create_markdown_artifact(
-                key=f"extract-{ds.name}",
-                markdown=f"### Extraction `{ds.name}`\n❌ Erreur pendant l'extraction\n```\n{result}\n```",
+    for ds, future, result in zip(
+        config.get_models().values(),
+        tasks,
+        artifacts
+    ):
+        if future.state.is_failed():
+            await create_markdown_artifact(
+                key=f"extract-{artifact_key_safe(ds.name)}",
+                markdown=(
+                    f"### Extraction `{ds.name}`\n"
+                    f"❌ Erreur pendant l'extraction\n"
+                    f"```\n{result}\n```"
+                ),
                 description=f"Extraction error for {ds.name}",
             )
         else:
-            cleaned_artifacts.append(result)
+            metadata = read_extract_metadata(ds)
+
+            metadata_path = (
+                f"{DEFAULT_BASE_PATH}/{ds.domain_name}/"
+                f"{artifact_key_safe(ds.name)}_metadata_extract.json"
+            )
+
+            if metadata is None:
+                await create_markdown_artifact(
+                    key=f"extract-{artifact_key_safe(ds.name)}",
+                    markdown=(
+                        f"### Extraction `{ds.name}`\n"
+                        f"❌ Aucun fichier metadata trouvé"
+                    ),
+                    description=f"Extraction failed for {ds.name}",
+                )
+            else :
+                cleaned_artifacts.append({
+                    "ds": ds,
+                    "extract_ok": True,
+                })
+
+                status = "✅" if metadata.complete else "❌"
+                await create_markdown_artifact(
+                    key=f"extract-{artifact_key_safe(ds.name)}",
+                    markdown=(
+                        f"### Extraction `{ds.name}`\n"
+                        f"{status} Extraction terminée\n\n"
+                        f"📄 Metadata : `{metadata_path}`\n"
+                        f"- Pages traitées : {metadata.last_processed_page}\n"
+                        f"- Erreurs : {metadata.errors}"
+                    ),
+                    description=f"Extraction success for {ds.name}",
+                )
 
 
-    generate_dbt_sources(config_path)
+    # PAS BESOIN DE PREFECT POUR TESTER CA
+    #generate_dbt_sources(config_path)
 
     # Load tasks avec artifact_path
-    load_futures = [
-        prefect_load.with_options(name=f"Extract {ds.name}").submit(
-            config,
-            ds,
-            artifact["artifact_path"],
+    load_futures = []
+
+    for item in cleaned_artifacts:
+        ds = item["ds"]
+
+        if not item["extract_ok"]:
+            continue
+
+        metadata = read_extract_metadata(ds)
+
+        if metadata is None or not metadata.complete:
+            logger_prefect.warning(
+                f"Skipping load for {ds.name}: extraction incomplete"
+            )
+            continue
+
+        load_futures.append(
+            prefect_load.with_options(name=f"Load {ds.name}").submit(
+                config,
+                ds,
+            )
         )
-        for ds, artifact in zip(config.get_models().values(), cleaned_artifacts)
+
+    load_results = [
+        f.result(raise_on_failure=False)
+        for f in load_futures
     ]
-    await asyncio.gather(*[f.wait() for f in load_futures])
+
+    for future, result in zip(load_futures, load_results):
+        if future.state.is_failed():
+            logger_prefect.error(f"Load failed: {result}")
 
     dbt_future = prefect_dbt_run.with_options(name="DBT Run").submit()
-    await dbt_future.wait()
+    dbt_result = dbt_future.result(raise_on_failure=False)
+
+    if dbt_future.state.is_failed():
+        logger_prefect.error(f"dbt run failed: {dbt_result}")

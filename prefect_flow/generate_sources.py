@@ -1,12 +1,13 @@
 # src/prefect_flow/generate_sources.py
 from pathlib import Path
 from common.data_source_model import DataSourceModel
+from common.config import load_config
 import yaml
 
 GENERATED_PATH = Path("prefect_flow/data/bronze__generated_sources.yml")
 
 def generate_dbt_sources(config_path: str):
-    config = DataSourceModel.load_from_yaml(config_path)
+    config = load_config(config_path, response_model=DataSourceModel)
     models = config.get_models()
 
     # Structure dbt
@@ -22,12 +23,12 @@ def generate_dbt_sources(config_path: str):
     }
 
     for model in models.values():
-        table_name = f"{model.domain}_{model.model}"
-        file_path = f"prefect_flow/data/imports/{model.domain}/{model.model}.json"
+        table_name = model.table_name
+        file_path = f"prefect_flow/data/imports/{model.domain_name}/{model.name}.json"
 
         bronze_source["sources"][0]["tables"].append({
             "name": table_name,
-            "description": f"Source JSON importée automatiquement pour {model.domain}/{model.model}",
+            "description": f"Source JSON importée automatiquement pour {model.domain_name}/{model.name}",
             "meta": {
                  "path": file_path
             }

@@ -20,7 +20,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 cd prefect_flow; docker compose up -d
 prefect config set PREFECT_API_URL="http://127.0.0.1:4200/api"
-prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect:prefect@localhost:5432/prefect"
+prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect:prefect@localhost:5433/prefect"
 
 ```
 Vous pourrez ensuite vérifier qu'aucun dossier storage/ est créé dans ~/.prefect/
@@ -71,7 +71,7 @@ export PREFECT_API_URL=http://127.0.0.1:4200/api ; prefect worker start -q defau
 
 ### 🕹️ TERMINAL 3 — **Déclenchement d’un run**
 
-Il sert uniquement à lancer un run manuel. Il faut d'abord lancer cette commande : 
+Il sert à enregistrer un "deployment" dans prefect et à lancer un run manuel. Il faut d'abord lancer cette commande : 
 
 ```bash
 python deploy.py 
