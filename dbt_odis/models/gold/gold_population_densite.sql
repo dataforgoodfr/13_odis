@@ -7,7 +7,7 @@ with densite as (
     select
         -- ajout du prefix 'reg' pour les régions, pour les differencier des DEP
         case
-            when codegeo_type = 'REG' then concat('reg', codgeo) else codgeo end
+            when codgeo_type = 'REG' then concat('reg', codgeo) else codgeo end
         as codgeo,
         "year",
         -- densite au km2, mais superficie exprimee en hectares
