@@ -571,13 +571,18 @@ models:
         description: densité de population, nombre d'habitants au kilomètre carré.
         data_type: numeric
   - name: gold_presentation_population_communes
-    description: Table contenant le nombre d'habitants par communes. Les grandes villes sont considérées à l'échelle de la commune, pas de l'arrondissement.
+    description: |
+      Table contenant le nombre d'habitants par communes. Les grandes villes sont considérées à l'échelle de la commune, pas de l'arrondissement.
+      Source: utilise les données de population_population_superficie (DS_RP_SERIE_HISTORIQUE) filtrées pour les communes uniquement.
     columns:
       - name: codgeo
         description: Code INSEE de la commune (différent du code postal)
         data_type: text
         tests:
           - assert_big_cities_exist
-  - name: population_totale
-    description: Population totale de la commune d'après les données INSEE
-    data_type: float
+      - name: population_totale
+        description: Population totale de la commune d'après les données INSEE
+        data_type: float
+      - name: year
+        description: Année de la mesure
+        data_type: integer
