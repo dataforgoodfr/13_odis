@@ -1182,7 +1182,7 @@ models:
 
   
   - name: silver_population_menages
-    description: Table nettoyée contenant le nombre de ménages et le nombre moyen d'occupants par ménage, agrégés par commune.
+    description: Table nettoyée contenant le nombre de ménages et le nombre moyen d'occupants par ménage, agrégés par commune. Les codes géographiques sont mis à jour avec la table de passage annuelle (seed geocodes_passage_annuel) pour correspondre aux codes géographiques les plus récents.
     columns:
       - name: codgeo
         description: Code INSEE de la commune

@@ -40,7 +40,7 @@ seeds:
   - name: Intitulés_FAP2021
     description: "Correspondance des codes FAP Métiers et FAP secteurs avec leurs intitulés"
     config:
-      quote_columns: true 
+      quote_columns: true
       delimiter: ';'
       column_types:
         Code_FAP341: text
@@ -51,3 +51,15 @@ seeds:
         Intitulé_FAP86: text
         Code_FAP22: text
         Intitulé_FAP22: text
+
+  - name: geocodes_passage_annuel
+    description: "Table de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)"
+    config:
+      quote_columns: true
+      delimiter: ';'
+      column_types:
+        Année: text
+        Niveau: text
+        Type: text
+        Ancien Code Officiel: text
+        Code Courant Officiel: text

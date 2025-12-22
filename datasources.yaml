@@ -298,7 +298,7 @@ domains:
 
     geocodes_passage_annuel:
       API: Opendatasoft
-      description: Table de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)
+      description: Table de passage annuelle 2025, équivalence codes géographiques 2025 et années précédentes d'établissement de codes depuis 2003
       type: FileExtractor
       endpoint: /catalog/datasets/georef-france-matching-code/exports/csv?use_labels=true
       format: csv
