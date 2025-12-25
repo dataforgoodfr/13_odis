@@ -30,9 +30,10 @@ class AsyncHttpClient(HttpClient):
                 Defaults to 1200 (20 minutes).
         """
 
-        conn = aiohttp.TCPConnector(limit=max_connections)
+        self._max_connections = max_connections
         self._timeout = aiohttp.ClientTimeout(total=timeout)
-        self._session = aiohttp.ClientSession(connector=conn, timeout=self._timeout)
+        self.base_url = None 
+        self._session = None
 
         logger.debug(
             f"AsyncHttpClient initialized with max_connections={max_connections}, timeout={timeout}s"
@@ -81,8 +82,21 @@ class AsyncHttpClient(HttpClient):
                 raise HttpException(f"Failed to parse response from {url}: {e}") from e
 
     async def __aenter__(self):
-        self.session = aiohttp.ClientSession(...)
+        conn = aiohttp.TCPConnector(limit=self._max_connections)
+
+        kwargs = {"connector": conn, "timeout": self._timeout}
+
+        if hasattr(self, "base_url") and self.base_url is not None:
+            if not isinstance(self.base_url, str):
+                raise ValueError("base_url must be a string")
+            kwargs["base_url"] = self.base_url
+
+        if hasattr(self, "headers") and self.headers:
+            kwargs["headers"] = self.headers
+
+        self._session = aiohttp.ClientSession(**kwargs)
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        await self.session.close()
+        if self._session and not self._session.closed:
+            await self._session.close()
