@@ -177,3 +177,6 @@ common/collections/** */.env
 
 # ignore exprts tables.csv files
 exports_wdd/*
+
+prefect_flow/data/
+prefect_flow/log/
