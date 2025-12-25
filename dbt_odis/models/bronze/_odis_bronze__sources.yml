@@ -19,12 +19,16 @@ sources:
       - name: geographical_references_intercommunalites
         description: Source xlsx loadée dans le champ data contenant les références des intercommunalites
 
-      - name: geographical_references_epci
+      - name: geographical_references_epcis
         description: Source JSON loadée dans le champ data contenant les références des EPCI
         loaded_at_field: created_at
 
       - name: geographical_references_arrondissements
         description: Source JSON loadée dans le champ data contenant les références des arrondissements
+        loaded_at_field: created_at
+
+      - name: geographical_references_geocodes_passage_annuel
+        description: Table de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)
         loaded_at_field: created_at
         
       - name: emploi_eff_secteur_prive_gds_secteurs
@@ -100,6 +104,22 @@ sources:
       - name: presentation_page_elus_communes
         description: Source JSON loadée dans le champ data contenant 
         loaded_at_field: created_at
+      - name: presentation_elus_communes
+        description: Listing de tous les élus des communes françaises, avec des élus régionaux et départementaux.
+        loaded_at_field: created_at
+
+      - name: presentation_elections_municipales
+        description: Informations sur la nuance politique des candidats aux élections municipales
+        loaded_at_field: created_at
+
+      - name: presentation_elections_departementales
+        description: Informations sur la nuance politique des candidats aux élections départementales
+        loaded_at_field: created_at
+
+      - name: presentation_elections_regionales
+        description: Informations sur la nuance politique des candidats aux élections régionales
+        loaded_at_field: created_at
+
 
       - name: presentation_page_epci
         description: Source JSON loadée dans le champ data contenant 
@@ -129,6 +149,10 @@ sources:
         description: feuille xlsx transformée en CSV contenant toutes les données des logements des bailleurs sociaux (appelées Répertoire des logements locatifs des bailleurs sociaux ou RPLS) déclinées par régions
         loaded_at_field : created_at
 
+      - name: population_population_totale
+        description: Source JSON loadée dans le champ data 
+        loaded_at_field: created_at
+
       - name: population_categorie_socio_pro
         description: Source JSON loadée dans le champ data 
         loaded_at_field: created_at
@@ -138,7 +162,11 @@ sources:
         loaded_at_field: created_at
 
       - name: population_by_age_gender
-        description: Source JSON - Estimation de population INSEE par âge et genre
+        description: Source JSON - données de recensement de population par âge et genre
+        loaded_at_field: created_at
+
+      - name: population_categorie_socio_pro
+        description: Source JSON - données de recensement de population par catégorie socio-professionnelle.
         loaded_at_field: created_at
 
       - name: population_menages_td_men1_2021
@@ -147,6 +175,10 @@ sources:
       
       - name: population_nb_menages
         description: Source CSV
+        loaded_at_field: created_at
+
+      - name: population_population_superficie
+        description: Source JSON, superficie et population associées aux codes geo (COM, DEP, REG) et années de mesure.
         loaded_at_field: created_at
 
       - name: population_taux_pauvrete_communes_filo2021_disp_pauvres_com
