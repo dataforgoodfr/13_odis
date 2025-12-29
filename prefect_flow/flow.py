@@ -38,16 +38,56 @@ def read_extract_metadata(ds: DomainModel) -> MetadataInfo | None:
         # le fichier n'existe pas ou est invalide
         return None
 
-@task
-def prefect_dbt_run():
-    runner = PrefectDbtRunner(
+#@task
+#def prefect_dbt_run():
+#    runner = PrefectDbtRunner(
+#        settings=PrefectDbtSettings(
+#            project_dir=str(DBT_DIR),
+#            profiles_dir=str(PROFILES_DIR)
+#        )
+#    )
+#    runner.invoke(["build"])  # ou ["run"] selon ce que tu veux faire
+
+
+def get_dbt_runner():
+    return PrefectDbtRunner(
         settings=PrefectDbtSettings(
             project_dir=str(DBT_DIR),
-            profiles_dir=str(PROFILES_DIR)
+            profiles_dir=str(PROFILES_DIR),
         )
     )
-    runner.invoke(["build"])  # ou ["run"] selon ce que tu veux faire
 
+
+@task(
+    name="dbt build model",
+    retries=1,
+    retry_delay_seconds=10,
+)
+def dbt_build_model(model_name: str):
+    runner = get_dbt_runner()
+
+    runner.invoke([
+        "build",
+        "--select",
+        f"{model_name}",
+    ])
+
+
+def run_dbt_models_from_load_tasks(load_tasks_by_model: dict[str, any]):
+    dbt_tasks = []
+
+    for model_name, load_task in load_tasks_by_model.items():
+        dbt_task = dbt_build_model.with_options(
+            name=f"dbt build {model_name}"
+        ).submit(
+            model_name,
+            wait_for=[load_task],  # 🔥 lien explicite
+        )
+
+        dbt_tasks.append(dbt_task)
+
+    for t in dbt_tasks:
+        t.result(raise_on_failure=False)
 
 @task(name="Extract")
 async def prefect_extract(config, ds, max_concurrency):
@@ -165,14 +205,17 @@ async def full_pipeline(config_path: str = "datasources.yaml", max_concurrency: 
         valid_metadata.append(result)
 
     load_tasks = []
+    load_tasks_by_model = {}
 
     for metadata in valid_metadata:
         ds = metadata.model  # si MetadataInfo contient le DomainModel ou DataSourceModel
         load_task = prefect_load.with_options(name=f"Load {ds.name}").submit(config, ds)
         load_tasks.append(load_task)
+        load_tasks_by_model[ds.name] = load_task
+
 
 
     for t in load_tasks:
         t.result(raise_on_failure=False)  # ← propagation naturelle
 
-    prefect_dbt_run()
+    run_dbt_models_from_load_tasks(load_tasks_by_model)

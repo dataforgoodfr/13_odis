@@ -153,10 +153,6 @@ sources:
         description: Source JSON loadée dans le champ data 
         loaded_at_field: created_at
 
-      - name: population_categorie_socio_pro
-        description: Source JSON loadée dans le champ data 
-        loaded_at_field: created_at
-
       - name: population_by_age
         description: Source JSON - Estimation de population INSEE par âge
         loaded_at_field: created_at
