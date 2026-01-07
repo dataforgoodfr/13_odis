@@ -27,9 +27,6 @@ sources:
         description: Source JSON loadée dans le champ data contenant les références des arrondissements
         loaded_at_field: created_at
 
-      - name: geographical_references_geocodes_passage_annuel
-        description: Table de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)
-        loaded_at_field: created_at
         
       - name: emploi_eff_secteur_prive_gds_secteurs
         description: Source CSV contenant les Effectifs salariés du secteur privé par grands secteurs

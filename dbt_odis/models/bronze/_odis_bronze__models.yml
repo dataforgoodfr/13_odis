@@ -1215,24 +1215,6 @@ models:
         description: date d'extraction des données
         data_type: timestamp without time zone
 
-      - name: vw_geographical_references_geocodes_passage_annuel
-        description: Extraction du CSV avec l'équivalence des codes géographiques depuis la dernière année d'établissement des codes.
-        columns:
-          - name: geocode_year
-            description: Année la plus récente d'établissement des codes géographiques
-            data_type: text
-          - name: geocode_type
-            description: Type de code géographique ("COM", "ARM", "REG", etc.).
-            data_type: text
-          - name: geocode_type_name
-            description: Description de code géographique ("commune", "arrondisseent municipal", etc.).
-            data_type: text
-          - name: old_geocode
-            description: Ancien code géographique, à l'année d'établissement précédent la plus récente.
-            data_type: text
-          - name: geocode
-            description: Code géographique courant, à l'année d'établissement la plus récente.
-            data_type: text
 
   # Logement
   - name: logements_appartement
