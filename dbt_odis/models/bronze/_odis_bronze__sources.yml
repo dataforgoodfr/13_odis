@@ -122,11 +122,7 @@ sources:
 
 
       - name: presentation_page_epci
-        description: Source JSON loadée dans le champ data contenant 
-        loaded_at_field: created_at
-
-      - name: presentation_page_population_communes
-        description: Source JSON loadée dans le champ data contenant 
+        description: Source JSON loadée dans le champ data contenant
         loaded_at_field: created_at
 
       - name: services_services
@@ -150,11 +146,7 @@ sources:
         loaded_at_field : created_at
 
       - name: population_population_totale
-        description: Source JSON loadée dans le champ data 
-        loaded_at_field: created_at
-
-      - name: population_categorie_socio_pro
-        description: Source JSON loadée dans le champ data 
+        description: Source JSON loadée dans le champ data
         loaded_at_field: created_at
 
       - name: population_by_age

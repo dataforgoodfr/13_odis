@@ -345,9 +345,9 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          # TIME_PERIOD: 2021
-          startPeriod: "2009-01-01"
-          endPeriod: "2025-10-01"
+          TIME_PERIOD: 2022
+          # startPeriod: "2009-01-01"
+          # endPeriod: "2025-10-01"
           GEO: # géographies
             - COM # communes
             - DEP # départements
@@ -387,8 +387,9 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          startPeriod: "2009-01-01"
-          endPeriod: "2025-10-01"
+          TIME_PERIOD: 2022
+          # startPeriod: "2009-01-01"
+          # endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS # nombre de logements
           L_STAY: _T
@@ -420,8 +421,9 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          startPeriod: "2009-01-01"
-          endPeriod: "2025-10-01"
+          TIME_PERIOD: 2022
+          # startPeriod: "2009-01-01"
+          # endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
@@ -450,8 +452,9 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          startPeriod: "2009-01-01"
-          endPeriod: "2025-10-01"
+          TIME_PERIOD: 2022
+          # startPeriod: "2009-01-01"
+          # endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS
           L_STAY: _T
@@ -480,8 +483,9 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          startPeriod: "2009-01-01"
-          endPeriod: "2025-10-01"
+          TIME_PERIOD: 2022
+          # startPeriod: "2009-01-01"
+          # endPeriod: "2025-10-01"
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: DWELLINGS_ROOMS # nombre de pièces
           L_STAY: _T
@@ -697,26 +701,4 @@ domains:
           name: unzip_load_csv_files
           type: notebook
 
-      taux_pauvrete_communes:
-        API: INSEE.statistiques
-        description: |
-          Taux de pauvretés au niveau des communes par seuil
-          Millésime 2021
-        type: FileExtractor
-        endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-COMMUNES_csv.zip
-        format: zip
-        preprocessor:
-          name: unzip_load_csv_files
-          type: notebook
 
-      taux_pauvrete_supra:
-        API: INSEE.statistiques
-        description: |
-          Taux de pauvretés au niveau des arrondissements, departements, région par seuil
-          Millésime 2021
-        type: FileExtractor
-        endpoint: /fichier/7756855/indic-struct-distrib-revenu-2021-SUPRA_csv.zip
-        format: zip
-        preprocessor:
-          name: unzip_load_csv_files
-          type: notebook
