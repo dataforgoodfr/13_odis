@@ -53,7 +53,7 @@ seeds:
         Intitulé_FAP22: text
 
   - name: geocodes_passage_annuel
-    description: "Table de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes (2023)"
+    description: "Table de passage annuelle 2025, équivalence codes géographiques 2025 et année précédente d'établissement de codes"
     config:
       quote_columns: true
       delimiter: ';'
