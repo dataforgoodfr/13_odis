@@ -1215,24 +1215,6 @@ models:
         description: date d'extraction des données
         data_type: timestamp without time zone
 
-      - name: vw_geographical_references_geocodes_passage_annuel
-        description: Extraction du CSV avec l'équivalence des codes géographiques depuis la dernière année d'établissement des codes.
-        columns:
-          - name: geocode_year
-            description: Année la plus récente d'établissement des codes géographiques
-            data_type: text
-          - name: geocode_type
-            description: Type de code géographique ("COM", "ARM", "REG", etc.).
-            data_type: text
-          - name: geocode_type_name
-            description: Description de code géographique ("commune", "arrondisseent municipal", etc.).
-            data_type: text
-          - name: old_geocode
-            description: Ancien code géographique, à l'année d'établissement précédent la plus récente.
-            data_type: text
-          - name: geocode
-            description: Code géographique courant, à l'année d'établissement la plus récente.
-            data_type: text
 
   # Logement
   - name: logements_appartement
@@ -3838,37 +3820,38 @@ models:
         description: date d'extraction de la donnée
         data_type: timestamp without time zone
 
-  - name: population_menages_2021
+  - name: vw_population_nb_menages
     description: |-
       Extraction du fichier CSV "MEN1" fourni par l'INSEE. Millésime 2021.
       Taille ( = nb d'occupants) de chaque ménage par commune,
       et par la catégorie socioprofessionnelle de la personne de référence.
     columns:
-      - name: id
+      - name: index
         description: index
         data_type: integer
-      - name: nivgeo
+      - name: NIVGEO
         description: |-
           Niveau de granularité géographique.
           Pour ce dateset, une seule valeur possible :
           COM = Commune
         data_type: text
-      - name: codgeo
+      - name: CODGEO
         description: |-
           Code d'identification géographique.
-          En l'occurrence, code postal de la commune
+          En l'occurrence, code commune
         data_type: text
-      - name: bpe_measure
-        description: FACILITIES = services
+      - name: LIBGEO
+        description: Libellé de la commune
         data_type: text
-      - name: nbperc
-        description: Taille du foyer (nombre de personnes)
+      - name: NPERC
+        description: |-
+          Taille du foyer (en nombre de personnes entre 1 et 6+)
         data_type: integer
-      - name: cs2_24
+      - name: CS2_24
         description: CSP générale de la personne de référence du ménage
         data_type: text
-      - name: nb
-        description: TBD
+      - name: NB
+        description: Nombre de foyers dans la ville
         data_type: float
 
   - name: presentation_elus_communes

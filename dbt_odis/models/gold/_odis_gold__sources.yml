@@ -58,4 +58,12 @@ sources:
       - name: vw_population_population_superficie_stg
         description: Table contenant population et superficie par code géographique et année.
         loaded_at_field: created_at
+        
+      - name: silver_population_menages
+        description: donnees nombre de menages insee nettoyees - commune
 
+      - name: silver_population_menages_region
+        description: donnees nombre de menages insee nettoyees - region
+
+      - name: silver_population_menages_departement
+        description: donnees nombre de menages insee nettoyees - departement

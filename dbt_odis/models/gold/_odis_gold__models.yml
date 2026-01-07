@@ -592,6 +592,26 @@ models:
       - name: densite
         description: densité de population, nombre d'habitants au kilomètre carré.
         data_type: numeric
+
+
+  - name: gold_population_nb_menages
+    description: Table contenant le nombre de ménages et le nombre moyen d'occupants par ménage à tous les niveaux géographiques (commune, département, région). Union des tables silver_population_menages, silver_population_menages_departement et silver_population_menages_region.
+    columns:
+      - name: codgeo
+        description: Code géographique selon le niveau (Code INSEE commune, Code département, ou 'reg' + Code région)
+        data_type: text
+      - name: year
+        description: Année de référence des données du recensement
+        data_type: numeric
+      - name: nb_menages
+        description: Nombre total de ménages dans la zone géographique
+        data_type: numeric
+      - name: nb_occ_moyen
+        description: Nombre moyen d'occupants par ménage dans la zone géographique
+        data_type: numeric
+      - name: niveau_geo
+        description: Niveau géographique (COM pour commune, DEP pour département, REG pour région)
+        data_type: text
   - name: gold_presentation_population_communes
     description: |
       Table contenant le nombre d'habitants par communes. Les grandes villes sont considérées à l'échelle de la commune, pas de l'arrondissement.
