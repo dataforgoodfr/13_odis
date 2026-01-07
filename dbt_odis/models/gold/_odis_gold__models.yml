@@ -558,6 +558,28 @@ models:
         data_type: double precision
         quote: true
 
+  - name: gold_presentation_elus
+    description: |
+      Modèle Gold de présentation final regroupant les élus (Maires, Présidents départementaux et régionaux) avec leur nuance politique.  
+      Il normalise les colonnes et crée une clé géographique unique (`codgeo`)
+    columns:
+      - name: codgeo
+        description: |
+          Code géographique normalisé servant de clé unique :
+          * Pour les **Maires** : Utilise le `com_code` (code Insee de la commune).
+          * Pour les **Présidents du conseil départemental** : Utilise le `dep_code` (code du département).
+          * Pour les **Présidents du conseil régional** : Utilise la concaténation de 'reg' et du `reg_code` (ex: 'reg84' pour l'Auvergne-Rhône-Alpes).
+      - name: prenom
+        description: "Prénom de l'élu."
+      - name: nom
+        description: "Nom de famille de l'élu."
+      - name: fonction
+        description: "Intitulé simplifié de la fonction exercée (renommé depuis `libelle_de_la_fonction`)."
+      - name: libelle
+        description: |
+          Libellé de la nuance politique de l'élu.
+          * Si la nuance est trouvée (via les jointures du modèle Silver), elle est affichée.
+          * Si la nuance est **absente** (`NULL`), elle est remplacée par la valeur 'Non connu'.
   - name: vw_population_densite
     description: Densité de population associée aux codes géographiques (communes, départements, régions), par année.
     columns:
