@@ -3854,6 +3854,57 @@ models:
         description: Nombre de foyers dans la ville
         data_type: float
 
+  - name: presentation_elus_communes
+    description:  "Vue Bronze contenant les résultats des élections municipales, régionales et départementales avec le détail des mandats des élus et les informations géographiques associées."
+    columns:
+      - name: libelle_de_la_fonction
+        description: "Intitulé du poste ou du rôle du mandat de l'élu (ex: Maire, Conseiller municipal)."
+      - name: type_de_la_fonction
+        description: "Type de mandat ou d'élection de l'élu (Municipal, Régional, Départemental). Correspond au nom du fichier source ('filename')."
+      - name: reg_code
+        description: "Code de la région administrative (normalisé en format texte sur 2 chiffres, ex: '01', '93')."
+      - name: dep_code
+        description: "Code du département (ex: '75')."
+      - name: com_code
+        description: "Code officiel de la commune."
+
+  - name: presentation_elections_municipales
+    description: "Informations sur la nuance politique des candidats aux élections municipales"
+    columns:
+      - name: id
+      - name: code_officiel_departement
+        description: "Code officiel du département."
+      - name: nom_officiel_departement
+        description: "Nom officiel du département."
+      - name: nom_officiel_commune
+        description: "Nom officiel de la commune."
+      - name: code_nuance
+        description: "Code de la nuance politique ou du parti."
+      - name: liste
+        description: "Liste ou groupement politique."
+      - name: nom_prenom
+        description: "Nom complet du candidat."
+      - name: code_officiel_commune
+        description: "Code officiel de la commune. **Normalisé** pour les codes à 6 chiffres (DOM/TOM) en conservant les 2 premiers caractères et en omettant le 3ème (par exemple, '97101' au lieu de '97101')."
+      - name: code_officiel_region
+        description: "Code officiel de la région."
+      - name: nom_officiel_region
+        description: "Nom officiel de la région."
+      - name: created_at
+
+  - name: presentation_elections_departementales
+    description: "Informations sur la nuance politique des candidats aux élections départementales"
+
+  - name: presentation_elections_regionales
+    description: "Informations sur la nuance politique des candidats aux élections régionales"
+    columns:
+      - name: reg_code
+        description: |
+          Code officiel de la région. **Normalisé** et retravaillé selon les règles suivantes :
+          * Le code est formaté sur 2 chiffres, complété par des zéros à gauche (ex: 53 devient '53').
+          * Gestion des codes spéciaux : les codes 'ZA', 'ZB', 'ZC', 'ZD' (anciens codes DOM/TOM) sont mappés sur '01', '02', '03', '04' respectivement.
+          * Le code départemental '27' est mappé sur le code régional '28'.
+          Cette logique assure la cohérence du code région malgré les évolutions territoriales ou les codes sources spécifiques.
       - name: population_population_superficie
         description: |-
           Extraction de fichiers JSON avec données historiques population et superficie des territoires.

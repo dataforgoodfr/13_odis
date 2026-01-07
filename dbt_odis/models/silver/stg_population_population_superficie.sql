@@ -7,9 +7,9 @@
 with pivot_pop_sup as
 (
     select
-        split_part("geo", '-', 1) as codegeo_year,
-        split_part("geo", '-', 2) as codegeo_type, -- REG, COM, DEP, etc.
-        split_part("geo", '-', 3) as codegeo,
+        split_part("geo", '-', 1) as codgeo_year,
+        split_part("geo", '-', 2) as codgeo_type, -- REG, COM, DEP, etc.
+        split_part("geo", '-', 3) as codgeo,
         time_period as "year",
         -- pivot population et superficie
         cast(max(case when rp_measure = 'POP' then split_part(measure_value, '.', 1) end) as int) as population,
