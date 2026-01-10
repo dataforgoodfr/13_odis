@@ -8,7 +8,7 @@ with code_geo_final as (
         case
             when A.geocode_type = 'REG' then concat('reg', A.geocode)
             else A.geocode end
-        as codegeo,
+        as codgeo,
         A.time_period as "year",
         A.POP,
         A.POPH,
