@@ -22,7 +22,7 @@ select
     when type_geo = 'region' then concat('reg',code_geo)
     else code_geo
   end as codgeo,
-  extract(year from cast(rentree_scolaire || '-01-01' as date)) as "YEAR",
+  extract(year from rentree_scolaire::timestamp) as "YEAR",
   case
     when nombre_total_classes != 0 then round(nombre_total_eleves::numeric / nombre_total_classes::numeric,2)
   else null
@@ -30,5 +30,5 @@ select
   nombre_total_eleves as "Nombre total d'élèves",
   nombre_total_classes as "Nombre total de classes"
 from aggregation
-where rentree_scolaire ~ '^\d{4}$'
+--where rentree_scolaire ~ '^\d{4}$' -- je ne sais pas pourquoi ce filtre existe
 
