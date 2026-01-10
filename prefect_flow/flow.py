@@ -91,7 +91,7 @@ def run_dbt_models_from_load_tasks(load_tasks_by_model: dict[str, any]):
         t.result(raise_on_failure=False)
 
 @task(name="Extract")
-async def prefect_extract(config, ds, max_concurrency):
+async def prefect_extract(config, ds, max_concurrency=5):
     logger = get_run_logger()
 
     try:

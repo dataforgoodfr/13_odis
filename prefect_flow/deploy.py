@@ -4,11 +4,11 @@ from flow import full_pipeline
 
 def main() -> None:
     """Deploy the POS ETL flow to the 'etl' work pool."""
-    local_file_dir = Path(__file__).parent
+    project_root = Path(__file__).resolve().parents[1]
 
     full_pipeline.from_source(
-        source=local_file_dir,
-        entrypoint="flow.py:full_pipeline",
+        source=project_root,
+        entrypoint="prefect_flow/flow.py:full_pipeline",
     ).deploy(  # type: ignore
         name="full-pipeline",
         # C'est le nom de mon work pool Prefect en local, ca peut etre n'importe quoi
