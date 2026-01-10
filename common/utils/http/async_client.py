@@ -7,6 +7,7 @@ from tenacity import (
     retry_if_exception_type,
     stop_after_attempt,
     stop_after_delay,
+    wait_exponential,
 )
 
 from common.utils.interfaces.http import HttpClient, HttpException
@@ -30,9 +31,10 @@ class AsyncHttpClient(HttpClient):
                 Defaults to 1200 (20 minutes).
         """
 
-        conn = aiohttp.TCPConnector(limit=max_connections)
+        self._max_connections = max_connections
         self._timeout = aiohttp.ClientTimeout(total=timeout)
-        self._session = aiohttp.ClientSession(connector=conn, timeout=self._timeout)
+        self.base_url = None 
+        self._session = None
 
         logger.debug(
             f"AsyncHttpClient initialized with max_connections={max_connections}, timeout={timeout}s"
@@ -40,9 +42,10 @@ class AsyncHttpClient(HttpClient):
 
     @retry(
         retry=retry_if_exception_type(aiohttp.ClientError),
-        stop=(stop_after_delay(2400) | stop_after_attempt(3)),
+        stop=(stop_after_delay(2400) | stop_after_attempt(10)),
+        wait=wait_exponential(multiplier=1, min=10, max=120),
         before=before_log(logger, logging.DEBUG),
-        reraise=True,  
+        reraise=True,
     )
     async def get(
         self,
@@ -79,3 +82,23 @@ class AsyncHttpClient(HttpClient):
             except aiohttp.ContentTypeError as e:
                 logger.error(f"Failed to parse response: {e}")
                 raise HttpException(f"Failed to parse response from {url}: {e}") from e
+
+    async def __aenter__(self):
+        conn = aiohttp.TCPConnector(limit=self._max_connections)
+
+        kwargs = {"connector": conn, "timeout": self._timeout}
+
+        if hasattr(self, "base_url") and self.base_url is not None:
+            if not isinstance(self.base_url, str):
+                raise ValueError("base_url must be a string")
+            kwargs["base_url"] = self.base_url
+
+        if hasattr(self, "headers") and self.headers:
+            kwargs["headers"] = self.headers
+
+        self._session = aiohttp.ClientSession(**kwargs)
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        if self._session and not self._session.closed:
+            await self._session.close()
