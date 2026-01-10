@@ -1,7 +1,10 @@
 # prefect_flow/flow.py
 
 import sys
-sys.path.append('../')
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from prefect import flow, task
 from prefect.artifacts import create_markdown_artifact
@@ -16,10 +19,8 @@ from common.utils.file_handler import DEFAULT_BASE_PATH, FileHandler
 from common.utils.interfaces.data_handler import MetadataInfo
 from common.utils.interfaces.data_handler import OperationType
 import re
-from pathlib import Path
 from prefect_dbt import PrefectDbtRunner, PrefectDbtSettings
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DBT_DIR = PROJECT_ROOT / "dbt_odis"
 PROFILES_DIR = DBT_DIR
 
