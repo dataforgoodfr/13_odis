@@ -12,15 +12,16 @@ C’est ce découpage qui explique pourquoi **plusieurs terminaux** sont nécess
 
 # 🚀 1. Prérequis
 
-Créer l’environnement virtuel :
+Installer si besoin les dépendances:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-cd prefect_flow; docker compose up -d
-prefect config set PREFECT_API_URL="http://127.0.0.1:4200/api"
-prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect:prefect@localhost:5433/prefect"
+poetry install
+```
+
+```bash
+docker compose up -d
+poetry run prefect config set PREFECT_API_URL="http://127.0.0.1:4200/api"
+poetry run prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect:prefect@localhost:5433/prefect"
 
 ```
 Vous pourrez ensuite vérifier qu'aucun dossier storage/ est créé dans ~/.prefect/
@@ -45,7 +46,7 @@ Il stocke :
 Sans le serveur → impossible de déclencher un flow.
 
 ```bash
-prefect server start
+poetry run prefect server start
 ```
 
 ---
@@ -64,7 +65,7 @@ PREFECT_API_URL=http://127.0.0.1:4200/api
 Il doit tourner **en continu** comme un job supervisor.
 
 ```bash
-export PREFECT_API_URL=http://127.0.0.1:4200/api ; prefect worker start -q default
+export PREFECT_API_URL=http://127.0.0.1:4200/api ; poetry run prefect worker start -p default
 ```
 
 ---
@@ -74,16 +75,26 @@ export PREFECT_API_URL=http://127.0.0.1:4200/api ; prefect worker start -q defau
 Il sert à enregistrer un "deployment" dans prefect et à lancer un run manuel. Il faut d'abord lancer cette commande : 
 
 ```bash
-python deploy.py 
+poetry run python prefect_flow/deploy.py 
 ```
 
 Ensuite ton flow sera "inscrit" dans l'interface. Tu peux déclencher un run manuellement, ou via le CLI prefect :
 
 
 ```bash
-prefect deployment run "full-pipeline/full_pipeline"
+poetry run prefect deployment run "full-pipeline/full-pipeline"
+```
+En cas d'erreur:
+
+```bash
+ValueError: ZoneInfo keys may not be absolute paths, got: /UTC
 ```
 
+Ajouter ceci, par exemple, aux variables d'environnement:
+
+```bash
+export TZ=Europe/Paris
+```
 
 # DEBUG
 

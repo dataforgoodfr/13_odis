@@ -7,6 +7,7 @@ from tenacity import (
     retry_if_exception_type,
     stop_after_attempt,
     stop_after_delay,
+    wait_exponential,
 )
 
 from common.utils.interfaces.http import HttpClient, HttpException
@@ -41,9 +42,10 @@ class AsyncHttpClient(HttpClient):
 
     @retry(
         retry=retry_if_exception_type(aiohttp.ClientError),
-        stop=(stop_after_delay(2400) | stop_after_attempt(3)),
+        stop=(stop_after_delay(2400) | stop_after_attempt(10)),
+        wait=wait_exponential(multiplier=1, min=10, max=120),
         before=before_log(logger, logging.DEBUG),
-        reraise=True,  
+        reraise=True,
     )
     async def get(
         self,
