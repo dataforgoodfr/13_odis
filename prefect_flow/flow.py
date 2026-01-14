@@ -94,7 +94,7 @@ async def prefect_extract(config, ds, max_concurrency):
     logger = get_run_logger()
 
     try:
-        await run_extraction(config, [ds], max_concurrency)
+        await run_extraction(config, [ds], max_concurrency, logger)
 
         metadata = read_extract_metadata(ds)
         if metadata is None:
