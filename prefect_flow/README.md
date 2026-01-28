@@ -20,11 +20,12 @@ poetry install
 
 ```bash
 docker compose up -d
-poetry run prefect config set PREFECT_API_URL="http://127.0.0.1:4200/api"
-poetry run prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect:prefect@localhost:5433/prefect"
+prefect config set PREFECT_API_URL="http://127.0.0.1:4200/api"
+prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect:prefect@localhost:5433/prefect"
 
 ```
-Vous pourrez ensuite vérifier qu'aucun dossier storage/ est créé dans ~/.prefect/
+Vous pourrez ensuite vérifier qu'aucun dossier storage/ est créé dans ~/.prefect/ (donc Prefect utilise bien Postgresql et non pas sqllite)
+Il est également important d'initialiser la base de donnée Postgresql comme indiqué dans le README à la racine du repo.
 
 ---
 
@@ -103,3 +104,12 @@ if __name__ == "__main__":
         config_path="datasources.yaml",
         max_concurrency=4,
     )
+
+# Concurrency limit
+
+prefect concurrency-limit create api.insee.melodi 1
+prefect concurrency-limit create api.insee.metadonnees 1
+prefect concurrency-limit create api.insee.statistiques 1
+prefect concurrency-limit create api.data.gouv.fr 1
+prefect concurrency-limit create api.opendatasoft 2
+prefect concurrency-limit create api.geo.api.gouv.fr 2

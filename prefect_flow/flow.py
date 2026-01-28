@@ -39,15 +39,12 @@ def read_extract_metadata(ds: DomainModel) -> MetadataInfo | None:
         # le fichier n'existe pas ou est invalide
         return None
 
-#@task
-#def prefect_dbt_run():
-#    runner = PrefectDbtRunner(
-#        settings=PrefectDbtSettings(
-#            project_dir=str(DBT_DIR),
-#            profiles_dir=str(PROFILES_DIR)
-#        )
-#    )
-#    runner.invoke(["build"])  # ou ["run"] selon ce que tu veux faire
+
+def api_to_tag(api_name: str) -> str:
+    """
+    Transforme 'INSEE.Melodi' -> 'api.insee.melodi'
+    """
+    return f"api.{api_name.lower()}"
 
 
 def get_dbt_runner():
@@ -181,12 +178,18 @@ async def full_pipeline(config_path: str = "datasources.yaml", max_concurrency: 
     # PAS BESOIN DE PREFECT POUR TESTER CA
     #generate_dbt_sources(config_path)
 
-    extract_tasks = [
-        prefect_extract.with_options(
-            name=f"Extract {ds.name}"
+    extract_tasks = []
+
+    for ds in config.get_models().values():
+        api_name = ds.API  # ex: "INSEE.Melodi"
+        api_tag = api_to_tag(api_name)
+
+        task = prefect_extract.with_options(
+            name=f"Extract {ds.name}",
+            tags={api_tag},  # 🔥 TAG PAR SOURCE
         ).submit(config, ds, max_concurrency)
-        for ds in config.get_models().values()
-    ]
+
+        extract_tasks.append(task)
 
     extract_results = [
         t.result(raise_on_failure=False)
