@@ -11,6 +11,9 @@
             "version": "3.12"
         }
     },
+    "containerEnv": {
+        "TZ": "Europe/Paris"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
