@@ -17,11 +17,12 @@ from rich.table import Table
 from common.config import load_config
 from common.data_source_model import APIModel, DataSourceModel, DomainModel
 from common.utils.factory.extractor_factory import create_extractor
-from common.utils.factory.loader_factory import create_loader
 from common.utils.file_handler import FileHandler
 from common.utils.http.async_client import AsyncHttpClient
 from common.utils.logging_odis import logger
 
+from pipeline.extract_service import run_extraction
+from pipeline.load_service import run_load
 # this module is the entry point for the CLI
 # it will parse the arguments and execute the requested operation
 
@@ -379,7 +380,7 @@ def extract(
     )
 
     asyncio.run(
-        extract_data_sources(config_model, data_sources, max_concurrent_requests=max_concurrent_requests)  # type: ignore[call-arg] # noqa: E501
+        run_extraction(config_model, data_sources, max_concurrent_requests)
     )
 
 
@@ -452,30 +453,18 @@ def load(
         f"[green]Loading data from the following data sources: {[ds.name for ds in data_sources]}[/green]"
     )
 
-    with typer.progressbar(data_sources) as progress:
 
-        is_exception = False
+    is_exception = False
 
-        for ds in progress:
+    try:
 
-            try:
+        run_load(config_model, data_sources)
 
-                print("\n")
-                print("\n[blue]Using data source configuration:[/blue]")
-                explain_data_source(config_model, ds.name)
-                print("\n")
 
-                print(f"\n[blue]Loading data into {ds.name}[/blue]")
+    except Exception as e:
 
-                loader = create_loader(config_model, ds, handler=FileHandler())
-                loader.execute()
-
-                print(f"[blue]Data loaded into {ds.name}[/blue]")
-
-            except Exception as e:
-
-                logger.exception(f"Issue in loading data : {e}")
-                is_exception = True
+        logger.exception(f"Issue in loading data : {e}")
+        is_exception = True
 
     if is_exception:
         print(

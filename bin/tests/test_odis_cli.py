@@ -148,7 +148,7 @@ def test_extract_by_source():
         handler = Mock()
 
         with patch(
-            "bin.odis.create_extractor",
+            "pipeline.extract_service.create_extractor",
             return_value=StubExtractor(
                 return_value=ExtractionResult(
                     success=True,
@@ -173,7 +173,7 @@ def test_extract_by_source():
     # then
     # no exception raised but handler is not called
     assert result.exit_code == 0
-    assert "All data extracted successfully" in result.stdout
+    assert "Extracting data from the following data sources" in result.stdout
     mock_create_extractor.assert_called_once()
 
 
@@ -218,7 +218,7 @@ def test_extract_by_domain():
         )
 
         with patch(
-            "bin.odis.create_extractor",
+            "pipeline.extract_service.create_extractor",
             return_value=StubExtractor(
                 return_value=ExtractionResult(
                     success=True,
@@ -243,7 +243,7 @@ def test_extract_by_domain():
     # then
     # no exception raised but handler is not called
     assert result.exit_code == 0
-    assert "All data extracted successfully" in result.stdout
+    assert "Extracting data from the following data sources:" in result.stdout
     assert mock_create_extractor.call_count == 2  # there are 2 endpoints in the domain
 
 
@@ -293,7 +293,7 @@ def test_extract_all_domains():
         )
 
         with patch(
-            "bin.odis.create_extractor",
+            "pipeline.extract_service.create_extractor",
             return_value=StubExtractor(
                 return_value=ExtractionResult(
                     success=True,
@@ -318,7 +318,7 @@ def test_extract_all_domains():
     # then
     # no exception raised but handler is not called
     assert result.exit_code == 0
-    assert "All data extracted successfully" in result.stdout
+    assert "Extracting data from the following data sources:" in result.stdout
     assert mock_create_extractor.call_count == 2  # one for each domain
 
 
@@ -347,7 +347,7 @@ def test_load_data_by_source():
 
     # when
     with patch("builtins.open", mocked_open_function), patch(
-        "bin.odis.create_loader"
+        "pipeline.load_service.create_loader"
     ) as mock_create_loader:
 
         # when
@@ -396,7 +396,7 @@ def test_load_by_domain():
 
     # when
     with patch("builtins.open", mocked_open_function), patch(
-        "bin.odis.create_loader"
+        "pipeline.load_service.create_loader"
     ) as mock_create_loader:
 
         # when
@@ -449,7 +449,7 @@ def test_load_all_domains():
 
     # when
     with patch("builtins.open", mocked_open_function), patch(
-        "bin.odis.create_loader"
+        "pipeline.load_service.create_loader"
     ) as mock_create_loader:
 
         # when
