@@ -141,3 +141,14 @@ def stub_page_log():
         is_last=False,
         success=True,
     )
+
+@pytest.fixture(scope="function")
+def pg_settings():
+    """return the settings for the database connection"""
+    yield {
+        "PG_DB_USER": PG_USER,
+        "PG_DB_PWD": PG_PASSWORD,
+        "PG_DB_HOST": PG_HOST,
+        "PG_DB_PORT": PG_PORT,
+        "PG_DB_NAME": PG_DATABASE,
+    }

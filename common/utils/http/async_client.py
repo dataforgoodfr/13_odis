@@ -6,7 +6,6 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
-    stop_after_delay,
     wait_exponential,
 )
 
@@ -42,8 +41,8 @@ class AsyncHttpClient(HttpClient):
 
     @retry(
         retry=retry_if_exception_type(aiohttp.ClientError),
-        stop=(stop_after_delay(2400) | stop_after_attempt(10)),
-        wait=wait_exponential(multiplier=1, min=10, max=120),
+        stop=stop_after_attempt(3),          # 3 essais seulement
+        wait=wait_exponential(multiplier=0.1, min=0.1, max=1),  # delays très courts pour tests
         before=before_log(logger, logging.DEBUG),
         reraise=True,
     )
