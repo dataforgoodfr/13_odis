@@ -9,7 +9,7 @@ from common.utils.file_handler import FileHandler
 from common.utils.http.async_client import AsyncHttpClient
 from common.utils.logging_odis import logger
 import logging
-from typing import List, Optional
+from typing import Optional
 
 async def run_extraction(
     config_model: DataSourceModel,

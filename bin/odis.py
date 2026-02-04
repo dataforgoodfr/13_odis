@@ -17,7 +17,6 @@ from rich.table import Table
 from common.config import load_config
 from common.data_source_model import APIModel, DataSourceModel, DomainModel
 from common.utils.factory.extractor_factory import create_extractor
-from common.utils.factory.loader_factory import create_loader
 from common.utils.file_handler import FileHandler
 from common.utils.http.async_client import AsyncHttpClient
 from common.utils.logging_odis import logger

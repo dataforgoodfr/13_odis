@@ -2,17 +2,11 @@
 
 import sys
 from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PROJECT_ROOT))
-
 from prefect import flow, task
 from prefect.artifacts import create_markdown_artifact
 from pipeline.extract_service import run_extraction
 from pipeline.load_service import run_load
-from prefect_flow.generate_sources import generate_dbt_sources
 from common.config import load_config
-import subprocess
 from prefect.logging import get_run_logger
 from common.data_source_model import DataSourceModel, DomainModel
 from common.utils.file_handler import DEFAULT_BASE_PATH, FileHandler
@@ -20,6 +14,9 @@ from common.utils.interfaces.data_handler import MetadataInfo
 from common.utils.interfaces.data_handler import OperationType
 import re
 from prefect_dbt import PrefectDbtRunner, PrefectDbtSettings
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
 DBT_DIR = PROJECT_ROOT / "dbt_odis"
 PROFILES_DIR = DBT_DIR
@@ -35,7 +32,7 @@ def read_extract_metadata(ds: DomainModel) -> MetadataInfo | None:
             model=ds,
             operation=OperationType.EXTRACT,
         )
-    except Exception as e:
+    except Exception:
         # le fichier n'existe pas ou est invalide
         return None
 
@@ -147,8 +144,6 @@ async def prefect_extract(config, ds, max_concurrency=5):
 
 @task(name="Load", retries=0)
 def prefect_load(config, ds):
-    logger = get_run_logger()
-
     try:
         run_load(config, [ds])
 
@@ -198,7 +193,7 @@ async def full_pipeline(config_path: str = "datasources.yaml", max_concurrency: 
 
     valid_metadata = []
 
-    for task, result in zip(extract_tasks, extract_results):
+    for task, result in zip(extract_tasks, extract_results, strict=False):
         if task.state.is_failed():
             continue
         if not isinstance(result, MetadataInfo):
