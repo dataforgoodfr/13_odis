@@ -21,7 +21,7 @@ poetry install
 ```bash
 docker compose up -d
 prefect config set PREFECT_API_URL="http://127.0.0.1:4200/api"
-prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect:prefect@localhost:5433/prefect"
+prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect:prefect@localhost:5432/prefect"
 
 ```
 Vous pourrez ensuite vérifier qu'aucun dossier storage/ est créé dans ~/.prefect/ (donc Prefect utilise bien Postgresql et non pas sqllite)

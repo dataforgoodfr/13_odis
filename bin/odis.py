@@ -453,29 +453,18 @@ def load(
         f"[green]Loading data from the following data sources: {[ds.name for ds in data_sources]}[/green]"
     )
 
-    with typer.progressbar(data_sources) as progress:
 
-        is_exception = False
+    is_exception = False
 
-        for ds in progress:
+    try:
 
-            try:
+        run_load(config_model, data_sources)
 
-                print("\n")
-                print("\n[blue]Using data source configuration:[/blue]")
-                explain_data_source(config_model, ds.name)
-                print("\n")
 
-                print(f"\n[blue]Loading data into {ds.name}[/blue]")
+    except Exception as e:
 
-                run_load(config_model, data_sources)
-
-                print(f"[blue]Data loaded into {ds.name}[/blue]")
-
-            except Exception as e:
-
-                logger.exception(f"Issue in loading data : {e}")
-                is_exception = True
+        logger.exception(f"Issue in loading data : {e}")
+        is_exception = True
 
     if is_exception:
         print(
