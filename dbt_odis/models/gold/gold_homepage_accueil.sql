@@ -58,7 +58,7 @@ region_agg as (
 )
 select codgeo, cada, huda, prahda, cph, caes, disp_refu from type_pivot
     union all
-select * from departement_agg
+select codgeo, cada, huda, prahda, cph, caes, disp_refu from departement_agg
     union all
-select * from region_agg
+select codgeo, cada, huda, prahda, cph, caes, disp_refu from region_agg
     order by codgeo
