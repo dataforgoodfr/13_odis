@@ -1,6 +1,6 @@
 {{ config(
     tags=['gold', 'population'],
-    alias='vw_population_by_age_gender_csp'
+    alias='gold_population_by_age_gender_csp'
 ) }}
 
 with code_geo_final as (

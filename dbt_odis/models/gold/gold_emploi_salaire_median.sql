@@ -1,6 +1,6 @@
 {{ config(
     tags = ['gold', 'emploi'],
-    alias='emploi_salaire_median'
+    alias='gold_emploi_salaire_median'
     )
 }}
 

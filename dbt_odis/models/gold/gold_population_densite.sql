@@ -1,6 +1,6 @@
 {{ config(
     tags=['gold', 'population'],
-    alias='vw_population_densite'
+    alias='gold_population_densite'
 ) }}
 
 with densite as (

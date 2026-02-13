@@ -1,6 +1,6 @@
 {{ config(
     tags = ['gold', 'population', 'presentation'],
-    alias='vw_presentation_population_communes_gold',
+    alias='gold_presentation_population_communes',
 ) }}
 
 

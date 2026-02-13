@@ -236,7 +236,7 @@ models:
         data_type: integer
         quote: true
 
-  - name: emploi_salaire_median
+  - name: gold_emploi_salaire_median
     description: Salaire Médian
     columns:
       - name: codgeo
@@ -397,7 +397,7 @@ models:
         description: nombre de places dans les chrs_etab
         data_type: integer
 
-  - name: vw_population_by_age_gender_csp
+  - name: gold_population_by_age_gender_csp
     description: Table transformée contenant les indicateurs de population par tranche d'âge, genre et CSP et code géographique.
     columns:
       - name: codegeo
@@ -580,7 +580,7 @@ models:
           Libellé de la nuance politique de l'élu.
           * Si la nuance est trouvée (via les jointures du modèle Silver), elle est affichée.
           * Si la nuance est **absente** (`NULL`), elle est remplacée par la valeur 'Non connu'.
-  - name: vw_population_densite
+  - name: gold_population_densite
     description: Densité de population associée aux codes géographiques (communes, départements, régions), par année.
     columns:
       - name: codegeo

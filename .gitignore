@@ -164,6 +164,7 @@ cython_debug/
 
 log/*
 data/imports/*
+data/export/*
 !data/imports/.gitkeep
 .DS_Store
 log/*
