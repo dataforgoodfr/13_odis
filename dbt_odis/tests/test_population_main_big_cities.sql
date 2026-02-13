@@ -11,6 +11,7 @@ select
 from insee_data id
 left join {{ ref('gold_presentation_population_communes') }} model
     on id."GEO" = model.codgeo
+    and model.year = '2022'
 where model.population_totale is not null
     and model.population_totale > 0
     and (
