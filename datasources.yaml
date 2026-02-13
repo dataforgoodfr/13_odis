@@ -582,6 +582,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
+          startPeriod: "2008-01-01"
+          endPeriod: "2026-12-31" 
           SEX : _T
           EP_MEASURE: POP # Prendre uniquement la mesure de population
         response_map:
@@ -597,7 +599,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2022
+          startPeriod: "2008-01-01"
+          endPeriod: "2026-12-31" 
           SEX: ["M", "F", "_T"]
           GEO: ["COM", "DEP", "REG"]
           RP_MEASURE: POP
@@ -614,7 +617,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2022
+          startPeriod: "2008-01-01"
+          endPeriod: "2026-12-31" 
           GEO: ["COM","DEP","REG"]
           RP_MEASURE: ["POP","SUP"]
           OCS: "_T"
@@ -631,7 +635,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2023
+          startPeriod: "2008-01-01"
+          endPeriod: "2026-12-31" 
           GEO: ["COM"]
           POPREF_MEASURE: ["PMUN", "PTOT"]
           page: 1
@@ -648,7 +653,8 @@ domains:
         format: json
         extract_params:
           maxResult: 10000
-          TIME_PERIOD: 2022
+          startPeriod: "2008-01-01"
+          endPeriod: "2026-12-31" 
           GEO: ["COM","DEP","REG"]
           SEX: "_T"
           RP_MEASURE: "POP"
