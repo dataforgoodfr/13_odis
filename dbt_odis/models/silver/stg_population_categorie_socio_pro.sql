@@ -28,12 +28,11 @@ pop_csp as (
         sum(case when pcs = '5' then round(measure_value, 4) end) as POP15P_CS5,
         sum(case when pcs = '6' then round(measure_value, 4) end) as POP15P_CS6,
         sum(case when pcs = '7' then round(measure_value, 4) end) as POP15P_CS7,
-        -- CSP = '8' does not exist for 2022
+        sum(case when pcs = '8' then round(measure_value, 4) end) as POP15P_CS8,
         sum(case when pcs = '9' then round(measure_value, 4) end) as POP15P_CS9
     from pop
     where age = 'Y_GE15'
     and sex = '_T'
-    and time_period = '2022'
     group by
         geo,
         split_part(geo, '-', 1),
@@ -52,5 +51,5 @@ select * from pop_csp
 -- cs5: employés
 -- cs6: ouvriers
 -- cs7: retraités
--- cs8: étudiants ou élèves (N/A en 2022)
--- cs9: autres inactifs (nouvelle catégorie)
+-- cs8: étudiants ou élèves (N/A en 2022, disponible en 2011/2016)
+-- cs9: autres inactifs

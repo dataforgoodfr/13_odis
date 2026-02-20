@@ -88,7 +88,6 @@ all_age_sex as (
     left join total t
     on t.geo = w.geo
     and t.time_period = w.time_period
-    where w.time_period = '2022'
     group by
         w.geo,
         split_part(w.geo, '-', 1),
